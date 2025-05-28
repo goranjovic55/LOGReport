@@ -1,0 +1,25 @@
+     3s% p f f i s 1630000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+
+Display Field Bus Configuration via agent 1630000
+---------------------------------------------------
+ PIC  5   6   7   8   9   10  11  12  13  14  15  16  17  18  19  20     sum
+    0 BO8 BO8 BO8 BO8 BO8 BO8 BI4                                         7
+    1                                                                     0
+    2 BO8 BO8 BO8             BI4                                         4
+    3                                                                     0
+    4 Not Exists
+    5 Not Exists
+    6 Not Exists
+    7 Not Exists
+    8 Not Exists
+    9 Not Exists
+   10 Not Exists
+   11 Not Exists
+   12 Not Exists
+   13 Not Exists
+   14 Not Exists
+   15 Not Exists
+ Total sum: 11 I/O-units, 80 Channels(8 input, 72 output)
+ BIU4:  2,BOU8:  9

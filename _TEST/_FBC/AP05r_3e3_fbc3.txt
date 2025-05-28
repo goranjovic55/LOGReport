@@ -1,0 +1,25 @@
+    11s% p f f i s 3e30000
+
+        Getting FBC Utilization Rate from FBC agent 3e30000
+
+Display Field Bus Configuration via agent 3e30000
+---------------------------------------------------
+ PIC  5   6   7   8   9   10  11  12  13  14  15  16  17  18  19  20     sum
+    0 BO8 BI8 BI8 BI8 BI8 BI8 BO8 BI8 AO4 AI8 AI8 AO4 AO4 BI8 TI6        15
+    1 BO8 BI8 BI8 BI8     BI8     BI8     AI8 AO4                         8
+    2 BO8 BI8 BI8 BO8 BI8 BI8 BI8 BI8 AO4 AI8 AI8 AO4 AO4 BI8 TI6        15
+    3 BO8 BI8 BI8 BI8 AO4 BI8 BI8 BI8 AO4 AI8 AI8 AO4 AI8 AO4 AO4        15
+    4 BO8 BI8 BI8 BI8 BI8 BI8 AO4 BI8 BI8 BI8 AI8 AO4 AI8 AO4 AI8        15
+    5 BO8 BI8 BI8     BI8 BI8 BI8 BI8         AI8 AO4     BI8 TI6        11
+    6 BO8 BI8 BI8 BI8 BI8 BI8     BI8         AI8 AO4                     9
+    7 BO8 BI8                                 AI8 AO4                     4
+    8 Not Exists
+    9 Not Exists
+   10 Not Exists
+   11 Not Exists
+   12 Not Exists
+   13 Not Exists
+   14 Not Exists
+   15 Not Exists
+ Total sum: 92 I/O-units, 658 Channels(506 input, 152 output)
+ AIU8: 14,AOU4: 18,BIU8: 47,BOU8: 10,TIU6:  3
