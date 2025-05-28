@@ -2,69 +2,69 @@ from typing import List, Dict
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.platypus import Paragraph, Spacer, SimpleDocTemplate, PageBreak
 from docx import Document
 from docx.shared import Pt
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import (
+    Paragraph, Spacer, SimpleDocTemplate, 
+    PageBreak, KeepTogether
+)
+from reportlab.lib.enums import TA_CENTER
 
 class ReportGenerator:
     def __init__(self):
         # Define standardized styles
         self.styles = {
             'title': ParagraphStyle(
-                'Title',
-                fontName='Helvetica-Bold',
-                fontSize=14,
-                leading=16,
-                spaceAfter=12
+                'Title', fontName='Helvetica-Bold', 
+                fontSize=16, alignment=TA_CENTER,
+                spaceAfter=24
             ),
-            'filename': ParagraphStyle(
-                'Filename',
-                fontName='Helvetica-Bold',
-                fontSize=12,
-                textColor='#333333',
-                leading=14,
-                spaceAfter=8
+            'chapter1': ParagraphStyle(
+                'Chapter1', fontName='Helvetica-Bold',
+                fontSize=14, textColor='#0066CC',
+                spaceBefore=12, spaceAfter=6
+            ),
+            'chapter2': ParagraphStyle(
+                'Chapter2', fontName='Helvetica-Bold',
+                fontSize=12, textColor='#008800',
+                spaceBefore=10, spaceAfter=4
             ),
             'content': ParagraphStyle(
-                'Content',
-                fontName='Courier',
-                fontSize=10,
-                leading=12,
+                'Content', fontName='Courier',
+                fontSize=10, leading=12,
                 spaceAfter=0
             ),
-            'spacer': ParagraphStyle(
-                'Spacer',
-                spaceBefore=20,
-                spaceAfter=20
+            'filename': ParagraphStyle(
+                'Filename', fontName='Courier-Bold',
+                fontSize=10, textColor='#990000',
+                spaceBefore=8, spaceAfter=4
             )
         }
 
-    def generate_pdf(self, logs: List[Dict], output_path: str):
+    def generate_pdf(self, items: List[Dict], output_path: str):
         """Generate PDF with consistent styling and spacing"""
         doc = SimpleDocTemplate(output_path)
         story = []
         
-        # Add title
-        story.append(Paragraph("<b>LOG REPORT</b>", self.styles['title']))
+        story.append(Paragraph("LOG REPORT", self.styles['title']))
         story.append(Spacer(1, 24))
         
-        for log in logs:
-            # File section header
-            story.append(Paragraph(
-                f"File: {log['filename']}",
-                self.styles['filename']
-            ))
-            
-            # File content
-            for line in log['content']:
-                story.append(Paragraph(line, self.styles['content']))
-            
-            # Section separator
-            story.extend([
-                PageBreak(),  # Or Spacer(1, 48) for space without page break
-                Paragraph("<br/><br/>", self.styles['spacer'])
-            ])
+        current_chapter = ""
+        for item in items:
+            if item['type'] == 'chapter':
+                style = self.styles['chapter1'] if item['level'] == 1 else self.styles['chapter2']
+                story.append(Paragraph(item['name'].upper(), style))
+                current_chapter = item['name']
+            else:
+                # File content with folder path
+                header = f"{current_chapter}/{item['filename']}" if current_chapter else item['filename']
+                story.append(Paragraph(header, self.styles['filename']))
+                
+                for line in item['content']:
+                    story.append(Paragraph(line, self.styles['content']))
+                
+                story.append(Spacer(1, 12))
         
         doc.build(story)
 
