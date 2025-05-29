@@ -58,9 +58,11 @@ def validate(file_path: str) -> bool:
 ## Line Filter Implementation
 ```python
 def process_file(self, filepath):
+    """Process file with configurable filters and return metadata"""
+    content = self._read_lines(filepath)
     return {
         'path': str(filepath),
-        'content': self._read_lines(filepath),
+        'content': content,
         'stats': {
             'line_count': len(content),
             'size': os.path.getsize(filepath),
@@ -70,8 +72,10 @@ def process_file(self, filepath):
 
 def _read_lines(self, filepath):
     """Applies configured line filters during read"""
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     if self.filter_mode == 'first':
         return lines[:self.line_limit]
-    # ... other filter cases ...
+    elif self.filter_mode == 'last':
+        return lines[-self.line_limit:]
+    return lines

@@ -1,18 +1,17 @@
 ---
-
 ### 2. System Architecture 
 **Path:** `_BMPRSS/_BLUEPRINT/SYSTEM_ARCHITECTURE.md`
 ```markdown
-# LOGReport System Architecture v2.1
+# LOGReport system architecture v2.1
 
-## Updated Component Diagram
+## Updated component diagram
 ```mermaid
 flowchart TD
-    A[Log Files] --> B(GUI Interface)
-    B --> C[File Scanner]
-    C --> D[Log Processor]
-    D --> E[Line Filter]
-    E --> F[Report Generator]
-    F --> G[PDF/DOCX Output]
-    B --> H[User Settings]
+    A[Log file] --> B(GUI interface)
+    B --> C[File scanner]
+    C --> D[Log processor]
+    D --> E[Line filter]
+    E --> F[Report generator]
+    F --> G[PDF/DOCX output]
+    B --> H[User settings]
 ```
