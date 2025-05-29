@@ -36,7 +36,7 @@ def read_lines(path: str) -> list[str]:
   - Header: Arial Bold 14pt
 
 
-## File Processing Standards v1.3
+## File Processing Standards v2.2
 
 ## Input Requirements
 | Parameter        | Specification          |
@@ -53,3 +53,25 @@ def validate(file_path: str) -> bool:
         os.path.isfile(file_path),
         1024 <= os.path.getsize(file_path) <= 10_000_000
     ])
+```
+
+## Line Filter Implementation
+```python
+def process_file(self, filepath):
+    return {
+        'path': str(filepath),
+        'content': self._read_lines(filepath),
+        'stats': {
+            'line_count': len(content),
+            'size': os.path.getsize(filepath),
+            'modified': os.path.getmtime(filepath)
+        }
+    }
+
+def _read_lines(self, filepath):
+    """Applies configured line filters during read"""
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+    if self.filter_mode == 'first':
+        return lines[:self.line_limit]
+    # ... other filter cases ...

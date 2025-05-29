@@ -1,23 +1,18 @@
-
 ---
 
 ### 2. System Architecture 
 **Path:** `_BMPRSS/_BLUEPRINT/SYSTEM_ARCHITECTURE.md`
 ```markdown
-# LOGReport System Architecture
+# LOGReport System Architecture v2.1
 
-## Component Diagram
-```plantuml
-@startuml
-[Log Files] --> [Folder Scanner]
-[Folder Scanner] --> [Text Processor]
-[Text Processor] --> [PDF Generator]
-[Text Processor] --> [DOCX Generator]
-[PDF Generator] --> [Output PDF]
-[DOCX Generator] --> [Output DOCX]
-
-note right of [Folder Scanner]
-  Recursive directory traversal
-  with file filtering
-end note
-@enduml
+## Updated Component Diagram
+```mermaid
+flowchart TD
+    A[Log Files] --> B(GUI Interface)
+    B --> C[File Scanner]
+    C --> D[Log Processor]
+    D --> E[Line Filter]
+    E --> F[Report Generator]
+    F --> G[PDF/DOCX Output]
+    B --> H[User Settings]
+```

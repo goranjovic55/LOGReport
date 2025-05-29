@@ -25,6 +25,15 @@
   - Page breaks between files
   - Preserved original spacing
 
+## Output Standards v2.1
+
+## New Formatting Features
+| Element          | Style                           |
+|------------------|--------------------------------|
+| Filtered Header  | "(Filtered: First 50 lines)"   |
+| Range Display    | "Lines 100-150"                |
+| Truncated Alert  | "[...truncated...]" footer     |
+
 ## Sample Configuration
 ```python
 PDF_SETTINGS = {
