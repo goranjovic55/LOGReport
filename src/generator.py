@@ -2,7 +2,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Preformatted
 from docx import Document
 from docx.shared import Pt
 from typing import List, Dict
@@ -78,11 +78,9 @@ class ReportGenerator:
                     self.styles['pdf']['title']
                 ))
                 
-                # Add filtered content
-                story.extend(
-                    Paragraph(line, self.styles['pdf']['body'])
-                    for line in processed_log['content']
-                )
+                # Add filtered content as preformatted text to preserve whitespace
+                content_text = "\n".join(processed_log['content'])
+                story.append(Preformatted(content_text, self.styles['pdf']['body']))
                 
                 story.append(Spacer(1, 12*mm))
             
@@ -133,9 +131,9 @@ class ReportGenerator:
                 log.get('range_end', 0)
             )
             
-            # Add content
-            for line in content:
-                doc.add_paragraph(line, style='Normal')
+            # Combine all lines into a single paragraph with preserved newlines
+            full_text = '\n'.join(content)
+            doc.add_paragraph(full_text, style='Normal')
             
             doc.add_page_break()
             

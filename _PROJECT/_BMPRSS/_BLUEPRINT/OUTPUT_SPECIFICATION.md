@@ -9,21 +9,30 @@
 ## PDF Requirements
 - **Page Size**: A4 portrait
 - **Margins**: 20mm all sides
-- **Font**: DejaVu Sans Mono 10pt
+- **Font**: Courier 10pt (monospaced)
 - **Features**:
   - Cover page with metadata
   - Table of contents
   - File section dividers
   - Page numbers
+  - Preserved whitespace using Preformatted text blocks
 
 ## DOCX Requirements
 - **Styles**:
-  - Code style for log content
+  - Body: Courier New 10pt (monospaced)
   - Heading styles for file sections
 - **Features**:
   - Hyperlinked TOC
   - Page breaks between files
-  - Preserved original spacing
+  - Preserved whitespace using combined paragraphs
+  - Newline-preserving formatting
+
+## Whitespace Preservation Standard
+- All original whitespace characters (spaces, tabs) must be preserved exactly
+- Empty lines should be maintained in output
+- Output generators must use monospaced fonts to maintain column alignment
+- For PDFs: Use Preformatted text blocks to prevent line wrapping
+- For DOCX: Combine file content into single paragraphs with \n separators
 
 ## Output Standards v2.1
 

@@ -102,12 +102,14 @@ class LogProcessor:
         return result
         
     def _read_content(self, filepath: Path) -> List[str]:
-        """Read file with encoding fallback and line filtering"""
+        """Read file with encoding fallback and line filtering.
+        Preserves original whitespace and empty lines.
+        """
         encodings = ['utf-8', 'ascii', 'latin-1']
         for enc in encodings:
             try:
                 with open(filepath, 'r', encoding=enc) as f:
-                    lines = [line.strip() for line in f.readlines() if line.strip()]
+                    lines = [line.rstrip('\n') for line in f.readlines()]
                     return self._filter_lines(lines)
             except UnicodeDecodeError:
                 continue
