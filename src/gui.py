@@ -1,181 +1,344 @@
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QFileDialog, QComboBox, QProgressBar,
-    QMessageBox, QCheckBox
+    QLabel, QPushButton, QFileDialog, QComboBox, QSpinBox,
+    QGroupBox, QStatusBar, QProgressBar
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from pathlib import Path
+from PyQt6.QtGui import QPalette, QColor
+from PyQt6.QtWidgets import QStyleFactory
 from processor import LogProcessor
 from generator import ReportGenerator
-
-# Default styles for the application
-DEFAULT_STYLES = {
-    'content_font': 'Courier',
-    'content_size': 10,
-    'header_font': 'Helvetica',
-    'space_between': 24  # points
-}
+from datetime import datetime
 
 class Worker(QThread):
-    progress_updated = pyqtSignal(int)
-    finished = pyqtSignal(str)
-    error_occurred = pyqtSignal(str)
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
 
-    def __init__(self, input_dir, output_file, use_subdirs, format_type):
+    def __init__(self, processor, folder, filters):
         super().__init__()
-        self.input_dir = input_dir
-        self.output_file = output_file
-        self.use_subdirs = use_subdirs
-        self.format_type = format_type
-        self.processor = LogProcessor()
-        self.generator = ReportGenerator()
-
-    def process_logs(self, logs):
-        """Simulate processing with progress updates"""
-        for i, log in enumerate(logs):
-            # Process each log (in a real app this would be actual processing)
-            self.progress_updated.emit(int((i + 1) / len(logs) * 100))
-            QThread.msleep(50)  # Simulate work
+        self.processor = processor
+        self.folder = folder
+        self.filters = filters
 
     def run(self):
         try:
-            # Step 1: Get all log files
-            logs = []
-            for root, _, files in Path(self.input_dir).rglob('*') if self.use_subdirs \
-                  else [(self.input_dir, [], files) for _ in [Path(self.input_dir).iterdir()]]:
-                for file in files:
-                    if file.suffix.lower() in ('.log', '.txt'):
-                        logs.append(Path(root) / file)
-            
-            self.progress_updated.emit(10)  # Files found
-
-            # Step 2: Process files with progress updates
-            processed_data = []
-            for i, filepath in enumerate(logs):
-                processed_data.append(self.processor.process_file(filepath))
-                self.progress_updated.emit(10 + int(i / len(logs) * 70))
-            
-            self.progress_updated.emit(80)  # Processing complete
-
-            # Step 3: Generate output
-            if self.format_type.lower() == 'pdf':
-                self.generator.generate_pdf(processed_data, self.output_file)
-            else:
-                self.generator.generate_docx(processed_data, self.output_file)
-            
-            self.progress_updated.emit(100)
-            self.finished.emit(self.output_file)
-
+            result = self.processor.process_directory(self.folder)
+            self.finished.emit(result)
         except Exception as e:
-            self.error_occurred.emit(str(e))
+            self.error.emit(str(e))
 
 class LogReportGUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.selected_path = None
+        # Apply system theme and fix styling
+        self.setStyle(QStyleFactory.create('Fusion'))
+        self._set_dark_theme()  # Or light theme if preferred
+        self.processor = LogProcessor()
+        self.generator = ReportGenerator()
         self.init_ui()
         
+    def _set_dark_theme(self):
+        """Configure a nice dark theme"""
+        dark_palette = QPalette()
+        dark_palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+        dark_palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
+        dark_palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+        dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+        dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
+        dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
+        dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
+        dark_palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+        dark_palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
+        dark_palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
+        dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(142, 45, 197).lighter())
+        dark_palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
+        QApplication.instance().setPalette(dark_palette)
+
     def init_ui(self):
-        """Initialize the user interface"""
-        self.setWindowTitle("LOG Report Generator")
-        self.setMinimumSize(600, 400)
+        # Main Window Setup
+        self.setWindowTitle('LOGReport v1.0')
+        self.setGeometry(300, 300, 800, 600)
         
-        main_widget = QWidget()
-        layout = QVBoxLayout()
+        # Central Widget and Main Layout
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QVBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout.setSpacing(10)
         
-        # Folder selection
-        folder_layout = QVBoxLayout()
-        folder_layout.addWidget(QLabel("Select Log Folder:"))
+        # Create all UI components
+        self._create_controls()
+        self._create_statusbar()
+        self._style_controls()
+        self._setup_connections()
         
-        self.folder_label = QLabel("No folder selected")
-        self.folder_label.setStyleSheet("color: #555; font-style: italic;")
-        
-        btn_browse = QPushButton("Browse...")
-        btn_browse.clicked.connect(self.select_folder)
-        
-        folder_layout.addWidget(self.folder_label)
-        folder_layout.addWidget(btn_browse)
-        layout.addLayout(folder_layout)
-        
-        # Format selection
-        format_layout = QVBoxLayout()
-        format_layout.addWidget(QLabel("Output Format:"))
+    def _create_controls(self):
+        """Create all control widgets"""
+        # Output Format Selection
+        format_group = QGroupBox("Output Settings")
+        format_layout = QHBoxLayout()
         
         self.format_combo = QComboBox()
-        self.format_combo.addItems(["PDF (.pdf)", "Word (.docx)"])
+        self.format_combo.addItems(["PDF", "DOCX"])
+        format_layout.addWidget(QLabel("Output Format:"))
         format_layout.addWidget(self.format_combo)
-        layout.addLayout(format_layout)
         
-        # Progress bar
+        format_group.setLayout(format_layout)
+        self.main_layout.addWidget(format_group)
+        
+        # Log Line Filtering
+        self.filter_group = QGroupBox("Log Line Filtering")
+        filter_layout = QHBoxLayout()
+        
+        self.filter_combo = QComboBox()
+        self.filter_combo.addItems(["Show All", "First N Lines", "Last N Lines", "Range"])
+        filter_layout.addWidget(self.filter_combo)
+        
+        # Line count control
+        self.line_count = QSpinBox()
+        self.line_count.setRange(1, 10000)
+        self.line_count.setValue(50)
+        self.line_count.setEnabled(False)
+        
+        # Range controls
+        self.range_start = QSpinBox()
+        self.range_end = QSpinBox()
+        
+        filter_layout.addWidget(QLabel("Lines:"))
+        filter_layout.addWidget(self.line_count)
+        filter_layout.addWidget(QLabel("From:"))
+        filter_layout.addWidget(self.range_start)
+        filter_layout.addWidget(QLabel("To:"))
+        filter_layout.addWidget(self.range_end)
+        
+        self.filter_combo.currentTextChanged.connect(self._update_filter_controls)
+        
+        self.filter_group.setLayout(filter_layout)
+        self.main_layout.addWidget(self.filter_group)
+        
+        # Action Buttons
+        btn_layout = QHBoxLayout()
+        
+        self.select_btn = QPushButton("Select Log Folder")
+        self.select_btn.clicked.connect(self._select_folder)
+        
+        self.process_btn = QPushButton("Generate Report")
+        self.process_btn.clicked.connect(self._process_logs)
+
+        self.generate_btn = QPushButton("Generate")
+        btn_layout.addWidget(self.select_btn)
+        btn_layout.addWidget(self.process_btn)
+        btn_layout.addWidget(self.generate_btn)
+        
+        self.main_layout.addLayout(btn_layout)
+        
+        # Progress Bar
         self.progress = QProgressBar()
-        self.progress.setValue(0)
-        layout.addWidget(self.progress)
+        self.main_layout.addWidget(self.progress)
+
+    def _update_filter_controls(self, mode):
+        """Update filter control visibility"""
+        is_range = mode == "Range"
+        is_limited = mode in ["First N Lines", "Last N Lines"]
         
-        # Process button
-        btn_process = QPushButton("Generate Report")
-        btn_process.clicked.connect(self.process)
-        btn_process.setStyleSheet(
-            "background-color: #4CAF50; color: white; padding: 8px;"
+        self.line_count.setEnabled(is_limited)
+        self.range_start.setVisible(is_range)
+        self.range_end.setVisible(is_range)
+        
+        for i in range(self.filter_group.layout().count()):
+            widget = self.filter_group.layout().itemAt(i).widget()
+            if isinstance(widget, QLabel):
+                widget.setVisible(
+                    ("From" in widget.text() or "To" in widget.text()) 
+                    if is_range 
+                    else "Lines" in widget.text()
+                )
+
+    def _create_statusbar(self):
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        
+    def _style_controls(self):
+        self.setStyleSheet("""
+            QWidget {
+                font family: Segoe UI;
+                font-size: 10pt;
+            }
+            QMainWindow {
+                background-color: #2D2D2D;
+            }
+            QGroupBox {
+                border: 1px solid #3E3E3E;
+                border-radius: 4px;
+                margin-top: 10px;
+                padding-top: 15px;
+                color: white;
+            }
+            QPushButton {
+                background-color: #3A3A3A;
+                border: 1px solid #3E3E3E;
+                padding: 5px 15px;
+                min-width: 100px;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #4A4A4A;
+            }
+            QSpinBox, QComboBox {
+                padding: 3px;
+                background-color: #252525;
+                color: white;
+                border: 1px solid #3E3E3E;
+            }
+            QProgressBar {
+                border: 1px solid #3E3E3E;
+                text-align: center;
+                color: white;
+            }
+            QProgressBar::chunk {
+                background-color: #5D3E8E;
+            }
+        """)
+
+    def _select_folder(self):
+        # Ensure dialog runs in main thread
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "Select Log Folder",
+            "",  # Start at default location
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontUseNativeDialog
         )
-        layout.addWidget(btn_process)
-        
-        main_widget.setLayout(layout)
-        self.setCentralWidget(main_widget)
-        
-    def select_folder(self):
-        """Open folder selection dialog"""
-        folder = QFileDialog.getExistingDirectory(self, "Select Log Folder")
         if folder:
-            self.selected_path = Path(folder)
-            self.folder_label.setText(f"Selected: {folder}")
-            self.folder_label.setStyleSheet("color: #333; font-style: normal;")
-            
-    def process(self):
-        """Process selected folder"""
-        if not self.selected_path:
-            QMessageBox.warning(self, "Error", "Please select a folder first")
+            self.selected_folder = folder
+            self.status_bar.showMessage(f"Selected: {folder}")
+
+    def _get_filter_settings(self):
+        mode = self.filter_combo.currentText()
+        if mode == "Range":
+            return {
+                "mode": "range",
+                "line_range": (self.range_start.value(), self.range_end.value())
+            }
+        elif mode != "Show All":
+            return {
+                "mode": mode.lower().split()[0],  # "first" or "last"
+                "limit": self.line_count.value()
+            }
+        return {}
+
+    def _process_logs(self):
+        if not hasattr(self, 'selected_folder'):
+            self.status_bar.showMessage("Error: No folder selected")
             return
             
+        # Disable UI during processing
+        self.setEnabled(False)
+        self.status_bar.showMessage("Processing...")
+
+        # Start processing thread
+        self.worker = Worker(
+            self.processor,
+            self.selected_folder,
+            self._get_filter_settings()
+        )
+        self.worker.finished.connect(self._on_processing_done)
+        self.worker.error.connect(self._on_processing_error)
+        self.worker.start()
+
+    def _on_processing_done(self, logs):
+        self.setEnabled(True)
+        self.processed_logs = logs
+        if logs:
+            self.status_bar.showMessage("Processing complete")
+        else:
+            self.status_bar.showMessage("No valid log files found")
+
+    def _on_processing_error(self, message):
+        self.setEnabled(True)
+        self.status_bar.showMessage(f"Error: {message}")
+
+    def _setup_connections(self):
+        """Ensure all signals are connected"""
+        self.generate_btn.clicked.connect(self._on_generate)
+        
+    def _on_generate(self):
+        """Handle generate button click"""
+        if hasattr(self, 'processed_logs'):
+            self._generate_report(self.processed_logs)
+        else:
+            self.status_bar.showMessage("No logs processed yet")
+
+    def _generate_report(self, logs):
+        """Handle full report generation flow"""
+        if not logs:
+            self.status_bar.showMessage("No logs to generate report")
+            return False
+            
+        # 1. Get output format
+        output_ext = self.format_combo.currentText().lower()
+        
+        # 2. Show save file dialog
+        default_name = f"log_report_{datetime.now().strftime('%Y%m%d')}.{output_ext}"
+        save_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Report As",
+            default_name,
+            f"PDF (*.pdf);;Word (*.docx)",
+            options=QFileDialog.Option.DontUseNativeDialog
+        )
+        
+        if not save_path:
+            return False  # User cancelled
+            
+        # 3. Get filtering parameters
+        filter_mode = self.filter_combo.currentText().lower().split()[0]
+        line_limit = self.line_count.value()
+        range_start = self.range_start.value()
+        range_end = self.range_end.value()
+
+        # 4. Generate report (with progress feedback)
+        self._show_progress(True, "Generating report...")
+        
         try:
-            output_path = f"report.{'pdf' if self.format_combo.currentIndex() == 0 else 'docx'}"
-            
-            save_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "Save Report",
-                str(self.selected_path.parent / output_path),
-                "PDF Files (*.pdf);;Word Documents (*.docx)"
-            )
-            
-            if not save_path:
-                return
-                
-            self.progress.setValue(10)
-            
-            processor = LogProcessor()
-            generator = ReportGenerator()
-            
-            logs = processor.process_directory(self.selected_path)
-            self.progress.setValue(70)
-            
-            if save_path.endswith('.pdf'):
-                generator.generate_pdf(logs, save_path)
+            if output_ext == "pdf":
+                self.generator.generate_pdf(
+                    logs,
+                    save_path,
+                    lines_mode=filter_mode,  # 'first', 'last', or 'range'
+                    line_limit=line_limit,   # For first/last modes
+                    range_start=range_start, # For range mode
+                    range_end=range_end      # For range mode
+                )
             else:
-                generator.generate_docx(logs, save_path)
+                self.generator.generate_docx(
+                    logs,
+                    save_path,
+                    lines_mode=filter_mode,
+                    line_limit=line_limit,
+                    range_start=range_start,
+                    range_end=range_end
+                )
                 
-            self.progress.setValue(100)
-            QMessageBox.information(self, "Success", "Report generated successfully!")
+            self.status_bar.showMessage(f"Report saved to: {save_path}")
+            return True
             
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to generate report:\n{str(e)}")
+            self.status_bar.showMessage(f"Generation failed: {str(e)}")
+            return False
         finally:
-            self.progress.setValue(0)
+            self._show_progress(False)
 
-def main():
+    def _show_progress(self, visible, message=""):
+        """Toggle progress indicators"""
+        self.progress.setVisible(visible)
+        if visible:
+            self.progress.setRange(0, 0)  # Indeterminate mode
+            self.status_bar.showMessage(message)
+        self.setEnabled(not visible)
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = LogReportGUI()
     window.show()
     sys.exit(app.exec())
-
-if __name__ == "__main__":
-    main()
