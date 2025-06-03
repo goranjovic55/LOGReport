@@ -1,0 +1,38 @@
+# Node to Token Mapping
+# Format: 
+# - Simple node: node_name
+# - Token mapping: node_name:token1,token2,...
+AL01
+AL02
+AL03
+AL04
+AL05
+AL06
+AL07
+AL08
+AL09
+AL10
+AL11
+AL12
+AL13
+AL14
+AL15
+AL16
+AP01m:162_fbc2,163_fbc3
+AP01r:362_fbc2,363_fbc3
+AP02m:182_fbc2,183_fbc3
+AP02r:382_fbc2,383_fbc3
+AP03m:1a2_fbc2,1a3_fbc3
+AP03r:3a2_fbc2,3a3_fbc3
+AP04m:1c2_fbc2,1c3_fbc3
+AP04r:3c2_fbc2,3c3_fbc3
+AP05m:1e2_fbc2,1e3_fbc3
+AP05r:3e2_fbc2,3e3_fbc3
+AP06m:202_fbc2,203_fbc3
+AP06r:402_fbc2,403_fbc3
+AP07m:222_fbc2,223_fbc3
+AP07r:422_fbc2,423_fbc3
+AP08m:242_fbc2
+AP08r:442_fbc2
+AP09m:262_fbc2
+AP09r:462_fbc2
