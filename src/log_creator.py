@@ -6,32 +6,33 @@ from typing import Dict, Union, List, Tuple
 
 class LogCreator:
     @staticmethod
-    def parse_nodes_file(source_file: str) -> Dict[str, List[str]]:
+    def parse_nodes_file(source_file: str, required_type: str = None) -> Dict[str, List[str]]:
         """
-        Parse nodes list file with token mappings
-        Format:
-          - Simple node: <node_name>
-          - Node with tokens: <node_name>:<token1>,<token2>,...
+        Parse nodes JSON file with token mappings
+        Format: [ { "name": "node1", "tokens": ["t1", "t2"], "types": ["FBC", "RPC"] }, ...]
         
+        Args:
+            required_type (str): Filter nodes by log type (FBC, RPC, LOG, LIS)
+            
         Returns:
             Dictionary with node names as keys and token lists as values
         """
-        nodes_dict = {}
+        if not os.path.exists(source_file):
+            return {}
+            
         try:
             with open(source_file, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
-                        continue
+                nodes_data = json.load(f)
+                
+            filtered_nodes = {}
+            for node in nodes_data:
+                # Skip nodes that don't have required type
+                if required_type and required_type not in node.get('types', []):
+                    continue
                     
-                    if ':' in line:
-                        node, tokens = line.split(':', 1)
-                        node = node.strip()
-                        tokens = [token.strip() for token in tokens.split(',')]
-                        nodes_dict[node] = tokens
-                    else:
-                        nodes_dict[line] = []
-            return nodes_dict
+                filtered_nodes[node['name']] = node.get('tokens', [])
+            
+            return filtered_nodes
         except Exception as e:
             print(f"Error parsing nodes file: {str(e)}")
             return {}
@@ -57,7 +58,8 @@ class LogCreator:
             content_template=content_template,
             node_type="AP",
             use_tokens=True,
-            suffix_style="fbc"
+            suffix_style="fbc",
+            required_type="FBC"  # New argument for type filtering
         )
 
     @staticmethod
@@ -75,7 +77,8 @@ class LogCreator:
             content_template=content_template,
             node_type="AP",
             use_tokens=True,
-            suffix_style="rpc"
+            suffix_style="rpc",
+            required_type="RPC"  # New argument for type filtering
         )
 
     @staticmethod
@@ -93,7 +96,8 @@ class LogCreator:
             content_template=content_template,
             node_type=("AL", "AP"),
             use_tokens=False,
-            suffix_style="log"
+            suffix_style="log",
+            required_type="LOG"  # New argument for type filtering
         )
     
     @staticmethod
@@ -104,7 +108,7 @@ class LogCreator:
         content_template: str = "# IRB/ORB file: $FILENAME\n# Created: $DATETIME\n\n"
     ) -> Dict[str, str]:
         """Create IRB/ORB node files with directory structure"""
-        nodes_dict = LogCreator.parse_nodes_file(source_file)
+        nodes_dict = LogCreator.parse_nodes_file(source_file, "LIS")  # Require LIS type
         results = {}
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -113,8 +117,7 @@ class LogCreator:
         skipped_count = 0
         
         for node in nodes_dict.keys():
-            if not node.startswith("AL"):
-                continue
+            # No need for additional prefix filter - already filtered by type
                 
             # Create node directory
             node_folder = os.path.join(output_dir, node)
@@ -163,10 +166,11 @@ class LogCreator:
         content_template: str,
         node_type: Union[str, Tuple[str]],
         use_tokens: bool,
-        suffix_style: str
+        suffix_style: str,
+        required_type: str = None
     ) -> Dict[str, str]:
         """Core implementation for node creation methods"""
-        nodes_dict = LogCreator.parse_nodes_file(source_file)
+        nodes_dict = LogCreator.parse_nodes_file(source_file, required_type)
         results = {}
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -175,7 +179,7 @@ class LogCreator:
         skipped_count = 0
         
         for node, tokens in nodes_dict.items():
-            # Filter by node type
+            # Filter by node prefix (additional to type filter)
             if isinstance(node_type, tuple):
                 if not any(node.startswith(t) for t in node_type):
                     continue
@@ -270,7 +274,7 @@ if __name__ == "__main__":
     # Production log creation
     print("Creating production logs in _DIA structure...")
     results = LogCreator.create_all_nodes(
-        source_file="nodes_list.txt",
+        source_file="nodes.json",  # Changed to use JSON format
         base_output_dir="_DIA",
         interactive=False,
         content_template="# $FILENAME\n# Log created: $DATETIME\n\nAdd log entries below this line\n"

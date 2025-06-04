@@ -36,7 +36,18 @@ class LogReportGUI(QMainWindow):
         self._set_dark_theme()  # Or light theme if preferred
         self.processor = LogProcessor()
         self.generator = ReportGenerator()
+        self.init_menu_bar()  # Initialize menu bar first
         self.init_ui()
+        
+    def init_menu_bar(self):
+        menu_bar = self.menuBar()
+        
+        # Settings Menu
+        settings_menu = menu_bar.addMenu("Settings")
+        
+        # Manage Nodes action
+        manage_nodes_action = settings_menu.addAction("Manage Nodes")
+        manage_nodes_action.triggered.connect(self.open_node_manager)
         
     def _set_dark_theme(self):
         """Configure a nice dark theme"""
@@ -158,6 +169,11 @@ class LogReportGUI(QMainWindow):
     def _create_statusbar(self):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
+    
+    def open_node_manager(self):
+        from gui_node_manager import NodeManager
+        dialog = NodeManager(self)
+        dialog.exec()
         
     def _style_controls(self):
         self.setStyleSheet("""
