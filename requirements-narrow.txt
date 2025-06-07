@@ -1,0 +1,18 @@
+# Optimized dependencies for LOGReport application + build
+# Compatible with Python 3.10+ (Windows 10/11)
+
+# Core application functionality
+PyQt6==6.4.2           # GUI framework
+reportlab==4.0.4       # PDF report generation
+python-docx==0.8.11    # DOCX report generation
+
+# Commander GUI dependencies
+telnetlib3==1.0.4      # Telnet for DNA debugger
+paramiko==3.4.0        # SSH for VNC tunneling
+keyring==24.3.0        # Secure credential storage
+pytesseract==0.3.10    # OCR for VNC text extraction
+Pillow==10.3.0         # Image processing for OCR
+
+# Build process dependencies
+pyinstaller==6.5.0     # Compatible executable builder (works with Python 3.10)
+pefile==2023.2.7       # Windows PE file handling

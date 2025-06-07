@@ -12,7 +12,8 @@ def cli_main(input_path, output_file):
     print(f"Successfully created: {output_file}")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--gui":
+    # Default to GUI mode with no arguments or with --gui flag
+    if len(sys.argv) == 1 or (len(sys.argv) > 1 and sys.argv[1] == "--gui"):
         app = QApplication(sys.argv)
         window = LogReportGUI()
         window.show()
@@ -21,6 +22,6 @@ if __name__ == "__main__":
         cli_main(sys.argv[1], sys.argv[2])
     else:
         print("Usage:")
-        print("  GUI Mode: python main.py --gui")
+        print("  GUI Mode: python main.py [--gui]  (--gui optional for GUI mode)")
         print("  CLI Mode: python main.py <input_dir> <output.pdf>")
         sys.exit(1)

@@ -8,5 +8,15 @@
         "name": "AP01r",
         "tokens": ["362", "363"],
         "types": ["FBC", "RPC", "LOG"]
+    },
+    {
+        "name": "AP02m",
+        "tokens": ["182", "183"],
+        "types": ["FBC", "RPC", "LOG"]
+    },
+    {
+        "name": "AP02r",
+        "tokens": ["382", "383"],
+        "types": ["FBC", "RPC", "LOG"]
     }
 ]
