@@ -1,4 +1,9 @@
 import sys
+import os
+
+# Suppress QFileSystemWatcher warnings
+os.environ["QT_LOGGING_RULES"] = "qt.core.filesystemwatcher=false"
+
 from gui import LogReportGUI
 from PyQt6.QtWidgets import QApplication
 

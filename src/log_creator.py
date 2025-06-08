@@ -19,14 +19,17 @@ class LogCreator:
             if not node_types:
                 continue
                 
+            # Format IP address for filename (replace dots with hyphens)
+            ip_formatted = node.get('ip', '192.168.0.1').replace('.', '-')
+            
             if "FBC" in node_types and tokens:
                 # Create node directory for FBC files
                 node_dir = Path(output_dir) / "FBC" / node_name
                 node_dir.mkdir(parents=True, exist_ok=True)
                 
-                # Create FBC files
+                # Create FBC files with IP in filename
                 for token in tokens[:3]:
-                    filename = f"{node_name}_{token}_fbc.txt"
+                    filename = f"{node_name}_{ip_formatted}_{token}_fbc.txt"
                     file_path = node_dir / filename
                     
                     if not file_path.exists():
@@ -42,8 +45,9 @@ class LogCreator:
                 node_dir = Path(output_dir) / "RPC" / node_name
                 node_dir.mkdir(parents=True, exist_ok=True)
                 
+                # Create RPC files with IP in filename
                 for token in tokens[:3]:
-                    filename = f"{node_name}_{token}_rpc.txt"
+                    filename = f"{node_name}_{ip_formatted}_{token}_rpc.txt"
                     file_path = node_dir / filename
                     
                     if not file_path.exists():
@@ -59,8 +63,8 @@ class LogCreator:
                 log_dir = Path(output_dir) / "LOG"
                 log_dir.mkdir(exist_ok=True)
                 
-                # Create log file
-                filename = f"{node_name}_log.txt"
+                # Create log file with IP in filename (use log extension as per example)
+                filename = f"{node_name}_{ip_formatted}.log"
                 file_path = log_dir / filename
                 
                 if not file_path.exists():
@@ -72,21 +76,22 @@ class LogCreator:
                     results[str(file_path)] = "Created LOG"
                     
             if "LIS" in node_types:
-                # Create LIS directory structure
+                # Create LIS directory structure with node_name
                 lis_dir = Path(output_dir) / "LIS" / node_name
                 lis_dir.mkdir(parents=True, exist_ok=True)
                 
-                # Create sample file
-                filename = "exe1.txt"
-                file_path = lis_dir / filename
-                
-                if not file_path.exists():
-                    content = content_template \
-                        .replace('$FILENAME', filename) \
-                        .replace('$DATETIME', time.strftime("%Y-%m-%d %H:%M:%S"))
-                    with open(file_path, 'w') as f:
-                        f.write(content)
-                    results[str(file_path)] = "Created LIS"
+                # Create 6 files with the updated pattern including IP address
+                for i in range(1, 7):
+                    filename = f"{node_name}_{ip_formatted}_exe{i}_5irb_5orb.txt"
+                    file_path = lis_dir / filename
+                    
+                    if not file_path.exists():
+                        content = content_template \
+                            .replace('$FILENAME', filename) \
+                            .replace('$DATETIME', time.strftime("%Y-%m-%d %H:%M:%S"))
+                        with open(file_path, 'w') as f:
+                            f.write(content)
+                        results[str(file_path)] = "Created LIS"
         
         return results
 

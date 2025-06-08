@@ -1,22 +1,102 @@
 [
     {
         "name": "AP01m",
-        "tokens": ["162", "163"],
-        "types": ["FBC", "RPC", "LOG"]
+        "ip": "192.168.0.11",
+        "tokens": [
+            "162",
+            "163"
+        ],
+        "types": [
+            "FBC",
+            "RPC",
+            "LOG"
+        ]
     },
     {
         "name": "AP01r",
-        "tokens": ["362", "363"],
-        "types": ["FBC", "RPC", "LOG"]
+        "ip": "192.168.0.27",
+        "tokens": [
+            "362",
+            "363"
+        ],
+        "types": [
+            "FBC",
+            "RPC",
+            "LOG"
+        ]
     },
     {
         "name": "AP02m",
-        "tokens": ["182", "183"],
-        "types": ["FBC", "RPC", "LOG"]
+        "ip": "192.168.0.12",
+        "tokens": [
+            "182",
+            "183"
+        ],
+        "types": [
+            "FBC",
+            "RPC",
+            "LOG"
+        ]
     },
     {
         "name": "AP02r",
-        "tokens": ["382", "383"],
-        "types": ["FBC", "RPC", "LOG"]
+        "ip": "192.168.0.28",
+        "tokens": [
+            "382",
+            "383"
+        ],
+        "types": [
+            "FBC",
+            "RPC",
+            "LOG"
+        ]
+    },
+    {
+        "name": "AP03m",
+        "ip": "192.168.0.13",
+        "tokens": [
+            "2a2",
+            "2a3"
+        ],
+        "types": [
+            "FBC",
+            "RPC",
+            "LOG"
+        ]
+    },
+    {
+        "name": "AP03r",
+        "ip": "192.168.0.29",
+        "tokens": [
+            "3a2",
+            "3a3"
+        ],
+        "types": [
+            "FBC",
+            "RPC",
+            "LOG"
+        ]
+    },
+    {
+        "name": "AL01",
+        "ip": "192.168.0.52",
+        "tokens": [
+            "186"
+        ],
+        "types": [
+            "LOG",
+            "LIS"
+        ]
+    },
+    {
+        "name": "AL02",
+        "ip": "192.168.0.55",
+        "tokens": [
+            "386"
+        ],
+        "types": [
+            "LOG",
+            "LIS"
+        ]
     }
 ]

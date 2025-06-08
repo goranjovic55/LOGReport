@@ -1,15 +1,67 @@
-# Commander Sequence Diagrams
+# Commander Sequence Diagrams v2.1
 
-## Standard Log Retrieval Flow
+**Last Updated:** 2025-06-08  
+**New Sequences:** Added manual command flow and content transfer
+
+## Manual Command Execution Flow
 ```mermaid
 sequenceDiagram
     participant User
     participant UI
-    participant CommandResolver
-    participant DNA_Debugger
-    participant Node
-    participant Formatter
+    participant Telnet
     participant Filesystem
+    
+    User->>UI: Enters "fis" in Telnet tab
+    UI->>Telnet: Convert to "p f f i s <token>0000"
+    Telnet->>DNA: Execute command
+    DNA-->>Telnet: Return fieldbus data
+    User->>UI: Clicks "Copy to Log"
+    UI->>Formatter: Format with LSR standard
+    Formatter->>Filesystem: Append to AP01m_162_fbc.log
+    Filesystem-->>UI: Success confirmation
+```
+
+## VNC Content Transfer Sequence
+```mermaid
+sequenceDiagram
+    participant User
+    participant VNC
+    participant OCR
+    participant LogFile
+    
+    User->>VNC: Press "Capture" button
+    VNC->>Node: Request screenshot
+    Node-->>VNC: Return image
+    VNC->>OCR: Extract text
+    OCR-->>VNC: Return OCR text
+    User->>LogFile: Select 163_vnc.log
+    VNC->>LogFile: Append OCR text
+    LogFile-->>UI: Success notification
+```
+
+## FTP Log Integration Sequence
+```mermaid
+sequenceDiagram
+    User->>FTPTab: Select remote file
+    FTPTab->>Node: Download file.txt
+    Node-->>FTPTab: File content
+    User->>NodeTree: Select AP01r_360.log
+    FTPTab->>LogFile: Append to AP01r_360.log
+    LogFile-->>UI: Write confirmation
+```
+
+## Connection Management Flow
+```mermaid
+flowchart TD
+    A[Select Token] --> B{Tab Type}
+    B -->|Telnet| C[Set Connection to 192.168.1.101:2077]
+    B -->|VNC| D[Set Connection to 192.168.1.101:5901]
+    B -->|FTP| E[Set Connection to 192.168.1.101:2121]
+    C --> F[Update IP Bar]
+    D --> F
+    E --> F
+    F --> G[Enable Connect Button]
+```
     
     User-&gt;&gt;UI: Select Node, Token, Type (FBC)
     UI-&gt;&gt;CommandResolver: Request command for 162, FBC

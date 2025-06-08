@@ -1,15 +1,115 @@
-# Commander GUI Blueprint
+# Commander GUI Blueprint v2.1
+
+**Last Updated:** 2025-06-08  
+**Updates:** Enhanced command processing, session management, log writing
 
 ## Functional Overview
 The Commander GUI provides centralized management of DNA system nodes through:
-1. **Central DNA Debugger Session**: Single telnet connection for system-wide log retrieval
-2. **Node-Specific VNC Connections**: Direct visual access to individual nodes
-3. **Token-Based Command Execution**: Log retrieval commands mapped to specific tokens
-4. **Automatic Log Saving**: Direct writing to structured log directories
+1. **Unified Session Management**: Tabbed Telnet/VNC/FTP interfaces
+2. **Context-Aware Commands**: Token-based command substitution
+3. **Cross-Session Log Writing**: Copy any content to node logs
+4. **Connection Automation**: IP assignment based on node configuration
+5. **Manual Input System**: Full control over command execution
 
-## Command Processing Flow
+## Enhanced Command Flow
 ```mermaid
 sequenceDiagram
+    User->>NodeTree: Select token 162@AP01m
+    NodeTree->>SessionManager: Set context token 162
+    User->>TelnetTab: Execute "fis" or manual command
+    alt Token Command
+        TelnetTab->>Parser: Parse "fis" 
+        Parser->>TelnetTab: "p f f i s 1620000"
+        TelnetTab->>TelnetSession: Send command
+        TelnetSession->>Node: Execute
+        Node-->>TelnetSession: Response data
+        TelnetSession-->>UI: Display output
+        UI->>User: Prompt to save
+    else Manual Command
+        TelnetTab->>TelnetSession: Send raw command
+        TelnetSession->>Node: Execute
+        Node-->>TelnetSession: Response data
+        TelnetSession-->>UI: Display output
+        UI->>User: Prompt to save
+    end
+    User->>UI: "Copy to Log"
+    UI->>Formatter: Apply LSR template
+    Formatter->>LogFile: test_logs/AP01m/162_fbc.log
+    LogFile-->>UI: Write confirmation
+```
+
+## Session Management Architecture
+
+### Protocol Handlers
+```python
+class TelnetHandler:
+    def send_command(self, command: str):
+        # Send command and stream response
+        pass
+
+    def format_response(self, output: str) -> str:
+        # Apply ANSI formatting and timestamps
+        pass
+
+class VNCViewer:
+    def capture_screenshot(self) -> Image:
+        # Capture active region or full screen
+        pass
+    
+    def copy_to_clipboard(self, text: str):
+        # Transfer text to system clipboard
+        pass
+
+class FTPClient:
+    def copy_to_log(self, remote_path, log_path):
+        # Download and append to log
+        pass
+```
+
+### Log Writer Service
+```python
+class LogWriter:
+    def __init__(self):
+        self.handles = {}  # token: file handle
+    
+    def open_log(self, token_path: str):
+        if token_path not in self.handles:
+            self.handles[token_path] = open(token_path, 'a', encoding='utf-8')
+    
+    def append_to_log(self, token_path: str, content: str):
+        self.open_log(token_path)
+        self.handles[token_path].write(f"\n{content}\n")
+        self.handles[token_path].flush()
+    
+    def close_log(self, token_path: str):
+        if token_path in self.handles:
+            self.handles[token_path].close()
+            del self.handles[token_path]
+```
+
+## Connection Bar Implementation
+```python
+class ConnectionBar(QWidget):
+    def __init__(self, ip_address: str, port: int):
+        super().__init__()
+        self.layout = QHBoxLayout()
+        self.address_label = QLabel(f"{ip_address}:{port}")
+        self.status_icon = QLabel("◌")
+        self.connect_btn = QPushButton("Connect")
+        self.layout.addWidget(self.address_label)
+        self.layout.addWidget(self.status_icon)
+        self.layout.addWidget(self.connect_btn)
+        self.setLayout(self.layout)
+    
+    def update_status(self, state: ConnectionState):
+        icons = {
+            ConnectionState.DISCONNECTED: "○",
+            ConnectionState.CONNECTING: "◑",
+            ConnectionState.CONNECTED: "●",
+            ConnectionState.ERROR: "⨯"
+        }
+        self.status_icon.setText(icons[state])
+```
     User->>Commander: Select node, token, and log type
     alt Telnet Command
         Commander->>DNA_Debugger: Send formatted command

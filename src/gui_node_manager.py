@@ -1,543 +1,372 @@
 import sys
 import os
 import json
-import re  # Added for regex validation
 import tempfile
+import re
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QListWidget,
+    QDialog, QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
     QGroupBox, QRadioButton, QPushButton, QLineEdit,
     QLabel, QFormLayout, QMessageBox, QButtonGroup,
-    QFileDialog, QInputDialog, QWidget  # Added QWidget
+    QFileDialog, QInputDialog, QCheckBox
 )
 from PyQt6.QtCore import Qt
-
-LOG_TYPES = {
-    "FBC": "Fieldbus Logs",
-    "RPC": "RPC Counter Logs",
-    "LOG": "Node Logs",
-    "LIS": "Serial Listener Logs"
-}
 
 class NodeManager(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Node Configuration")
+        self.setMinimumSize(1000, 450)
+        # Initialize config_file with absolute path
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_file = os.path.join(script_dir, "..", "nodes.json")
+        self.nodes_data = []
         
-        # Use cleanup layout if one exists
-        if self.layout():
-            # Properly remove existing layout
-            QWidget().setLayout(self.layout())
+        # Try to load the configuration from default location
+        if os.path.exists(self.config_file):
+            try:
+                with open(self.config_file, 'r') as f:
+                    self.nodes_data = json.load(f)
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    "Error Loading Configuration",
+                    f"Could not load configuration: {str(e)}\n\nStarting with empty configuration."
+                )
+        else:
+            # If no file exists, create a default one
+            self.nodes_data = [
+                {"name": "AP00", "tokens": ["001", "002"], "types": ["FBC"], "ip": "192.168.0.1"}
+            ]
+            # Save the default configuration to nodes.json
+            try:
+                with open(self.config_file, 'w') as f:
+                    json.dump(self.nodes_data, f, indent=4)
+            except:
+                pass
         
-        # Set configuration file path
-        self.config_file = os.path.join(os.path.dirname(__file__), "..", "nodes.json")
-        self.nodes_data = self.load_config()  # Proper initialization
+        # Initialize UI and populate node list
+        self.init_ui()
+        self.populate_node_list()
+            
+    def save_config(self):
+        """Save configuration to a user-selected JSON file"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Configuration",
+            self.config_file or os.path.expanduser("~"),
+            "JSON Files (*.json)"
+        )
+        if not file_path:
+            return
+            
+        try:
+            with open(file_path, 'w') as f:
+                json.dump(self.nodes_data, f, indent=4)
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Configuration saved to:\n{file_path}"
+            )
+            self.config_file = file_path  # Update to use the new path
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to save configuration: {str(e)}"
+            )
+            
+    def load_configuration(self):
+        """Load a configuration from a user-selected JSON file"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Configuration File",
+            os.path.expanduser("~"),  # Start in home directory
+            "JSON Files (*.json)"
+        )
+        if not file_path:
+            return
+            
+        try:
+            with open(file_path, 'r') as f:
+                self.nodes_data = json.load(f)
+            
+            self.populate_node_list()
+            
+            # Auto-select first node to populate fields
+            if self.nodes_data:
+                self.node_list.setCurrentRow(0)
+                
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Configuration loaded from:\n{file_path}"
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Failed to load configuration: {str(e)}"
+            )
+            
+    def populate_node_list(self):
+        """Populate node list widget with node names"""
+        self.node_list.clear()
+        for node in self.nodes_data:
+            name = node.get('name', 'Unnamed node')
+            self.node_list.addItem(name)
+            
+    def on_node_selected(self):
+        """Called when user selects a node from the list"""
+        selected = self.node_list.currentRow()
+        if 0 <= selected < len(self.nodes_data):
+            node_data = self.nodes_data[selected]
+            self.name_input.setText(node_data.get('name', ''))
+            self.token_input.setText(', '.join(node_data.get('tokens', [])))
+            self.ip_input.setText(node_data.get('ip', ''))
+            
+            # Set types
+            for btn in self.type_buttons.values():
+                btn.setChecked(False)
+            for log_type in node_data.get('types', []):
+                if log_type in self.type_buttons:
+                    self.type_buttons[log_type].setChecked(True)
+            
+            self.generate_examples()
+        else:
+            self.name_input.setText("")
+            self.token_input.setText("")
+            self.ip_input.setText("")
+            for btn in self.type_buttons.values():
+                btn.setChecked(False)
+            self.generate_examples()
+            
+    def add_node(self):
+        """Add new node to the configuration"""
+        self.nodes_data.append({
+            "name": "",
+            "tokens": [],
+            "types": [],
+            "ip": ""
+        })
+        self.populate_node_list()
+        self.node_list.setCurrentRow(len(self.nodes_data) - 1)
         
-        # Set initial window size (before creating UI)
-        self.resize(1100, 500)
+    def remove_node(self):
+        """Remove selected node from configuration"""
+        selected = self.node_list.currentRow()
+        if 0 <= selected < len(self.nodes_data):
+            del self.nodes_data[selected]
+            self.populate_node_list()
+            # Select the next item or clear fields
+            if selected < len(self.nodes_data):
+                self.node_list.setCurrentRow(selected)
+            else:
+                self.on_node_selected()  # This will clear fields
         
-        # Initialize UI with proper layout
         self.init_ui()
         self.populate_node_list()
         
     def init_ui(self):
-        # Create UI components
         main_layout = QHBoxLayout()
         
-        # ... [rest of UI creation code remains the same] ...
-        
-        # Set button minimum widths at the end of UI initialization
-        if hasattr(self, 'load_btn'):
-            self.load_btn.setMinimumWidth(200)
-        if hasattr(self, 'save_btn'):
-            self.save_btn.setMinimumWidth(200)
-        if hasattr(self, 'create_files_btn'):
-            self.create_files_btn.setMinimumWidth(220)
-        
-        # Node list section
-        node_group = QGroupBox("Nodes")
-        node_layout = QVBoxLayout()
+        # Left: Node list
+        left_group = QGroupBox("Nodes")
+        left_layout = QVBoxLayout()
         self.node_list = QListWidget()
         self.node_list.itemSelectionChanged.connect(self.on_node_selected)
-        node_layout.addWidget(self.node_list)
         
-        self.add_btn = QPushButton("+ Add Node")
+        # Node buttons
+        btn_layout = QHBoxLayout()
+        self.add_btn = QPushButton("Add Node")
         self.add_btn.clicked.connect(self.add_node)
-        self.remove_btn = QPushButton("- Remove Selected")
+        self.remove_btn = QPushButton("Remove Selected")
         self.remove_btn.clicked.connect(self.remove_node)
-        node_layout.addWidget(self.add_btn)
-        node_layout.addWidget(self.remove_btn)
-        node_group.setLayout(node_layout)
+        btn_layout.addWidget(self.add_btn)
+        btn_layout.addWidget(self.remove_btn)
         
-        # Configuration section
-        config_group = QGroupBox("Node Configuration")
-        config_layout = QVBoxLayout()
+        left_layout.addWidget(self.node_list)
+        left_layout.addLayout(btn_layout)
+        left_group.setLayout(left_layout)
+        
+        # Right: Configuration pane
+        right_group = QGroupBox("Node Configuration")
+        right_layout = QVBoxLayout()
+        
+        # Node details form
+        form_layout = QFormLayout()
         
         self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("AP## format")
+        
         self.token_input = QLineEdit()
-        self.token_input.setPlaceholderText("Comma separated tokens (162,163)")
+        self.token_input.setPlaceholderText("Comma separated 3-digit numbers")
         
-        form = QFormLayout()
-        form.addRow("Node Name:", self.name_input)
-        form.addRow("Tokens:", self.token_input)
+        self.ip_input = QLineEdit()
+        self.ip_input.setPlaceholderText("192.168.0.1")
         
-        # Log types section
-        type_group = QGroupBox("Log Types")
-        type_layout = QVBoxLayout()
+        form_layout.addRow(QLabel("Node Name:"), self.name_input)
+        form_layout.addRow(QLabel("Tokens (comma-sep):"), self.token_input)
+        form_layout.addRow(QLabel("IP Address:"), self.ip_input)
+        
+        # Log type selection (multiple checkboxes) including new LIS type
+        log_types = ["FBC", "RPC", "LOG", "LIS"]
         self.type_buttons = {}
-        self.button_group = QButtonGroup(self)
-        self.button_group.setExclusive(False)
+        controls_layout = QHBoxLayout()
         
-        for type_id, label in LOG_TYPES.items():
-            btn = QRadioButton(f"{type_id}: {label}")
-            btn.setProperty("type_id", type_id)
-            self.button_group.addButton(btn)
-            self.type_buttons[type_id] = btn
-            type_layout.addWidget(btn)
+        for log_type in log_types:
+            checkbox = QCheckBox(log_type)
+            self.type_buttons[log_type] = checkbox
+            controls_layout.addWidget(checkbox)
         
-        type_group.setLayout(type_layout)
+        form_layout.addRow(QLabel("Log Types:"), controls_layout)
+        right_layout.addLayout(form_layout)
+        
+        # Example files display
+        example_group = QGroupBox("Example Files")
+        example_layout = QVBoxLayout()
+        self.example_label = QLabel("No examples generated yet")
+        example_layout.addWidget(self.example_label)
+        example_group.setLayout(example_layout)
+        right_layout.addWidget(example_group)
         
         # Action buttons
-        self.save_btn = QPushButton("Save to JSON")
-        self.save_btn.clicked.connect(self.save_config)
-        self.create_files_btn = QPushButton("Create Files and Folders")
-        self.create_files_btn.clicked.connect(self.create_files)
-        
-        config_layout.addLayout(form)
-        config_layout.addWidget(type_group)
-        config_layout.addWidget(QLabel("Example Files:"))
-        self.example_label = QLabel("No examples generated yet")
-        config_layout.addWidget(self.example_label)
-        
         btn_layout = QHBoxLayout()
-        # Add Load button first
         self.load_btn = QPushButton("Load Configuration")
-        self.load_btn.setMinimumWidth(180)  # Ensure consistent width
+        self.load_btn.setMinimumWidth(180)
         self.load_btn.clicked.connect(self.load_configuration)
         btn_layout.addWidget(self.load_btn)
         
-        self.save_btn.setMinimumWidth(180)  # Ensure consistent width
+        self.save_btn = QPushButton("Save to JSON")
+        self.save_btn.setMinimumWidth(180)
+        self.save_btn.clicked.connect(self.save_config)
         btn_layout.addWidget(self.save_btn)
         
-        self.create_files_btn.setMinimumWidth(180)  # Ensure consistent width
+        self.create_files_btn = QPushButton("Create Files/Folders")
+        self.create_files_btn.setMinimumWidth(220)
+        self.create_files_btn.clicked.connect(self.create_files)
         btn_layout.addWidget(self.create_files_btn)
-        config_layout.addLayout(btn_layout)
-        config_group.setLayout(config_layout)
         
-        # Assemble main layout
-        main_layout.addWidget(node_group, 45)
-        main_layout.addWidget(config_group, 55)
+        right_layout.addLayout(btn_layout)
+        
+        # Close button
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.reject)
+        right_layout.addWidget(close_btn)
+        
+        right_group.setLayout(right_layout)
+        
+        # Add left and right sections to main layout
+        main_layout.addWidget(left_group, 35)
+        main_layout.addWidget(right_group, 65)
         self.setLayout(main_layout)
-    
-    def create_files(self):
-        """Create files and folders based on the current node configuration"""
-        from log_creator import LogCreator
-        import json
         
-        # Validate current node configuration
-        if self.node_list.currentRow() >= 0:
-            if not self.validate_current():
-                return
-        
-        # Choose output directory via dialog
-        current_dir = os.path.dirname(__file__)
-        base_output_dir = QFileDialog.getExistingDirectory(
-            self,
-            "Select Output Root Directory",
-            "",
-            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontUseNativeDialog
-        )
-        
-        if not base_output_dir:
-            return  # User cancelled
-
-        try:
-            # Save current node data to a temporary file
-            with open("nodes_temp.json", "w") as f:
-                json.dump(self.nodes_data, f, indent=2)
+        # Set up change handlers
+        self.name_input.textChanged.connect(self.generate_examples)
+        self.token_input.textChanged.connect(self.generate_examples)
+        self.ip_input.textChanged.connect(self.generate_examples)
+        for checkbox in self.type_buttons.values():
+            checkbox.stateChanged.connect(self.generate_examples)
             
-            # Create all files and folders in chosen location using temporary file
-            results = LogCreator.create_all_nodes(
-                "nodes_temp.json",
-                base_output_dir,
-                "# $FILENAME\n# Log created: $DATETIME\n\nAdd log entries below this line\n"
-            )
-            
-            # Process results to count success/failure
-            total_created = 0
-            for category in results.values():
-                for status in category.values():
-                    if "Created" in status:
-                        total_created += 1
-            
-            success_msg = (
-                f"Successfully created {total_created} files and folders!\n\n"
-                f"Created at: {base_output_dir}"
-            )
-            
-            QMessageBox.information(
-                self, 
-                "Log Structure Created", 
-                success_msg
-            )
-            
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Creation Failed",
-                f"Failed to create files/folders:\n{str(e)}"
-            )
-        finally:
-            # Clean up temporary file if it exists
-            if os.path.exists("nodes_temp.json"):
-                os.remove("nodes_temp.json")
-    
-    def load_configuration(self):
-        """Load configuration from selected JSON file"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open Node Configuration",
-            self.config_file,  # Start at current config location
-            "JSON Files (*.json);;All Files (*)"
-        )
-        
-        if not file_path:
-            return  # User cancelled
-        
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                new_config = json.load(f)
-            
-            # Validate basic structure
-            if not isinstance(new_config, list):
-                raise ValueError("Invalid configuration: Root should be an array")
-            
-            # Validate node entries
-            errors = []
-            for i, node in enumerate(new_config):
-                if not isinstance(node, dict):
-                    errors.append(f"Node {i}: Expected object but got {type(node).__name__}")
-                    continue
-                    
-                if 'name' not in node:
-                    errors.append(f"Node {i}: Missing 'name' field")
-                    continue
-                    
-                # Validate name format: must start with AL/AP and digits
-                if not node['name'].startswith(('AL', 'AP')):
-                    errors.append(f"Node {node['name']}: Must start with 'AL' or 'AP'")
-                elif not all(c.isdigit() for c in node['name'][2:4]):
-                    errors.append(f"Node {node['name']}: Must have 2 digits after prefix")
-                
-                # Warn about missing properties
-                if 'tokens' not in node:
-                    node['tokens'] = []
-                if 'types' not in node:
-                    node['types'] = []
-            
-            if errors:
-                error_msg = "\n".join(errors[:5])  # Show first 5 errors
-                if len(errors) > 5:
-                    error_msg += f"\n... and {len(errors)-5} more issues"
-                QMessageBox.warning(
-                    self,
-                    "Configuration Issues",
-                    f"Loading with warnings:\n\n{error_msg}"
-                )
-                
-            # Update configuration
-            self.nodes_data = new_config
-            self.config_file = file_path  # Update default save location
-            self.populate_node_list()
-            QMessageBox.information(self, "Success", "Configuration loaded successfully")
-            return True
-            
-        except json.JSONDecodeError as e:
-            QMessageBox.critical(
-                self,
-                "Parse Error",
-                f"Invalid JSON format:\n{str(e)}"
-            )
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Load Error",
-                f"Failed to load configuration:\n{str(e)}"
-            )
-        return False
-        
-    def load_config(self):
-        if os.path.exists(self.config_file):
-            try:
-                with open(self.config_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return []
-        return []
-    
-    def save_config(self, silent=False):
-        selected = self.node_list.currentRow()
-        if selected >= 0:
-            self.validate_current()
-            
-        # For silent saves, use the default location
-        save_path = self.config_file
-        
-        # For non-silent saves, ask for new location
-        if not silent:
-            # Show file dialog with options
-            save_path, _ = QFileDialog.getSaveFileName(
-                self,
-                "Save Node Configuration As",
-                self.config_file,
-                "JSON Files (*.json);;All Files (*)",
-                options=QFileDialog.Option.DontUseNativeDialog
-            )
-            if not save_path:
-                return False  # User cancelled
-                
-        try:
-            # Save as JSON for Node Manager
-            with open(save_path, 'w') as f:
-                # Use compact JSON formatting
-                f.write('[\n')
-                for i, node in enumerate(self.nodes_data):
-                    tokens = ', '.join([f'"{t}"' for t in node['tokens']])
-                    types = ', '.join([f'"{t}"' for t in node['types']])
-                    
-                    f.write('    {\n')
-                    f.write(f'        "name": "{node["name"]}",\n')
-                    f.write(f'        "tokens": [{tokens}],\n')
-                    f.write(f'        "types": [{types}]\n')
-                    
-                    if i < len(self.nodes_data) - 1:
-                        f.write('    },\n')
-                    else:
-                        f.write('    }\n')
-                f.write(']')
-                
-            # Also save as text format in the same location for Log Creator
-            txt_config = os.path.splitext(save_path)[0] + ".txt"
-            with open(txt_config, 'w') as f:
-                for node in self.nodes_data:
-                    if node['tokens']:
-                        tokens_str = ','.join(node['tokens'])
-                        f.write(f"{node['name']}:{tokens_str}\n")
-                    else:
-                        f.write(f"{node['name']}\n")
-            
-            # Update the default location for future saves
-            self.config_file = save_path
-            
-            if not silent:
-                QMessageBox.information(
-                    self, 
-                    "Saved", 
-                    f"Configuration saved to:\n\n{save_path}\n"
-                    f"Text version: {txt_config}"
-                )
-            return True
-            
-        except Exception as e:
-            if not silent:
-                QMessageBox.critical(
-                    self,
-                    "Save Error",
-                    f"Failed to save configuration:\n{str(e)}"
-                )
-            return False
-    
-    def populate_node_list(self):
-        self.node_list.clear()
-        for node in self.nodes_data:
-            node_label = node['name'] 
-            if node.get('tokens'):
-                node_label += f" ({', '.join(node['tokens'])})"
-            types = [t for t in LOG_TYPES.keys() if t in node.get('types', [])]
-            if types:
-                node_label += f" [{', '.join(types)}]"
-            self.node_list.addItem(node_label)
-    
-    def on_node_selected(self):
+    def apply_current_changes(self):
+        """Apply UI changes to the current node in nodes_data"""
         selected = self.node_list.currentRow()
         if 0 <= selected < len(self.nodes_data):
-            node_data = self.nodes_data[selected]
-            self.name_input.setText(node_data['name'])
-            self.token_input.setText(", ".join(node_data.get('tokens', [])))
+            name = self.name_input.text().strip()
+            ip = self.ip_input.text().strip()
+            tokens = [t.strip() for t in self.token_input.text().split(',') if t.strip()]
+            selected_types = [t for t, btn in self.type_buttons.items() if btn.isChecked()]
             
-            # Clear all selections first
-            for btn in self.type_buttons.values():
-                btn.setChecked(False)
-                
-            # Set selected types
-            for t in node_data.get('types', []):
-                if t in self.type_buttons:
-                    self.type_buttons[t].setChecked(True)
-                    
-            self.generate_example()
-    
-    def generate_example(self):
-        if not self.name_input.text():
-            return
+            # Update current node in node_data
+            self.nodes_data[selected] = {
+                "name": name,
+                "ip": ip,
+                "tokens": tokens,
+                "types": selected_types
+            }
             
-        node_name = self.name_input.text().strip()
-        tokens = [t.strip() for t in self.token_input.text().split(',') if t.strip()]
-        selected_types = [t for t, btn in self.type_buttons.items() if btn.isChecked()]
-        
-        examples = []
-        for t in selected_types:
-            if t in ["FBC", "RPC"] and tokens:
-                for idx, token in enumerate(tokens[:3]):
-                    if t == "FBC":
-                        # Extract last digit for FBC number
-                        fbc_num = int(token) % 10 if token.isdigit() else 1
-                        examples.append(f"• .../{node_name}/{node_name}_{token}_fbc{fbc_num}.txt")
-                    else:
-                        examples.append(f"• .../{node_name}/{node_name}_{token}_rpc.txt")
-            elif t == "LOG":
-                examples.append(f"• .../{node_name}/{node_name}_log.txt")
-            elif t == "LIS":
-                examples.append(f"• .../{node_name}/exe1_5irb_5orb.txt")
-                
-        self.example_label.setText("\n".join(examples) if examples else "No examples generated\n(Choose configuration first)")
-    
-    def add_node(self):
-        """Add a new node entry with validation"""
-        # Start with empty entry
-        new_data = {
-            "name": "",   # Start with empty name
-            "types": [],
-            "tokens": []
-        }
-        self.nodes_data.append(new_data)
-        self.populate_node_list()
-        new_index = len(self.nodes_data) - 1
-        self.node_list.setCurrentRow(new_index)
-        self.name_input.setFocus()  # Focus name field for immediate editing
-    
-    def remove_node(self):
+    def generate_examples(self):
+        """Generate examples and optionally save current changes if node selected"""
         selected = self.node_list.currentRow()
-        if selected == -1:
-            QMessageBox.information(self, "No Selection", "Please select a node to remove")
-            return
-            
         if selected >= 0 and selected < len(self.nodes_data):
-            # Confirm node deletion
-            node_name = self.nodes_data[selected]['name']
-            reply = QMessageBox.question(
-                self,
-                "Confirm Removal",
-                f"Delete node '{node_name}'? This cannot be undone.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            
-            if reply == QMessageBox.StandardButton.Yes:
-                self.nodes_data.pop(selected)
-                self.populate_node_list()
+            try:
+                # Update current node first
+                self.apply_current_changes()
                 
-                # Clear inputs, selections, and examples
-                self.name_input.clear()
-                self.token_input.clear()
-                for btn in self.type_buttons.values():
-                    btn.setChecked(False)
-                self.example_label.setText("No examples generated yet")
+                # Get from node_data instead of UI to ensure consistency
+                node = self.nodes_data[selected]
+                name = node.get('name') or "APXX"
+                ip = node.get('ip', '').replace('.', '-') or "192-168-0-1"
+                tokens = node.get('tokens', [])
+                selected_types = node.get('types', [])
                 
-                # Clear selection highlight
-                self.node_list.setCurrentRow(-1)
-    
-    def validate_current(self):
-        """Validate and save current node configuration"""
-        name = self.name_input.text().strip()
-        if not name:
-            QMessageBox.warning(
-                self, 
-                "Validation", 
-                "Node name cannot be empty!"
-            )
-            return False
+                # Generate examples including the new LIS type
+                examples = []
+                for log_type in selected_types:
+                    if log_type == "FBC":
+                        examples.extend([f"{name}_{ip}_{token}_fbc.txt" for token in tokens])
+                    elif log_type == "RPC":
+                        examples.extend([f"{name}_{ip}_{token}_rpc.txt" for token in tokens])
+                    elif log_type == "LOG":
+                        examples.append(f"{name}_{ip}.log")
+                    elif log_type == "LIS":
+                        # Generate LIS filenames including IP address as specified
+                        examples.extend([f"{name}_{ip}_exe{i}_5irb_5orb.txt" for i in range(1, 7)])
+                
+                self.example_label.setText("Example files:\n" + "\n".join(examples) if examples else "No examples")
+            except Exception as e:
+                self.example_label.setText(f"Couldn't generate examples: {str(e)}")
+        else:
+            self.example_label.setText("No examples generated yet")
             
-        # Validate name format
-        if not re.match(r'^[A-Z]{2}\d{2}[a-z]?$', name):
-            QMessageBox.warning(
-                self,
-                "Invalid Format",
-                "Node name must be in AP## or AL## format\n(Examples: AP01, AL23, AP05m)"
-            )
-            return False
-            
-        tokens = [t.strip() for t in self.token_input.text().split(',') if t.strip()]
-        selected_types = [t for t, btn in self.type_buttons.items() if btn.isChecked()]
+    def create_files(self):
+        """Create files and folders based on current configuration"""
+        from log_creator import LogCreator
+        from PyQt6.QtWidgets import QFileDialog
         
-        # Validate token requirements
-        token_required_types = [t for t in selected_types if t in ("FBC", "RPC")]
-        if token_required_types and not tokens:
-            QMessageBox.warning(
-                self, 
-                "Validation Error", 
-                f"{', '.join(token_required_types)} log types require at least one token."
-            )
-            return False
-            
-        # Validate token format (3 digits)
-        tokens_modified = False
-        new_tokens = []
+        # Validate configuration first
+        errors = []
+        for i, node in enumerate(self.nodes_data):
+            if not node.get('name'):
+                errors.append(f"Node {i+1} has no name")
+            if not node.get('types'):
+                errors.append(f"Node {node.get('name', str(i+1))} has no log types selected")
+            elif any(lt in ['FBC', 'RPC'] for lt in node['types']):
+                if not node.get('tokens'):
+                    errors.append(f"Node {node.get('name', str(i+1))} requires tokens for FBC/RPC logs")
         
-        for token in tokens:
-            if token.isdigit() and len(token) > 3:
-                # Auto-correct to last three digits
-                corrected = token[-3:]
-                new_tokens.append(corrected)
-                tokens_modified = True
-            elif token.isdigit() and len(token) == 3:
-                new_tokens.append(token)
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Invalid Token",
-                    f"Token '{token}' must be a 3-digit number"
-                )
-                return False
+        if errors:
+            QMessageBox.critical(
+                self,
+                "Configuration Error",
+                "Cannot create files:\n" + "\n".join(errors[:3])
+            )
+            return
+        
+        # Ask user for output directory
+        output_dir = QFileDialog.getExistingDirectory(
+            self,
+            "Select Output Directory",
+            os.path.abspath(os.path.expanduser("~")),  # Start at user's home directory
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontUseNativeDialog
+        )
+        if not output_dir:
+            return  # User cancelled
+            
+        try:
+            # Define a simple content template for the files
+            content_template = """This is a log file for $FILENAME.
+Generated on $DATETIME."""
+            
+            LogCreator.create_file_structure(output_dir, self.nodes_data, content_template)
                 
-        # Apply corrections if needed
-        if tokens_modified:
-            tokens = new_tokens  # Use the corrected tokens
-            self.token_input.setText(', '.join(tokens))
             QMessageBox.information(
                 self,
-                "Token Formatted",
-                "Token values auto-corrected to 3 digits"
+                "Success",
+                f"Sample files created in:\n{output_dir}"
             )
-        
-        # Update node data
-        selected = self.node_list.currentRow()
-        if selected >= 0 and selected < len(self.nodes_data):
-            self.nodes_data[selected] = {
-                "name": name,
-                "tokens": tokens,
-                "types": selected_types
-            }
-        
-        self.populate_node_list()
-        return True
-            
-        tokens = [t.strip() for t in self.token_input.text().split(',') if t.strip()]
-        selected_types = [t for t, btn in self.type_buttons.items() if btn.isChecked()]
-        
-        # Validate token requirements
-        if not tokens and any(t in ["FBC", "RPC"] for t in selected_types):
-            QMessageBox.warning(self, "Validation", 
-                               "FBC and RPC log types require tokens!")
-            return False
-            
-        # Update node data
-        selected = self.node_list.currentRow()
-        if selected >= 0:
-            self.nodes_data[selected] = {
-                "name": name,
-                "tokens": tokens,
-                "types": selected_types
-            }
-        
-        self.populate_node_list()
-        return True
-    
-
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "File Creation Failed",
+                f"Error creating files: {str(e)}"
+            )
