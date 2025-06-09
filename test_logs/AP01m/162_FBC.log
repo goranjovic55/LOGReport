@@ -1,0 +1,17 @@
+=== COMMANDER LOG ===
+Node: AP01m
+Token: 162
+Type: FBC
+Created: 2025-06-09 10:46:23
+====================
+
+13:49:13 >> [TELNET] Connected to 127.0.0.1:2077
+> p s
+[Print System]
+  Online: AP01m, AL03
+
+> fis
+Unknown command. Type 'help' for options.
+
+> rc
+Unknown command. Type 'help' for options.

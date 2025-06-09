@@ -1,0 +1,56 @@
+[
+    {
+        "name": "AP01m",
+        "ip_address": "192.168.1.101",
+        "tokens": [
+            {
+                "token_id": "162",
+                "token_type": "FBC",
+                "port": 2077,
+                "protocol": "telnet"
+            },
+            {
+                "token_id": "163",
+                "token_type": "VNC",
+                "port": 5901,
+                "protocol": "vnc"
+            },
+            {
+                "token_id": "164",
+                "token_type": "RPC",
+                "port": 2077,
+                "protocol": "telnet"
+            }
+        ]
+    },
+    {
+        "name": "AP01r",
+        "ip_address": "192.168.1.102",
+        "tokens": [
+            {
+                "token_id": "360",
+                "token_type": "FTP",
+                "port": 2121,
+                "protocol": "ftp"
+            },
+            {
+                "token_id": "361",
+                "token_type": "LOG",
+                "port": 2077,
+                "protocol": "telnet"
+            }
+        ]
+    },
+    {
+        "name": "AL03",
+        "ip_address": "192.168.1.103",
+        "tokens": [
+            {
+                "token_id": "451",
+                "token_type": "LIS",
+                "port": 2121,
+                "protocol": "ftp"
+            }
+        ]
+    }
+]

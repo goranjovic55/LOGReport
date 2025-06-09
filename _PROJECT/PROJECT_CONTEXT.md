@@ -1,22 +1,115 @@
-# PROJECT_CONTEXT.md Template
+# LOGReport Project Context v3.5
 
-**Last Updated:** 2025-05-29
-**Project Phase:** Implementation & Testing
+**Last Updated:** 2025-06-08  
+**Project Phase:** Commander Module Implementation  
 
-## 1. Project Overview
+## 1. System Overview
 
-**System Purpose:** LOGReport is a log processing and report generation system that analyzes log files and transforms them into structured reports in PDF/DOCX formats with consistent styling.
+**Core Purpose:** Automated log processing and reporting system with central Commander interface for log generation and management.
 
-**Key Features:**
-- Directory scanning for log files
-- Configurable line filtering (first/last N lines or range)
-- Folder-based chapter nesting in reports
-- Multiple encoding support (utf-8, ascii, latin-1)
-- Progress tracking GUI
+**Expanded Feature Set:**
+- Tab-based session management (Telnet, VNC, FTP)
+- Node-tree log file organization 
+- Multi-protocol content acquisition
+- LSR-compliant log formatting
+- Token-based command execution
 
-## 2. Basic Principles
+## 2. Commander Module Status
+```mermaid
+graph TD
+    A[Commander Implementation] --> B[Phase 1]
+    B --> C[Phase 2]
+    C --> D[Phase 3]
+    
+    B -->|Completed| E[Core Architecture]
+    C -->|In Progress| F[Session Implement]
+    D -->|Pending| G[Log & Security]
+    
+    E --> E1[Dual-Pane GUI]
+    E --> E2[Node Tree Loader]
+    E --> E3[Session Manager API]
+    
+    F --> F1[Telnet Handler]
+    F --> F2[VNC Integration]
+    F --> F3[FTP Explorer]
+    
+    G --> G1[LSR Writer]
+    G --> G2[Credential Security]
+```
 
-> **Guiding principles for development:**
+**Phase 1 Completion: 70%**
+- ✅ Dual-pane UI framework
+- ✅ Node config loader implementation
+- ✅ Session manager API prototype
+- ⚠️ Log writer service (partial)
+
+## 3. Revised Development Guidelines
+
+1. **Commander-Specific Standards:**
+   - Type-hinted Python code throughout
+   - Session logging for all operations
+   - LSR headers on all generated logs
+   - Connection bar on every session tab
+
+2. **Performance Requirements:**
+   ```python
+   # Commander Performance Targets
+   CMD_HANDLE_LATENCY = 0.2    # Seconds max
+   GUI_RESPONSIVENESS = 100    # ms max operation delay
+   LOG_WRITE_TIME = 0.05       # Seconds per MB
+   ```
+
+3. **Security Protocols:**
+   - Staged credential implementation:
+      Phase 1: Cleartext (local dev)
+      Phase 2: Encrypted credentials
+      Phase 3: Certificate-based auth
+
+## 4. Roadmap Integration
+```gantt
+gantt
+    title Commander Module Timeline
+    dateFormat  YYYY-MM-DD
+    
+    section Phase 1
+    GUI Framework       :done, 2025-06-10, 3d
+    Node Manager        :done, 2025-06-13, 3d
+    Session Backend     :active, 2025-06-16, 3d
+    
+    section Phase 2
+    Telnet UI           :2025-06-20, 3d
+    VNC Integration     :2025-06-23, 4d
+    FTP Explorer        :2025-06-27, 3d
+    
+    section Phase 3
+    Log Formatter       :2025-06-30, 3d
+    Security Layer      :2025-07-03, 4d
+```
+
+## 5. Updated Build Instructions
+```bash
+# New requirements
+pip install pyqt6 telnetlib3 pillow
+
+# Test Commander components
+python src/commander/session_manager.py
+python src/commander/log_writer.py
+```
+
+## 6. Key Architectural Changes
+```mermaid
+flowchart LR
+    A[Commander] --> B(Session Manager)
+    B --> C[TelnNet]
+    B --> D[VNC]
+    B --> E[FTP]
+    A --> F[Log Writer]
+    F --> G[Node Filesystem]
+    A --> H[Node Manager]
+```
+
+> **Implementation Philosophy:** "Log First" approach - All commander operations should write or append to structured log files immediately.
+```
 
 ### Mandatory Standards
 1. **Modular Processing Pipeline**:
