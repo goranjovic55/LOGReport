@@ -4,9 +4,9 @@
 a = Analysis(
     ['src\\main.py'],
     pathex=[],
-    binaries=[],
+    binaries=[('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\*', 'PyQt6'), ('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Core.dll', '.'), ('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Gui.dll', '.'), ('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Widgets.dll', '.')],
     datas=[('src', 'src'), ('_PROJECT', '_PROJECT'), ('test_logs', 'test_logs'), ('nodes.json', '.')],
-    hiddenimports=['PyQt6.sip', 'PyQt6.QtPrintSupport', 'reportlab.pdfbase._fontdata', 'reportlab.lib.fonts'],
+    hiddenimports=['PyQt6.sip'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -34,5 +34,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='version_info.txt',
 )

@@ -3,50 +3,41 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 echo.
 echo ===================================================
-echo LOGReporter EXECUTABLE BUILD SCRIPT
-echo Now with robust icon handling
+echo LOGReporter BUILD SCRIPT - SIP Module Fix
 echo ===================================================
 echo.
 
+REM Get PyQt6.sip location
+for /f "delims=" %%a in ('python -c "import PyQt6.sip, os; print(os.path.dirname(PyQt6.sip.__file__))"') do set SIP_DIR=%%a
+
+echo Detected PyQt6.sip directory: !SIP_DIR!
+
+REM Set Qt6 bin directory
+set QT_BIN=C:\Program Files\Python311\Lib\site-packages\PyQt6\Qt6\bin
+
 REM Ensure requirements are installed
-echo [1/4] Checking dependencies...
+echo [1/4] Installing dependencies...
 pip install -r requirements-narrow.txt
 
-REM Create necessary directories
 echo.
-echo [2/4] Preparing directories...
-mkdir assets 2>nul
-mkdir dist 2>nul
-
-REM Handle icon file presence
-set ICON_FLAG=
-if exist assets\logo.ico (
-    echo Valid icon found at assets\logo.ico
-    set ICON_FLAG=--icon assets\logo.ico
-) else (
-    echo WARNING: No valid icon found. Building without application icon.
-    echo You can add a .ico file to: assets\logo.ico
-    set ICON_FLAG=
-)
-
-REM Run PyInstaller build
-echo.
-echo [3/4] Building executable with PyInstaller...
-echo Using flags: !ICON_FLAG!
+echo [2/4] Building executable with PyInstaller...
+echo Adding PyQt6.sip directory: !SIP_DIR!
 echo ---------------------------------------------------
-pyinstaller --onefile --windowed --name "LOGReporter" ^
-    !ICON_FLAG! ^
+python -m PyInstaller ^
+    --onefile ^
+    --windowed ^
+    --name "LOGReporter" ^
+    --add-binary "!SIP_DIR!\*;PyQt6" ^
     --add-data "src;src" ^
     --add-data "_PROJECT;_PROJECT" ^
     --add-data "test_logs;test_logs" ^
     --add-data "nodes.json;." ^
-    --version-file version_info.txt ^
+    --add-binary "!QT_BIN!\Qt6Core.dll;." ^
+    --add-binary "!QT_BIN!\Qt6Gui.dll;." ^
+    --add-binary "!QT_BIN!\Qt6Widgets.dll;." ^
     --hidden-import PyQt6.sip ^
-    --hidden-import PyQt6.QtPrintSupport ^
-    --hidden-import reportlab.pdfbase._fontdata ^
-    --hidden-import reportlab.lib.fonts ^
     --clean ^
-    src\main.py -- --gui
+    src\main.py
 
 IF ERRORLEVEL 1 (
     echo ERROR: Build failed!
@@ -54,18 +45,11 @@ IF ERRORLEVEL 1 (
     exit /b 1
 )
 
-REM Final message
 echo.
-echo [4/4] Build complete!
+echo [3/4] Build complete! 
 echo ---------------------------------------------------
 echo.
-echo Executable created at: %cd%\dist\LOGReporter.exe
-echo.
-if not exist assets\logo.ico (
-    echo NOTE: You can add a custom icon later:
-    echo       1. Create a valid .ico file
-    echo       2. Save it as assets\logo.ico
-    echo       3. Rebuild the executable
-)
-echo ==================== COMPLETE ====================
-timeout /t 10
+echo [4/4] Launching application...
+echo ===================================================
+TIMEOUT /T 1
+START "" "dist\LOGReporter.exe"
