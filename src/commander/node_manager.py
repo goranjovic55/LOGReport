@@ -88,15 +88,19 @@ class NodeManager:
         self.nodes.clear()  # Clear existing nodes
         
         # Check if this is the old format (array of nodes without nested tokens)
-        if isinstance(config_data, list) and all(
-            'tokens' in node and 
-            isinstance(node['tokens'], list) and 
-            all(isinstance(t, str) for t in node['tokens'])
-            for node in config_data if 'tokens' in node
-        ):
-            # Convert old format to new format
-            print("Detected old format - converting to new format")
-            config_data = self._convert_old_format(config_data)
+        # Check if this is the old format (array of nodes with string tokens arrays)
+        if isinstance(config_data, list) and config_data:
+            first_node = config_data[0]
+            is_old_format = (
+                'ip' in first_node and 
+                'tokens' in first_node and 
+                isinstance(first_node['tokens'], list) and
+                all(isinstance(t, str) for t in first_node['tokens'])
+            )
+            
+            if is_old_format:
+                print("Detected old format - converting to new format")
+                config_data = self._convert_old_format(config_data)
         
         for node_data in config_data:
             try:
@@ -174,39 +178,78 @@ class NodeManager:
         return new_config
             
     def scan_log_files(self, log_root=None):
-        """Scans filesystem for existing log files and updates tokens"""
+        """
+        Scans filesystem for log files in the structure:
+        <log_root>/<token_type>/<node_name>/<filename>
+        
+        Filename format: <node_name>_<ip>_<token_id>_<token_type>.<ext>
+        Example: AP01m_192-168-0-11_162_fbc.log
+        """
         root = log_root or self.log_root
         if not os.path.exists(root):
             return
             
-        # Traverse through all node folders
-        for node_name in os.listdir(root):
-            node_path = os.path.join(root, node_name)
-            if not os.path.isdir(node_path):
+        # Scan token type folders (FBC, LIS, LOG, RPC)
+        for token_type in os.listdir(root):
+            token_type_path = os.path.join(root, token_type)
+            if not os.path.isdir(token_type_path) or token_type.upper() not in ["FBC", "LIS", "LOG", "RPC"]:
                 continue
                 
-            # Find matching node
-            node = self.nodes.get(node_name)
-            if not node:
-                continue
-                
-            # Scan for log files in node folder
-            for filename in os.listdir(node_path):
-                if not filename.endswith(".log"):
+            # Traverse node folders in token type folder
+            for node_folder in os.listdir(token_type_path):
+                node_path = os.path.join(token_type_path, node_folder)
+                if not os.path.isdir(node_path):
                     continue
                     
-                # Extract token ID and type from filename
-                try:
-                    # Expected format: {token_id}_{log_type}.log
-                    base_name = filename[:-4]  # Remove .log extension
-                    token_id, log_type = base_name.split("_", 1)
-                except ValueError:
+                # Find matching node - case insensitive
+                matched_node = next(
+                    (n for n in self.nodes.values() if n.name.lower() == node_folder.lower()),
+                    None
+                )
+                if not matched_node:
                     continue
                     
-                # Update token if exists
-                token = node.tokens.get(token_id)
-                if token:
-                    token.log_path = os.path.join(root, node_name, filename)
+                # Scan log files in node folder
+                for filename in os.listdir(node_path):
+                    if not filename.lower().endswith((".log", ".txt")):
+                        continue
+                        
+                    try:
+                        # Parse filename: <node_name>_<ip>_<token_id>_<token_type>.<ext>
+                        base_name = os.path.splitext(filename)[0]  # Remove extension
+                        parts = base_name.split('_')
+                        
+                        # We need at least 4 parts: node_name, ip, token_id, token_type
+                        if len(parts) < 4:
+                            continue
+                            
+                        # Reconstruct node name from first parts (in case of multi-part name)
+                        # Assuming node name is all parts until the IP address
+                        # But simple approach: node name should match node_folder
+                        file_node_name = parts[0]
+                        token_id = parts[-2]  # Second last part is token_id
+                        file_token_type = parts[-1]  # Last part is token type
+                        
+                        # Match node name (case-insensitive)
+                        if file_node_name.lower() != node_folder.lower():
+                            continue
+                            
+                        # Match token type (case-insensitive)
+                        if file_token_type.lower() != token_type.lower():
+                            continue
+                            
+                        # Find matching token in node (case-insensitive)
+                        token = next(
+                            (t for t in matched_node.tokens.values() 
+                             if t.token_id.lower() == token_id.lower()),
+                            None
+                        )
+                        if token:
+                            # Update token's log path to actual file
+                            token.log_path = os.path.join(node_path, filename)
+                            
+                    except Exception as e:
+                        print(f"Error processing {filename}: {str(e)}")
             
     def _generate_log_path(self, node_name: str, token_id: str, log_type: str) -> str:
         """Generates standardized log path"""
@@ -286,3 +329,8 @@ class NodeManager:
             return True
         except (OSError, TypeError):
             return False
+            
+    def create_empty_config(self, file_path: str):
+        """Creates an empty configuration file with proper format"""
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump([], f, indent=2)
