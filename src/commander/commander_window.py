@@ -187,17 +187,47 @@ class CommanderWindow(QMainWindow):
         self.telnet_session = None
         self.telnet_active = False
         
-        # Load configuration
-        self.load_configuration()
-        
-        # Setup UI
+        # Setup UI first - we'll initialize with empty tree
         self.init_ui()
         
+        # Try loading default configuration if available
+        try:
+            if os.path.exists(self.node_manager.config_path):
+                if self.node_manager.load_configuration():
+                    self.node_manager.scan_log_files()
+                    self.populate_node_tree()
+        except Exception as e:
+            print(f"Error loading default configuration: {e}")
+        
     def load_configuration(self):
-        """Load node configuration"""
-        loaded = self.node_manager.load_configuration()
-        if not loaded:
-            print("Error loading node configuration")
+        """Load node configuration from selected file"""
+        from PyQt6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Select Node Configuration File", 
+            "", 
+            "JSON Files (*.json)"
+        )
+        if file_path:
+            self.node_manager.set_config_path(file_path)
+            if self.node_manager.load_configuration():
+                self.node_manager.scan_log_files()
+                self.populate_node_tree()
+            else:
+                print("Error loading node configuration")
+    
+    def set_log_root_folder(self):
+        """Set the root folder for log files"""
+        from PyQt6.QtWidgets import QFileDialog
+        folder_path = QFileDialog.getExistingDirectory(
+            self,
+            "Select Log Files Root Folder",
+            ""
+        )
+        if folder_path:
+            self.node_manager.set_log_root(folder_path)
+            self.node_manager.scan_log_files()
+            self.populate_node_tree()
             
     def init_ui(self):
         """Initialize the main UI components"""
@@ -213,15 +243,25 @@ class CommanderWindow(QMainWindow):
         left_pane = QWidget()
         left_layout = QVBoxLayout(left_pane)
         
+        # Toolbar with buttons
+        toolbar_layout = QHBoxLayout()
+        self.load_nodes_btn = QPushButton("Load Nodes")
+        self.load_nodes_btn.clicked.connect(self.load_configuration)
+        self.set_log_root_btn = QPushButton("Set Log Root")
+        self.set_log_root_btn.clicked.connect(self.set_log_root_folder)
+        
+        toolbar_layout.addWidget(self.load_nodes_btn)
+        toolbar_layout.addWidget(self.set_log_root_btn)
+        left_layout.addLayout(toolbar_layout)
+        
         # Node Tree Widget
         self.node_tree = QTreeWidget()
         self.node_tree.setHeaderLabels(["Nodes"])
         self.node_tree.setColumnWidth(0, 300)
         self.node_tree.setFont(QFont("Consolas", 10))
-        self.populate_node_tree()
         self.node_tree.itemClicked.connect(self.on_node_selected)
         
-        left_layout.addWidget(self.node_tree)
+        left_layout.addWidget(self.node_tree, 1)  # Add stretch factor
         splitter.addWidget(left_pane)
         
         # Create buttons for the window
@@ -339,7 +379,7 @@ class CommanderWindow(QMainWindow):
         return tab
         
     def populate_node_tree(self):
-        """Populates tree view with nodes and tokens"""
+        """Populates tree view with nodes and tokens, and their log files"""
         self.node_tree.clear()
         
         for node in self.node_manager.get_all_nodes():
@@ -350,7 +390,7 @@ class CommanderWindow(QMainWindow):
             else:
                 node_item.setIcon(0, NODE_OFFLINE_ICON)
             
-            # Add tokens
+            # Add tokens and their log files
             for token in node.tokens.values():
                 token_label = (
                     f"{token.token_id} {token.token_type} "
@@ -360,6 +400,16 @@ class CommanderWindow(QMainWindow):
                 token_item.setData(0, Qt.ItemDataRole.UserRole, 
                                 {"node": node.name, "token": token.token_id})
                 token_item.setIcon(0, TOKEN_ICON)
+                
+                # Add log file item if it exists
+                if token.log_path and os.path.exists(token.log_path):
+                    log_filename = os.path.basename(token.log_path)
+                    log_item = QTreeWidgetItem([f"📝 {log_filename}"])
+                    log_item.setData(0, Qt.ItemDataRole.UserRole, 
+                                   {"log_path": token.log_path})
+                    log_item.setIcon(0, QIcon(":/icons/page.png"))
+                    token_item.addChild(log_item)
+                
                 node_item.addChild(token_item)
             
             self.node_tree.addTopLevelItem(node_item)
@@ -370,9 +420,17 @@ class CommanderWindow(QMainWindow):
     def on_node_selected(self, item: QTreeWidgetItem, column: int):
         """Handles node/token selection in left pane"""
         if data := item.data(0, Qt.ItemDataRole.UserRole):
+            # Check if log item
+            if "log_path" in data:
+                # Not handling log items further yet
+                return
+            
             # It's a token item
-            node_name = data["node"]
-            token_id = data["token"]
+            token_id = data.get("token")
+            node_name = data.get("node")
+            if not node_name or not token_id:
+                return
+                
             token = self.node_manager.get_token(node_name, token_id)
             
             if not token:
@@ -381,7 +439,7 @@ class CommanderWindow(QMainWindow):
             self.current_token = token
             
             # Update ConnectionBar based on token type
-            if token.token_type == "FBC": # Assuming FBC means Telnet
+            if token.token_type == "FBC": # Telnet
                 self.session_tabs.setCurrentWidget(self.telnet_tab)
                 self.telnet_connection_bar.address_label.setText(f"{token.ip_address}:{token.port}")
                 self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED) # Reset status
