@@ -1,37 +1,54 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Simplified PyInstaller spec file
 
+block_cipher = None
+
+# Add path to avoid missing modules
+import sys
+import os
+sys.path.append(os.path.abspath('src'))
 
 a = Analysis(
-    ['src\\main.py'],
-    pathex=[],
-    binaries=[('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\*', 'PyQt6'), ('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Core.dll', '.'), ('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Gui.dll', '.'), ('C:\\Program Files\\Python311\\Lib\\site-packages\\PyQt6\\Qt6\\bin\\Qt6Widgets.dll', '.')],
-    datas=[('src', 'src'), ('_PROJECT', '_PROJECT'), ('test_logs', 'test_logs'), ('nodes.json', '.')],
-    hiddenimports=['PyQt6.sip'],
+    ['src/main.py'],
+    pathex=[os.getcwd()],
+    binaries=[],
+    datas=[('src/nodes.json', 'src'), 
+           ('assets', 'assets'),
+           ('version_info.txt', '.')],
+    hiddenimports=[
+        'docx',
+        'PyQt6',
+        'PyQt6.QtCore',
+        'PyQt6.QtWidgets',
+        'PyQt6.QtGui',
+        'reportlab',
+        'PIL'
+    ],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['src/runtime_hooks/runtime_hook.py'],
     excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure)
+
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
+    a.zipfiles,
     a.datas,
-    [],
     name='LOGReporter',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
+    console=True,
+    icon=None,
+    version='version_info.txt',
 )

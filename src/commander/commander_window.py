@@ -21,69 +21,72 @@ class ConnectionState(Enum):
     CONNECTED = 2
     ERROR = 3
 
-class ConnectionBar(QWidget):
-    # Define a custom signal to communicate button clicks
-    connection_requested = pyqtSignal(bool) # True for connect, False for disconnect
-
-    def __init__(self, ip_address: str, port: int):
-        super().__init__()
-        self.layout = QHBoxLayout()
-        self.address_label = QLabel(f"{ip_address}:{port}")
-        self.status_icon = QLabel("○") # Default disconnected icon
-        self.connect_btn = QPushButton("Connect")
-        
-        self.layout.addWidget(self.address_label)
-        self.layout.addWidget(self.status_icon)
-        self.layout.addWidget(self.connect_btn)
-        self.layout.addStretch() # Push buttons to the right
-        self.setLayout(self.layout)
-        
-        # Connect the button click to our internal handler
-        self.connect_btn.clicked.connect(self._on_connect_button_clicked)
-        
-        # Initial status
-        self.update_status(ConnectionState.DISCONNECTED)
-    
-    def update_status(self, state: ConnectionState):
-        icons = {
-            ConnectionState.DISCONNECTED: "○",
-            ConnectionState.CONNECTING: "◑",
-            ConnectionState.CONNECTED: "●",
-            ConnectionState.ERROR: "⨯"
-        }
-        colors = {
-            ConnectionState.DISCONNECTED: "#888",
-            ConnectionState.CONNECTING: "orange",
-            ConnectionState.CONNECTED: "lime",
-            ConnectionState.ERROR: "red"
-        }
-        
-        self.status_icon.setText(icons[state])
-        self.status_icon.setStyleSheet(f"font-size: 16pt; color: {colors[state]};")
-        
-        # Only change button text based on connection state
-        if state == ConnectionState.CONNECTED:
-            self.connect_btn.setText("Disconnect")
-        else:
-            self.connect_btn.setText("Connect")
-    
-    def _on_connect_button_clicked(self):
-        """Internal slot to handle the connect/disconnect button click.
-        Emits connection_requested signal.
-        """
-        if self.connect_btn.text() == "Connect":
-            self.connection_requested.emit(True) # Request a connection
-        else:
-            self.connection_requested.emit(False) # Request a disconnection
-
 # Import our components
 from .node_manager import NodeManager
 from .session_manager import SessionManager, SessionType, SessionConfig
 from .log_writer import LogWriter
 from .commands.telnet_commands import CommandResolver, CommandHistory
-from .icons import NODE_ONLINE_ICON, NODE_OFFLINE_ICON, TOKEN_ICON
+from .icons import get_node_online_icon, get_node_offline_icon, get_token_icon
+
+# Centralized Qt application initialization
+from .qt_init import initialize_qt
 
 class CommanderWindow(QMainWindow):
+    class ConnectionBar(QWidget):
+        """Connection bar widget moved inside CommanderWindow to avoid module-level GUI"""
+        # Define a custom signal to communicate button clicks
+        connection_requested = pyqtSignal(bool) # True for connect, False for disconnect
+
+        def __init__(self, ip_address: str, port: int):
+            super().__init__()
+            self.layout = QHBoxLayout()
+            self.address_label = QLabel(f"{ip_address}:{port}")
+            self.status_icon = QLabel("○") # Default disconnected icon
+            self.connect_btn = QPushButton("Connect")
+            
+            self.layout.addWidget(self.address_label)
+            self.layout.addWidget(self.status_icon)
+            self.layout.addWidget(self.connect_btn)
+            self.layout.addStretch() # Push buttons to the right
+            self.setLayout(self.layout)
+            
+            # Connect the button click to our internal handler
+            self.connect_btn.clicked.connect(self._on_connect_button_clicked)
+            
+            # Initial status
+            self.update_status(ConnectionState.DISCONNECTED)
+        
+        def update_status(self, state: ConnectionState):
+            icons = {
+                ConnectionState.DISCONNECTED: "○",
+                ConnectionState.CONNECTING: "◑",
+                ConnectionState.CONNECTED: "●",
+                ConnectionState.ERROR: "⨯"
+            }
+            colors = {
+                ConnectionState.DISCONNECTED: "#888",
+                ConnectionState.CONNECTING: "orange",
+                ConnectionState.CONNECTED: "lime",
+                ConnectionState.ERROR: "red"
+            }
+            
+            self.status_icon.setText(icons[state])
+            self.status_icon.setStyleSheet(f"font-size: 16pt; color: {colors[state]};")
+            
+            # Only change button text based on connection state
+            if state == ConnectionState.CONNECTED:
+                self.connect_btn.setText("Disconnect")
+            else:
+                self.connect_btn.setText("Connect")
+        
+        def _on_connect_button_clicked(self):
+            """Internal slot to handle the connect/disconnect button click.
+            Emits connection_requested signal.
+            """
+            if self.connect_btn.text() == "Connect":
+                self.connection_requested.emit(True) # Request a connection
+            else:
+                self.connection_requested.emit(False) # Request a disconnection
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Commander LogCreator v1.0")
@@ -344,7 +347,7 @@ class CommanderWindow(QMainWindow):
         self.execute_btn.clicked.connect(self.execute_telnet_command)
         
         # Connection Bar (Telnet)
-        self.telnet_connection_bar = ConnectionBar(ip_address="", port=0) # Placeholder
+        self.telnet_connection_bar = self.ConnectionBar(ip_address="", port=0) # Placeholder
         self.telnet_connection_bar.connection_requested.connect(self.toggle_telnet_connection)
         layout.addWidget(self.telnet_connection_bar)
         
@@ -364,7 +367,7 @@ class CommanderWindow(QMainWindow):
         
         # Connection Bar (VNC/FTP uses a generic one for now)
         # Note: IP/Port will be updated dynamically later
-        connection_bar = ConnectionBar(ip_address="", port=0) 
+        connection_bar = self.ConnectionBar(ip_address="", port=0) 
         
         # Store a reference to the connection bar for potential dynamic updates
         # For now, let's keep it simple and assume they will be updated via item selection
@@ -386,20 +389,17 @@ class CommanderWindow(QMainWindow):
             # Create node item
             node_item = QTreeWidgetItem([f"{node.name} ({node.ip_address})"])
             if node.status == "online":
-                node_item.setIcon(0, NODE_ONLINE_ICON)
+                node_item.setIcon(0, get_node_online_icon())
             else:
-                node_item.setIcon(0, NODE_OFFLINE_ICON)
+                node_item.setIcon(0, get_node_offline_icon())
             
             # Add tokens and their log files
             for token in node.tokens.values():
-                token_label = (
-                    f"{token.token_id} {token.token_type} "
-                    f"{token.ip_address}:{token.port}"
-                )
+                token_label = f"{token.token_id} {token.token_type} {token.ip_address}"
                 token_item = QTreeWidgetItem([token_label])
                 token_item.setData(0, Qt.ItemDataRole.UserRole, 
                                 {"node": node.name, "token": token.token_id})
-                token_item.setIcon(0, TOKEN_ICON)
+                token_item.setIcon(0, get_token_icon())
                 
                 # Add log file item if it exists
                 if token.log_path and os.path.exists(token.log_path):
@@ -633,10 +633,10 @@ class CommanderWindow(QMainWindow):
 
 
 def run():
-    from PyQt6.QtWidgets import QApplication
-    app = QApplication(sys.argv)
+    # Initialize Qt application safely
+    app = initialize_qt() or QApplication(sys.argv)
     
-    # Dark theme styling
+    # Apply dark theme styling
     app.setStyle("Fusion")
     
     # Create main window instance
@@ -645,4 +645,5 @@ def run():
     sys.exit(app.exec())
 
 if __name__ == "__main__":
+    from PyQt6.QtWidgets import QApplication
     run()
