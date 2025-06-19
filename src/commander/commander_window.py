@@ -4,6 +4,7 @@ Dual-pane interface for managing nodes and sessions
 """
 import sys
 import os
+import glob
 from PyQt6.QtWidgets import (
     QMainWindow, QSplitter, QTreeWidget, QTreeWidgetItem, 
     QTabWidget, QTextEdit, QVBoxLayout, QWidget, QHBoxLayout,
@@ -382,7 +383,7 @@ class CommanderWindow(QMainWindow):
         return tab
         
     def populate_node_tree(self):
-        """Populates tree view with nodes and tokens, and their log files"""
+        """Populates tree view with nodes and sections for FBC, RPC, LOG, LIS with relevant files"""
         self.node_tree.clear()
         
         for node in self.node_manager.get_all_nodes():
@@ -393,24 +394,143 @@ class CommanderWindow(QMainWindow):
             else:
                 node_item.setIcon(0, get_node_offline_icon())
             
-            # Add tokens and their log files
+            # Ensure log_root is set
+            log_root = self.node_manager.log_root
+            if not log_root or not os.path.isdir(log_root):
+                # Add placeholder if log root not set
+                no_folder = QTreeWidgetItem(["Please set log root folder"])
+                no_folder.setIcon(0, QIcon(":/icons/warning.png"))
+                node_item.addChild(no_folder)
+                self.node_tree.addTopLevelItem(node_item)
+                continue
+            
+            # Create top-level sections
+            sections = {
+                "FBC": QTreeWidgetItem(["FBC"]),
+                "RPC": QTreeWidgetItem(["RPC"]),
+                "LOG": QTreeWidgetItem(["LOG"]),
+                "LIS": QTreeWidgetItem(["LIS"])
+            }
+            
+            # Set icons for sections
+            sections["FBC"].setIcon(0, get_token_icon())
+            sections["RPC"].setIcon(0, get_token_icon())
+            sections["LOG"].setIcon(0, QIcon(":/icons/page.png"))
+            sections["LIS"].setIcon(0, QIcon(":/icons/page.png"))
+            
+            # Add FBC files to FBC section
+            added_fbc = False
             for token in node.tokens.values():
-                token_label = f"{token.token_id} {token.token_type} {token.ip_address}"
-                token_item = QTreeWidgetItem([token_label])
-                token_item.setData(0, Qt.ItemDataRole.UserRole, 
-                                {"node": node.name, "token": token.token_id})
-                token_item.setIcon(0, get_token_icon())
-                
-                # Add log file item if it exists
-                if token.log_path and os.path.exists(token.log_path):
+                if token.token_type == "FBC" and token.log_path and os.path.exists(token.log_path):
                     log_filename = os.path.basename(token.log_path)
                     log_item = QTreeWidgetItem([f"📝 {log_filename}"])
-                    log_item.setData(0, Qt.ItemDataRole.UserRole, 
-                                   {"log_path": token.log_path})
+                    log_item.setData(0, Qt.ItemDataRole.UserRole,
+                                   {"log_path": token.log_path, "node": node.name, "token": token.token_id})
                     log_item.setIcon(0, QIcon(":/icons/page.png"))
-                    token_item.addChild(log_item)
-                
-                node_item.addChild(token_item)
+                    sections["FBC"].addChild(log_item)
+                    added_fbc = True
+            
+            # Add RPC files to RPC section
+            added_rpc = False
+            for token in node.tokens.values():
+                if token.token_type == "RPC" and token.log_path and os.path.exists(token.log_path):
+                    log_filename = os.path.basename(token.log_path)
+                    log_item = QTreeWidgetItem([f"📝 {log_filename}"])
+                    log_item.setData(0, Qt.ItemDataRole.UserRole,
+                                   {"log_path": token.log_path, "node": node.name, "token": token.token_id})
+                    log_item.setIcon(0, QIcon(":/icons/page.png"))
+                    sections["RPC"].addChild(log_item)
+                    added_rpc = True
+            
+            added_log = False
+            log_dir = os.path.join(log_root, "LOG")
+            log_pattern = f"{node.name}_{node.ip_address.replace('.','-')}.log"
+            log_files = glob.glob(os.path.join(log_dir, log_pattern))
+            for log_path in log_files:
+                if os.path.isfile(log_path):
+                    log_filename = os.path.basename(log_path)
+                    log_item = QTreeWidgetItem([f"📝 {log_filename}"])
+                    log_item.setData(0, Qt.ItemDataRole.UserRole,
+                                   {"log_path": log_path})
+                    log_item.setIcon(0, QIcon(":/icons/page.png"))
+                    sections["LOG"].addChild(log_item)
+                    added_log = True
+            
+            # Add LOG files to LOG section
+            added_log = False
+            logs_dir = os.path.join(log_root, "LOG")
+            # Only show the main node log file matching the pattern
+            log_pattern = f"{node.name}_{node.ip_address.replace('.','-')}.log"
+            log_path = os.path.join(logs_dir, log_pattern)
+            if os.path.isfile(log_path):
+                filename = os.path.basename(log_path)
+                file_item = QTreeWidgetItem([f"📝 {filename}"])
+                file_item.setData(0, Qt.ItemDataRole.UserRole,
+                                {"log_path": log_path})
+                file_item.setIcon(0, QIcon(":/icons/page.png"))
+                sections["LOG"].addChild(file_item)
+                added_log = True
+            
+            # Add FBC files to FBC section (from FBC/node_name folder)
+            added_fbc = False
+            fbc_dir = os.path.join(log_root, "FBC", node.name)
+            if os.path.isdir(fbc_dir):
+                for filename in os.listdir(fbc_dir):
+                    if filename.endswith(".fbc") and filename.startswith(node.name + "_"):
+                        file_path = os.path.join(fbc_dir, filename)
+                        if os.path.isfile(file_path):
+                            file_item = QTreeWidgetItem([f"📝 {filename}"])
+                            file_item.setData(0, Qt.ItemDataRole.UserRole,
+                                            {"log_path": file_path})
+                            file_item.setIcon(0, QIcon(":/icons/page.png"))
+                            sections["FBC"].addChild(file_item)
+                            added_fbc = True
+            
+            # Add RPC files to RPC section (from RPC/node_name folder)
+            added_rpc = False
+            rpc_dir = os.path.join(log_root, "RPC", node.name)
+            if os.path.isdir(rpc_dir):
+                for filename in os.listdir(rpc_dir):
+                    if filename.endswith(".rpc") and filename.startswith(node.name + "_"):
+                        file_path = os.path.join(rpc_dir, filename)
+                        if os.path.isfile(file_path):
+                            file_item = QTreeWidgetItem([f"📝 {filename}"])
+                            file_item.setData(0, Qt.ItemDataRole.UserRole,
+                                            {"log_path": file_path})
+                            file_item.setIcon(0, QIcon(":/icons/page.png"))
+                            sections["RPC"].addChild(file_item)
+                            added_rpc = True
+            
+            # Add LIS files to LIS section (from LIS/node_name folder)
+            added_lis = False
+            lis_dir = os.path.join(log_root, "LIS", node.name)
+            if os.path.isdir(lis_dir):
+                for filename in os.listdir(lis_dir):
+                    if filename.endswith(".lis") and filename.startswith(node.name + "_"):
+                        file_path = os.path.join(lis_dir, filename)
+                        if os.path.isfile(file_path):
+                            file_item = QTreeWidgetItem([f"📝 {filename}"])
+                            file_item.setData(0, Qt.ItemDataRole.UserRole,
+                                            {"log_path": file_path})
+                            file_item.setIcon(0, QIcon(":/icons/page.png"))
+                            sections["LIS"].addChild(file_item)
+                            added_lis = True
+            
+            # Add only non-empty sections to the node
+            if added_fbc:
+                node_item.addChild(sections["FBC"])
+            if added_rpc:
+                node_item.addChild(sections["RPC"])
+            if added_log:
+                node_item.addChild(sections["LOG"])
+            if added_lis:
+                node_item.addChild(sections["LIS"])
+            
+            # Add warning if no data found
+            if not (added_fbc or added_rpc or added_log or added_lis):
+                no_files = QTreeWidgetItem(["No files found for this node"])
+                no_files.setIcon(0, QIcon(":/icons/warning.png"))
+                node_item.addChild(no_files)
             
             self.node_tree.addTopLevelItem(node_item)
         
