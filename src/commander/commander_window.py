@@ -264,6 +264,7 @@ class CommanderWindow(QMainWindow):
         self.node_tree.setColumnWidth(0, 300)
         self.node_tree.setFont(QFont("Consolas", 10))
         self.node_tree.itemClicked.connect(self.on_node_selected)
+        self.node_tree.itemDoubleClicked.connect(self.open_log_file)
         
         left_layout.addWidget(self.node_tree, 1)  # Add stretch factor
         splitter.addWidget(left_pane)
@@ -744,6 +745,23 @@ class CommanderWindow(QMainWindow):
     def save_session(self):
         """Saves session state"""
         self.status_bar.showMessage("Session save functionality not yet implemented")
+        return True
+    
+    def open_log_file(self, item: QTreeWidgetItem, column: int):
+        """Opens log file when double-clicked in tree view"""
+        if data := item.data(0, Qt.ItemDataRole.UserRole):
+            # All log items stored their path in "log_path"
+            if "log_path" in data:
+                log_path = data["log_path"]
+                
+                # Use system default application to open the log file
+                try:
+                    os.startfile(log_path)  # Windows-specific
+                    self.status_bar.showMessage(f"Opened log file: {os.path.basename(log_path)}")
+                except Exception as e:
+                    self.status_bar.showMessage(f"Error opening file: {str(e)}")
+                return True
+        return False
         
     def closeEvent(self, event):
         """Cleanup on window close"""
