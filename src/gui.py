@@ -4,29 +4,13 @@ from PyQt6.QtWidgets import (
     QLabel, QPushButton, QFileDialog, QComboBox, QSpinBox,
     QGroupBox, QStatusBar, QProgressBar
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import QStyleFactory
 from processor import LogProcessor
 from generator import ReportGenerator
 from datetime import datetime
-
-class Worker(QThread):
-    finished = pyqtSignal(list)
-    error = pyqtSignal(str)
-
-    def __init__(self, processor, folder, filters):
-        super().__init__()
-        self.processor = processor
-        self.folder = folder
-        self.filters = filters
-
-    def run(self):
-        try:
-            result = self.processor.process_directory(self.folder)
-            self.finished.emit(result)
-        except Exception as e:
-            self.error.emit(str(e))
+from gui_workers import Worker
 
 class LogReportGUI(QMainWindow):
     def __init__(self):
@@ -175,8 +159,8 @@ class LogReportGUI(QMainWindow):
         self.setStatusBar(self.status_bar)
     
     def open_node_manager(self):
-        from gui_node_manager import NodeManager
-        dialog = NodeManager(self)
+        from node_config_dialog import NodeConfigDialog
+        dialog = NodeConfigDialog(self)
         dialog.exec()
         
     def open_commander(self):
