@@ -29,7 +29,7 @@ class LogCreator:
                 
                 # Create FBC files with IP in filename
                 for token in tokens[:3]:
-                    filename = f"{node_name}_{ip_formatted}_{token}_fbc.txt"
+                    filename = f"{node_name}_{ip_formatted}_{token}.fbc"
                     file_path = node_dir / filename
                     
                     if not file_path.exists():
@@ -47,7 +47,7 @@ class LogCreator:
                 
                 # Create RPC files with IP in filename
                 for token in tokens[:3]:
-                    filename = f"{node_name}_{ip_formatted}_{token}_rpc.txt"
+                    filename = f"{node_name}_{ip_formatted}_{token}.rpc"
                     file_path = node_dir / filename
                     
                     if not file_path.exists():
@@ -82,7 +82,7 @@ class LogCreator:
                 
                 # Create 6 files with the updated pattern including IP address
                 for i in range(1, 7):
-                    filename = f"{node_name}_{ip_formatted}_exe{i}_5irb_5orb.txt"
+                    filename = f"{node_name}_{ip_formatted}_exe{i}_5irb_5orb.lis"
                     file_path = lis_dir / filename
                     
                     if not file_path.exists():

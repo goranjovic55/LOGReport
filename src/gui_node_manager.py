@@ -303,14 +303,14 @@ class NodeManager(QDialog):
                 examples = []
                 for log_type in selected_types:
                     if log_type == "FBC":
-                        examples.extend([f"{name}_{ip}_{token}_fbc.txt" for token in tokens])
+                        examples.extend([f"{name}_{ip}_{token}.fbc" for token in tokens])
                     elif log_type == "RPC":
-                        examples.extend([f"{name}_{ip}_{token}_rpc.txt" for token in tokens])
+                        examples.extend([f"{name}_{ip}_{token}.rpc" for token in tokens])
                     elif log_type == "LOG":
                         examples.append(f"{name}_{ip}.log")
                     elif log_type == "LIS":
                         # Generate LIS filenames including IP address as specified
-                        examples.extend([f"{name}_{ip}_exe{i}_5irb_5orb.txt" for i in range(1, 7)])
+                        examples.extend([f"{name}_{ip}_exe{i}_5irb_5orb.lis" for i in range(1, 7)])
                 
                 self.example_label.setText("Example files:\n" + "\n".join(examples) if examples else "No examples")
             except Exception as e:
