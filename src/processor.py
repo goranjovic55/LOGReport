@@ -2,6 +2,8 @@ from typing import List, Dict, Optional, Union
 import os
 from pathlib import Path
 
+from utils.file_utils import filter_lines, read_text_file
+
 class LogProcessor:
     def __init__(self):
         self.supported_ext = ('.log', '.txt', '.text')
@@ -19,17 +21,13 @@ class LogProcessor:
 
     def _filter_lines(self, lines: List[str]) -> List[str]:
         """Apply line filtering based on current settings"""
-        if not self.line_limit and self.lines_mode != "range":
-            return lines
-            
-        if self.lines_mode == "first":
-            return lines[:self.line_limit]
-        elif self.lines_mode == "last":
-            return lines[-self.line_limit:]
-        elif self.lines_mode == "range":
-            start, end = self.line_range
-            return lines[start-1:end]  # Convert to 0-based index
-        return lines
+        return filter_lines(
+            lines,
+            mode=self.lines_mode,
+            limit=self.line_limit or 0,
+            start=self.line_range[0],
+            end=self.line_range[1],
+        )
 
     def get_folder_hierarchy(self, base_path: str, files: List[str]) -> Dict:
         """Organize files by folder structure"""
@@ -102,15 +100,6 @@ class LogProcessor:
         return result
         
     def _read_content(self, filepath: Path) -> List[str]:
-        """Read file with encoding fallback and line filtering.
-        Preserves original whitespace and empty lines.
-        """
-        encodings = ['utf-8', 'ascii', 'latin-1']
-        for enc in encodings:
-            try:
-                with open(filepath, 'r', encoding=enc) as f:
-                    lines = [line.rstrip('\n') for line in f.readlines()]
-                    return self._filter_lines(lines)
-            except UnicodeDecodeError:
-                continue
-        raise ValueError(f"Could not read {filepath} with any supported encoding")
+        """Read file with encoding fallback and line filtering."""
+        lines = read_text_file(filepath)
+        return self._filter_lines(lines)

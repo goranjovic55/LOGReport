@@ -9,6 +9,8 @@ from typing import List, Dict
 from pathlib import Path
 import os
 
+from utils.file_utils import filter_lines
+
 class ReportGenerator:
     def __init__(self):
         self.styles = {
@@ -64,12 +66,12 @@ class ReportGenerator:
                 processed_log = dict(log)
                 
                 # Apply line filtering based on parameters
-                processed_log['content'] = self._filter_lines(
+                processed_log['content'] = filter_lines(
                     processed_log['content'],
-                    lines_mode,
-                    line_limit,
-                    range_start,
-                    range_end
+                    mode=lines_mode,
+                    limit=line_limit,
+                    start=range_start,
+                    end=range_end
                 )
                 
                 # Add section
@@ -88,20 +90,6 @@ class ReportGenerator:
 
         except Exception as e:
             raise RuntimeError(f"PDF generation failed: {str(e)}")
-
-    def _filter_lines(self, lines: List[str], mode: str, 
-                    limit: int = 0, start: int = 0, end: int = 0) -> List[str]:
-        """Filter lines according to specified mode"""
-        if not lines:
-            return []
-        
-        if mode == 'first' and limit > 0:
-            return lines[:limit]
-        elif mode == 'last' and limit > 0:
-            return lines[-limit:]
-        elif mode == 'range' and start > 0 and end > start:
-            return lines[start-1:end]
-        return lines
 
     def generate_docx(self, logs: List[Dict], output_path: str, lines_mode: str = 'all'):
         """Generate DOCX with line filtering"""
@@ -123,12 +111,12 @@ class ReportGenerator:
             doc.add_paragraph(log['filename'], style='LogTitle')
             
             # Process lines
-            content = self._filter_lines(
+            content = filter_lines(
                 log['content'],
-                lines_mode,
-                log.get('line_limit', 0),
-                log.get('range_start', 0),
-                log.get('range_end', 0)
+                mode=lines_mode,
+                limit=log.get('line_limit', 0),
+                start=log.get('range_start', 0),
+                end=log.get('range_end', 0)
             )
             
             # Combine all lines into a single paragraph with preserved newlines
