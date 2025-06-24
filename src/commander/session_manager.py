@@ -57,6 +57,7 @@ class TelnetSession(BaseSession):
         
     def connect(self) -> bool:
         try:
+            # Use host string directly to avoid DNS resolution issues
             self.connection = telnetlib.Telnet(
                 self.config.host, 
                 self.config.port,
@@ -76,7 +77,7 @@ class TelnetSession(BaseSession):
             prompt_index, _, prompt_text = self.connection.expect([b'[$>#] '], timeout=5)
             self.is_connected = prompt_index >= 0
             return self.is_connected
-        except (socket.timeout, ConnectionRefusedError, OSError) as e:
+        except Exception as e:
             print(f"Telnet connection failed: {str(e)}")
             return False
     

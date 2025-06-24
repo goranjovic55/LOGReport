@@ -41,11 +41,18 @@ class CommanderWindow(QMainWindow):
         def __init__(self, ip_address: str, port: int):
             super().__init__()
             self.layout = QHBoxLayout()
-            self.address_label = QLabel(f"{ip_address}:{port}")
+            # Replace address label with IP and port input fields
+            self.ip_edit = QLineEdit(ip_address)
+            self.port_edit = QLineEdit(str(port))
+            self.ip_edit.setPlaceholderText("IP Address")
+            self.port_edit.setPlaceholderText("Port")
             self.status_icon = QLabel("○") # Default disconnected icon
             self.connect_btn = QPushButton("Connect")
             
-            self.layout.addWidget(self.address_label)
+            self.layout.addWidget(QLabel("IP:"))
+            self.layout.addWidget(self.ip_edit)
+            self.layout.addWidget(QLabel("Port:"))
+            self.layout.addWidget(self.port_edit)
             self.layout.addWidget(self.status_icon)
             self.layout.addWidget(self.connect_btn)
             self.layout.addStretch() # Push buttons to the right
@@ -56,6 +63,10 @@ class CommanderWindow(QMainWindow):
             
             # Initial status
             self.update_status(ConnectionState.DISCONNECTED)
+        
+        def get_address(self):
+            """Get current IP and port from input fields"""
+            return self.ip_edit.text(), self.port_edit.text()
         
         def update_status(self, state: ConnectionState):
             icons = {
@@ -562,8 +573,10 @@ class CommanderWindow(QMainWindow):
             # Update ConnectionBar based on token type
             if token.token_type == "FBC": # Telnet
                 self.session_tabs.setCurrentWidget(self.telnet_tab)
-                self.telnet_connection_bar.address_label.setText(f"{token.ip_address}:{token.port}")
-                self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED) # Reset status
+                # Set IP and port in the input fields
+                self.telnet_connection_bar.ip_edit.setText(token.ip_address)
+                self.telnet_connection_bar.port_edit.setText(str(token.port))
+                self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)  # Reset status
             elif token.token_type == "VNC":
                 self.session_tabs.setCurrentWidget(self.vnc_tab)
                 if hasattr(self, 'vnc_connection_bar'):
@@ -586,51 +599,35 @@ class CommanderWindow(QMainWindow):
 
     def toggle_telnet_connection(self, connect: bool):
         """Toggles connection/disconnection for Telnet tab"""
-        # Extract IP and Port from the ConnectionBar's label
-        ip_port_text = self.telnet_connection_bar.address_label.text()
-        if ':' not in ip_port_text:
-            self.status_bar.showMessage("Invalid IP:Port format in Connection Bar.")
+        # Get IP and port directly from input fields
+        ip_address, port_text = self.telnet_connection_bar.get_address()
+        if not ip_address or not port_text:
+            self.status_bar.showMessage("IP and port are required.")
             self.telnet_connection_bar.update_status(ConnectionState.ERROR)
             return
         
-        ip_address, port_str = ip_port_text.split(':')
-        
-        if not ip_address or not port_str:
-            self.status_bar.showMessage("Please select a node/token with valid IP/Port.")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR) # Indicate error on bar
+        try:
+            port = int(port_text)
+        except ValueError:
+            self.status_bar.showMessage(f"Invalid port number: {port_text}")
+            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
             return
             
         if connect:
-            self.connect_telnet()
+            self.connect_telnet(ip_address, port)
         else:
             self.disconnect_telnet()
 
-    def connect_telnet(self):
-        """Connects to specified telnet server"""
-        # Get IP and Port from the ConnectionBar's address label
-        ip_port_text = self.telnet_connection_bar.address_label.text()
-        if ':' not in ip_port_text:
-             # This case should ideally be caught by toggle_telnet_connection, but for safety:
-            self.status_bar.showMessage("Missing IP or Port in Connection Bar for connection attempt.")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-            return
-        ip_address, port_str = ip_port_text.split(':')
-        
-            
-        try:
-            port = int(port_str)
-        except ValueError:
-            self.status_bar.showMessage("Invalid port number.")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-            return
-            
-        # Configure telnet connection
+    def connect_telnet(self, ip_address: str, port: int):
+        """Connects to specified telnet server using provided IP and port"""
+        # Configure telnet connection using the parameters
+        # Use empty credentials so telnet client doesn't automatically attempt login
         config = SessionConfig(
             host=ip_address,
             port=port,
             session_type=SessionType.TELNET,
-            username="admin",
-            password="password"
+            username="",   # No username by default
+            password=""    # No password by default
         )
         
         try:

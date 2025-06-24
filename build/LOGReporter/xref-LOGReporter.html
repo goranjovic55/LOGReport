@@ -2724,8 +2724,9 @@ imported by:
  &#8226;   <a href="#commander.commander_window">commander.commander_window</a>
  &#8226;   <a href="#commander.icons">commander.icons</a>
  &#8226;   <a href="#gui">gui</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
+ &#8226;   <a href="#gui_workers">gui_workers</a>
  &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
 
   </div>
 
@@ -2775,8 +2776,8 @@ imported by:
  &#8226;   <a href="#commander.icons">commander.icons</a>
  &#8226;   <a href="#commander.qt_init">commander.qt_init</a>
  &#8226;   <a href="#gui">gui</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
  &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
  &#8226;   <a href="#runtime_hook.py">runtime_hook.py</a>
 
   </div>
@@ -5611,6 +5612,7 @@ imported by:
 imports:
     <a href="#commander.commander_window">commander.commander_window</a>
  &#8226;   <a href="#commander.log_writer">commander.log_writer</a>
+ &#8226;   <a href="#commander.models">commander.models</a>
  &#8226;   <a href="#commander.node_manager">commander.node_manager</a>
  &#8226;   <a href="#commander.session_manager">commander.session_manager</a>
 
@@ -5621,6 +5623,7 @@ imported by:
  &#8226;   <a href="#commander.commands">commander.commands</a>
  &#8226;   <a href="#commander.icons">commander.icons</a>
  &#8226;   <a href="#commander.log_writer">commander.log_writer</a>
+ &#8226;   <a href="#commander.models">commander.models</a>
  &#8226;   <a href="#commander.node_manager">commander.node_manager</a>
  &#8226;   <a href="#commander.qt_init">commander.qt_init</a>
  &#8226;   <a href="#commander.session_manager">commander.session_manager</a>
@@ -5734,12 +5737,31 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="commander.models"></a>
+  <a target="code" href="///D:/_APP/LOGReport/src/commander/models.py" type="text/plain"><tt>commander.models</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#commander">commander</a>
+ &#8226;   <a href="#dataclasses">dataclasses</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#commander">commander</a>
+ &#8226;   <a href="#commander.node_manager">commander.node_manager</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="commander.node_manager"></a>
   <a target="code" href="///D:/_APP/LOGReport/src/commander/node_manager.py" type="text/plain"><tt>commander.node_manager</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#commander">commander</a>
- &#8226;   <a href="#dataclasses">dataclasses</a>
+ &#8226;   <a href="#commander.models">commander.models</a>
  &#8226;   <a href="#json">json</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#typing">typing</a>
@@ -6120,7 +6142,7 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#commander.node_manager">commander.node_manager</a>
+    <a href="#commander.models">commander.models</a>
  &#8226;   <a href="#commander.session_manager">commander.session_manager</a>
  &#8226;   <a href="#pprint">pprint</a>
 
@@ -11452,6 +11474,7 @@ imports:
  &#8226;   <a href="#reportlab.pdfgen.canvas">reportlab.pdfgen.canvas</a>
  &#8226;   <a href="#reportlab.platypus">reportlab.platypus</a>
  &#8226;   <a href="#typing">typing</a>
+ &#8226;   <a href="#utils.file_utils">utils.file_utils</a>
 
   </div>
   <div class="import">
@@ -11605,7 +11628,8 @@ imports:
  &#8226;   <a href="#commander.commander_window">commander.commander_window</a>
  &#8226;   <a href="#datetime">datetime</a>
  &#8226;   <a href="#generator">generator</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
+ &#8226;   <a href="#gui_workers">gui_workers</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
  &#8226;   <a href="#processor">processor</a>
  &#8226;   <a href="#sys">sys</a>
 
@@ -11619,18 +11643,11 @@ imported by:
 </div>
 
 <div class="node">
-  <a name="gui_node_manager"></a>
-  <a target="code" href="///D:/_APP/LOGReport/src/gui_node_manager.py" type="text/plain"><tt>gui_node_manager</tt></a>
+  <a name="gui_workers"></a>
+  <a target="code" href="///D:/_APP/LOGReport/src/gui_workers.py" type="text/plain"><tt>gui_workers</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#PyQt6.QtCore">PyQt6.QtCore</a>
- &#8226;   <a href="#PyQt6.QtWidgets">PyQt6.QtWidgets</a>
- &#8226;   <a href="#json">json</a>
- &#8226;   <a href="#log_creator">log_creator</a>
- &#8226;   <a href="#os">os</a>
- &#8226;   <a href="#re">re</a>
- &#8226;   <a href="#sys">sys</a>
- &#8226;   <a href="#tempfile">tempfile</a>
 
   </div>
   <div class="import">
@@ -11952,7 +11969,6 @@ imports:
  &#8226;   <a href="#importlib">importlib</a>
  &#8226;   <a href="#importlib._bootstrap">importlib._bootstrap</a>
  &#8226;   <a href="#importlib._bootstrap_external">importlib._bootstrap_external</a>
- &#8226;   <a href="#importlib.machinery">importlib.machinery</a>
  &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#warnings">warnings</a>
 
@@ -12089,8 +12105,7 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#importlib">importlib</a>
- &#8226;   <a href="#importlib.abc">importlib.abc</a>
+    <a href="#importlib.abc">importlib.abc</a>
  &#8226;   <a href="#inspect">inspect</a>
  &#8226;   <a href="#pkgutil">pkgutil</a>
  &#8226;   <a href="#py_compile">py_compile</a>
@@ -12687,11 +12702,11 @@ imports:
   <div class="import">
 imported by:
     <a href="#commander.node_manager">commander.node_manager</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
  &#8226;   <a href="#json.decoder">json.decoder</a>
  &#8226;   <a href="#json.encoder">json.encoder</a>
  &#8226;   <a href="#json.scanner">json.scanner</a>
  &#8226;   <a href="#log_creator">log_creator</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
 
   </div>
 
@@ -12840,7 +12855,7 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#gui_node_manager">gui_node_manager</a>
+    <a href="#node_config_dialog">node_config_dialog</a>
 
   </div>
 
@@ -14540,6 +14555,29 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="node_config_dialog"></a>
+  <a target="code" href="///D:/_APP/LOGReport/src/node_config_dialog.py" type="text/plain"><tt>node_config_dialog</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PyQt6.QtCore">PyQt6.QtCore</a>
+ &#8226;   <a href="#PyQt6.QtWidgets">PyQt6.QtWidgets</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#log_creator">log_creator</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#sys">sys</a>
+ &#8226;   <a href="#tempfile">tempfile</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#gui">gui</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="nt"></a>
   <tt>nt</tt> <span class="moduletype"><i>(builtin module)</i></span>  <div class="import">
 imported by:
@@ -14802,7 +14840,6 @@ imported by:
  &#8226;   <a href="#getpass">getpass</a>
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
  &#8226;   <a href="#gzip">gzip</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#http.server">http.server</a>
@@ -14840,6 +14877,7 @@ imported by:
  &#8226;   <a href="#multiprocessing.spawn">multiprocessing.spawn</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
  &#8226;   <a href="#netrc">netrc</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
  &#8226;   <a href="#ntpath">ntpath</a>
  &#8226;   <a href="#optparse">optparse</a>
  &#8226;   <a href="#os.path">os.path</a>
@@ -14958,6 +14996,7 @@ imported by:
  &#8226;   <a href="#importlib.resources.readers">importlib.resources.readers</a>
  &#8226;   <a href="#log_creator">log_creator</a>
  &#8226;   <a href="#processor">processor</a>
+ &#8226;   <a href="#utils.file_utils">utils.file_utils</a>
  &#8226;   <a href="#zipfile">zipfile</a>
 
   </div>
@@ -15184,6 +15223,7 @@ imports:
     <a href="#os">os</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#typing">typing</a>
+ &#8226;   <a href="#utils.file_utils">utils.file_utils</a>
 
   </div>
   <div class="import">
@@ -15508,7 +15548,6 @@ imported by:
  &#8226;   <a href="#ftplib">ftplib</a>
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
  &#8226;   <a href="#html">html</a>
  &#8226;   <a href="#html.parser">html.parser</a>
  &#8226;   <a href="#http.client">http.client</a>
@@ -15529,6 +15568,7 @@ imported by:
  &#8226;   <a href="#lxml.html.diff">lxml.html.diff</a>
  &#8226;   <a href="#lxml.html.soupparser">lxml.html.soupparser</a>
  &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#pdb">pdb</a>
  &#8226;   <a href="#pickle">pickle</a>
@@ -18970,7 +19010,6 @@ imported by:
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
  &#8226;   <a href="#gui">gui</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
  &#8226;   <a href="#gzip">gzip</a>
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#http.server">http.server</a>
@@ -19004,6 +19043,7 @@ imported by:
  &#8226;   <a href="#multiprocessing.spawn">multiprocessing.spawn</a>
  &#8226;   <a href="#multiprocessing.synchronize">multiprocessing.synchronize</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
  &#8226;   <a href="#ntpath">ntpath</a>
  &#8226;   <a href="#optparse">optparse</a>
  &#8226;   <a href="#os">os</a>
@@ -19195,13 +19235,13 @@ imported by:
  &#8226;   <a href="#PIL.JpegImagePlugin">PIL.JpegImagePlugin</a>
  &#8226;   <a href="#asyncio.windows_utils">asyncio.windows_utils</a>
  &#8226;   <a href="#cgi">cgi</a>
- &#8226;   <a href="#gui_node_manager">gui_node_manager</a>
  &#8226;   <a href="#importlib.resources._common">importlib.resources._common</a>
  &#8226;   <a href="#lxml.html">lxml.html</a>
  &#8226;   <a href="#multiprocessing.connection">multiprocessing.connection</a>
  &#8226;   <a href="#multiprocessing.heap">multiprocessing.heap</a>
  &#8226;   <a href="#multiprocessing.synchronize">multiprocessing.synchronize</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
+ &#8226;   <a href="#node_config_dialog">node_config_dialog</a>
  &#8226;   <a href="#pydoc">pydoc</a>
  &#8226;   <a href="#reportlab.lib.rltempfile">reportlab.lib.rltempfile</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
@@ -19650,6 +19690,7 @@ imported by:
  &#8226;   <a href="#asyncio.timeouts">asyncio.timeouts</a>
  &#8226;   <a href="#commander.commands.telnet_commands">commander.commands.telnet_commands</a>
  &#8226;   <a href="#commander.log_writer">commander.log_writer</a>
+ &#8226;   <a href="#commander.models">commander.models</a>
  &#8226;   <a href="#commander.node_manager">commander.node_manager</a>
  &#8226;   <a href="#commander.session_manager">commander.session_manager</a>
  &#8226;   <a href="#functools">functools</a>
@@ -19663,6 +19704,7 @@ imported by:
  &#8226;   <a href="#log_creator">log_creator</a>
  &#8226;   <a href="#pdb">pdb</a>
  &#8226;   <a href="#processor">processor</a>
+ &#8226;   <a href="#utils.file_utils">utils.file_utils</a>
 
   </div>
 
@@ -20159,6 +20201,36 @@ imported by:
 imported by:
     <a href="#lxml.ElementInclude">lxml.ElementInclude</a>
  &#8226;   <a href="#lxml.html.html5parser">lxml.html.html5parser</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="utils"></a>
+  <a target="code" href="-" type="text/plain"><tt>utils</tt></a>
+<span class="moduletype">NamespacePackage</span>  <div class="import">
+imported by:
+    <a href="#utils.file_utils">utils.file_utils</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="utils.file_utils"></a>
+  <a target="code" href="///D:/_APP/LOGReport/src/utils/file_utils.py" type="text/plain"><tt>utils.file_utils</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#pathlib">pathlib</a>
+ &#8226;   <a href="#typing">typing</a>
+ &#8226;   <a href="#utils">utils</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#generator">generator</a>
+ &#8226;   <a href="#processor">processor</a>
 
   </div>
 
