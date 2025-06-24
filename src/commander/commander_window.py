@@ -621,7 +621,6 @@ class CommanderWindow(QMainWindow):
     def connect_telnet(self, ip_address: str, port: int):
         """Connects to specified telnet server using provided IP and port"""
         # Configure telnet connection using the parameters
-        # Use empty credentials so telnet client doesn't automatically attempt login
         config = SessionConfig(
             host=ip_address,
             port=port,
@@ -633,17 +632,31 @@ class CommanderWindow(QMainWindow):
         try:
             self.telnet_connection_bar.update_status(ConnectionState.CONNECTING)
             self.telnet_session = self.session_manager.create_session(config)
+            
+            # Attempt connection and get detailed result
             if self.telnet_session and self.telnet_session.is_connected:
-                self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
+                # Clear output and update status
                 self.telnet_output.clear()
                 self.telnet_output.append(f"Connected to {ip_address}:{port}")
+                self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
                 self.cmd_input.setFocus()
-            else:
-                self.status_bar.showMessage("Connection failed.")
-                self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-        except Exception as e:
-            self.status_bar.showMessage(f"Error: {str(e)}")
+                return True
+            
+            # Handle connection failure
+            self.status_bar.showMessage("Connection failed")
             self.telnet_connection_bar.update_status(ConnectionState.ERROR)
+            return False
+            
+        except socket.timeout as e:
+            self.status_bar.showMessage(f"Connection timed out: {str(e)}")
+            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
+        except ConnectionRefusedError as e:
+            self.status_bar.showMessage(f"Connection refused: {str(e)}")
+            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
+        except Exception as e:
+            self.status_bar.showMessage(f"Connection error: {str(e)}")
+            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
+            return False
     
     def disconnect_telnet(self):
         """Disconnects from current telnet session"""

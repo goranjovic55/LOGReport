@@ -12,15 +12,19 @@ class TelnetClient:
         self.log = []
         
     def connect(self, host, port):
-        """Establish connection to telnet server using provided host and port without fallback"""
+        """Establish connection to telnet server using provided host and port"""
         try:
             self.connection = telnetlib.Telnet(host, port, self.timeout)
-            # Clear initial response
-            time.sleep(0.5)
-            self.connection.read_very_eager()
+            # Wait for initial connection and read any banner
+            time.sleep(1.0)  # Increased for Windows compatibility
+            initial_data = self.connection.read_very_eager()
             return True
+        except socket.timeout:
+            return False, "Connection timed out"
+        except ConnectionRefusedError:
+            return False, "Connection refused"
         except Exception as e:
-            return False  # Return False instead of raising exception
+            return False, f"Connection failed: {str(e)}"
             
     def disconnect(self):
         """Close telnet connection"""
