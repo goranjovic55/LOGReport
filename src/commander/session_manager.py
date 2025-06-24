@@ -70,6 +70,14 @@ class TelnetSession(BaseSession):
             # Clear any initial response
             self.connection.read_very_eager()
             
+            # Clear console artifacts by sending Ctrl+X and Ctrl+Z sequences
+            self.connection.write(b'\x18')  # Ctrl+X
+            time.sleep(0.1)
+            self.connection.write(b'\x1A')  # Ctrl+Z
+            time.sleep(0.1)
+            # Read any response to clear the buffer
+            self.connection.read_very_eager()
+            
             self.is_connected = True
             return True
             
@@ -93,6 +101,14 @@ class TelnetSession(BaseSession):
     def send_command(self, command: str, timeout: float = 5.0) -> str:
         if not self.is_connected:
             raise ConnectionError("Not connected to Telnet session")
+        
+        # Clean console using Ctrl+X and Ctrl+Z to avoid artefacts before each command
+        self.connection.write(b'\x18')  # Ctrl+X
+        time.sleep(0.1)
+        self.connection.write(b'\x1A')  # Ctrl+Z
+        time.sleep(0.1)
+        # Clear any response from the cleanup
+        self.connection.read_very_eager()
         
         # Send command with CR LF termination
         self.connection.write(command.encode('ascii') + b"\r\n")
