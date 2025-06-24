@@ -1,7 +1,21 @@
-# LOGReport Project Context v3.5
+# LOGReport Project Context v3.6
 
-**Last Updated:** 2025-06-08  
+**Last Updated:** 2025-06-24  
 **Project Phase:** Commander Module Implementation  
+
+## Change Log
+
+### Telnet Console Cleanup Enhancement (2025-06-24)
+**Problem**: Telnet consoles showed artifacts from previous outputs  
+**Solution**:  
+- Added Ctrl+X + Ctrl+Z cleanup sequence:  
+  - At connection initialization  
+  - Before every command execution  
+**Benefits**:  
+- Eliminates visual clutter in command outputs  
+- Ensures consistent execution environment  
+**Files Modified**:  
+- `src/commander/session_manager.py`  
 
 ## 1. System Overview
 
