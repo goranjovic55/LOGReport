@@ -1,95 +1,53 @@
-# GUI Design Blueprint (v2.0)
+# GUI Design Specification - Commander Window
 
-## Main Window Structure
-```plaintext
-┌──────────────────────────────────────────────┐
-│                  Menu Bar                    │
-├──────────────────────────────────────────────┤
-│   Settings:                                  │
-│     - Manage Nodes                           │
-├──────────────────────────────────────────────┤
-│  Output Settings Group                       │
-│  ┌────────────────────────────────────────┐  │
-│  │ [Output Format: PDF ▾]                 │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│  Log Filtering Group                         │
-│  ┌────────────────────────────────────────┐  │
-│  │ [Show All ▾] [Lines: 50 ]              │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│  Buttons: [Select Log Folder]                │
-│          [Generate Report]                   │
-│          [Generate]                          │
-│                                              │
-│  Progress Bar                                │
-└──────────────────────────────────────────────┘
+## Overview
+The Commander Window provides a dual-pane interface for managing nodes and executing remote commands. The left pane displays available nodes and their logs, while the right pane hosts session tabs for Telnet, VNC, and FTP operations.
+
+## Layout
+- **Left Pane (Nodes)**: 30% width, node hierarchy
+- **Right Pane (Sessions)**: 70% width, tabbed interface
+- **Bottom Toolbar**: Action buttons
+- **Status Bar**: System messages
+
+## Node Tree Features
+- Hierarchical display of nodes and log types (FBC, RPC, LOG, LIS)
+- **Icons**: Online/offline status indicators
+- **Double-click**: Opens log file in system viewer
+- **Click**: Selects node for operations
+- **Right-click context menu**:
+  - FBC items: "Print FieldBus Structure" option
+  - Executes token-specific command in Telnet tab
+
+## Session Tabs
+1. **Telnet Tab**: 
+   - Command execution interface
+   - Real-time output display
+   - Connection management
+
+2. **VNC Tab**:
+   - VNC session display
+   - Connection management
+
+3. **FTP Tab**:
+   - FTP session interface
+   - Connection management
+
+## Context Menu Workflow
+```mermaid
+graph TD
+    A[Right-click FBC item] --> B{Extract Token ID?}
+    B -->|Successful| C[Generate Command]
+    B -->|Failed| D[Error message]
+    C --> E[Populate Telnet command]
+    E --> F[Focus Telnet tab]
+    F --> G[Show status message]
 ```
 
-## Node Manager Dialog
-```plaintext
-┌──────────────────────────── Node Configuration ───────────────────────────┐
-│ ┌─────────────────────┐                      ┌──────────────────────────┐ │
-│ │ Nodes:              │                      │ Node Configuration:      │ │
-│ │  - Node1 (t1,t2)    │                      │  Name: [Node1         ]  │ │
-│ │  - Node2 (t3,t4)    │                      │  Tokens: [t1, t2      ]  │ │
-│ │                     │                      │                          │ │
-│ │ [+ Add Node]        │   <Selection Sync>   │  Log Types:              │ │
-│ │ [- Remove Selected] │                      │   ( ) FBC: Fieldbus Logs │ │
-│ └─────────────────────┘                      │   ( ) RPC: RPC Logs     │ │
-│                                              │   ( ) LOG: Node Logs     │ │
-│                                              │   ( ) LIS: Listener Logs │ │
-│                                              │                          │ │
-│                                              │  Example Files:          │ │
-│                                              │   • Node1_t1_fbc1.txt    │ │
-│                                              │   • Node1_t2_fbc2.txt    │ │
-│                                              │                          │ │
-│                                              │  [Save to JSON]          │ │
-│                                              │  [Create Files+Folders]  │ │
-│                                              └──────────────────────────┘ │
-└───────────────────────────────────────────────────────────────────────────┘
-```
+## Action Buttons
+- **Execute**: Run Telnet command
+- **Copy to Node Log**: Save session output
+- **Stop Session**: Terminate active session
+- **Save Session**: Save session state
 
-## New Features
-1. **Node Manager Integration**
-   - Access via Settings → Manage Nodes
-   - Complete CRUD operations for nodes
-   - Real-time example generation
-   - Two-step workflow:
-     - Save configuration
-     - Create files/folders
-   - Support for all log types
-
-2. **File Creation Flow**
-   - Direct integration with Log Creator
-   - Automatic directory structure generation
-   - Progress reporting
-   - Error handling feedback
-
-## Best Practices
-- **UI/UX Principles**:
-  - Follow PyQt dark theme guidelines
-  - Group related controls
-  - Provide immediate visual feedback
-  - Disable actions during processing
-- **Thread Management**:
-  - Use QThread for file operations
-  - Prevent UI freezing
-- **Result Display**:
-  - Show file creation status
-  - Provide creation summary
-- **Responsive Design**:
-  - Layout proportions (45/55 split)
-  - Adaptive widget visibility
-
-## Error Prevention
-1. Form validation before saving
-2. Type/token dependency checking
-3. File existence checks
-4. Error messages with resolution steps
-
-## Future Enhancements
-1. Drag-and-drop file reorganization
-2. Batch editing capabilities
-3. Template customization options
-4. Directory structure preview
+## Theme
+Dark theme with grey/neutral accents for eye comfort during prolonged use.

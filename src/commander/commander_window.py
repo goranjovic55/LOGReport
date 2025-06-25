@@ -11,6 +11,9 @@ from PyQt6.QtWidgets import (
     QPushButton, QStatusBar, QLabel, QLineEdit, QGridLayout
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QMenu
 from PyQt6.QtGui import QFont, QIcon, QTextCursor
 
 # Enum for connection states
@@ -99,6 +102,91 @@ class CommanderWindow(QMainWindow):
                 self.connection_requested.emit(True) # Request a connection
             else:
                 self.connection_requested.emit(False) # Request a disconnection
+    # Removed duplicate context menu handler
+        
+    def generate_fieldbus_command(self, item_data):
+        """Generates and sends the fieldbus structure command for FBC tokens"""
+        token_id = item_data["token"]
+        command_text = f"print from fieldbus io structure {token_id}0000"
+        
+        # Set command in telnet input
+        self.cmd_input.setPlainText(command_text)
+        
+        # Navigate to telnet tab if needed
+        self.session_tabs.setCurrentWidget(self.telnet_tab)
+        
+        # Focus command input
+        self.cmd_input.setFocus()
+        
+        self.status_bar.showMessage(f"Command set: {command_text} - Press Execute to run")
+
+    def determine_token_type(self, token_id):
+        """Simple helper to determine token type based on token ID"""
+        # For now, all log files are FBC - this can be extended later
+        return "FBC"
+        
+    def show_context_menu(self, position):
+        """Context menu handler for node tree items with detailed logging"""
+        print("[Context Menu] Received show_context_menu request")
+        try:
+            item = self.node_tree.itemAt(position)
+            if not item:
+                print("[Context Menu] No item at position")
+                return
+                
+            print(f"[Context Menu] Found item: {item.text(0)}")
+            data = item.data(0, Qt.ItemDataRole.UserRole)
+            
+            if not data:
+                print("[Context Menu] Item has no data")
+                return
+                
+            if not isinstance(data, dict):
+                print(f"[Context Menu] Invalid data type: {type(data)}")
+                return
+                
+            print(f"[Context Menu] Item data: {data}")
+            
+            token_type = data.get("token_type", "")
+            token_id = data.get("token", None)
+            
+            print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}")
+            
+            if token_type == "FBC" and token_id:
+                print("[Context Menu] Creating context menu for FBC item")
+                menu = QMenu(self.node_tree)
+                action_text = f"Print FieldBus Structure (Token {token_id})"
+                action = QAction(action_text, self)
+                action.triggered.connect(lambda: self.process_fieldbus_command(token_id))
+                menu.addAction(action)
+                
+                # Show menu at cursor position
+                menu.exec(self.node_tree.viewport().mapToGlobal(position))
+                print(f"[Context Menu] Displayed menu for token {token_id}")
+            else:
+                print(f"[Context Menu] No action for token type '{token_type}' and token ID '{token_id}'")
+        except Exception as e:
+            print(f"[Context Menu] Error: {str(e)}")
+            
+    def process_fieldbus_command(self, token_id):
+        """Process fieldbus structure command"""
+        command_text = f"print from fieldbus io structure {token_id}0000"
+        
+        try:
+            # Set command in telnet input
+            self.cmd_input.setPlainText(command_text)
+            
+            # Navigate to telnet tab
+            self.session_tabs.setCurrentWidget(self.telnet_tab)
+            
+            # Focus command input
+            self.cmd_input.setFocus()
+            
+            # Show status message
+            self.status_bar.showMessage(f"Command set: {command_text} - Press Execute to run", 3000)
+        except Exception as e:
+            print(f"Error processing fieldbus command: {e}")
+            
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Commander LogCreator v1.0")
@@ -216,7 +304,7 @@ class CommanderWindow(QMainWindow):
         
     def load_configuration(self):
         """Load node configuration from selected file"""
-        from PyQt6.QtWidgets import QFileDialog
+        # Removed incomplete import statement
         file_path, _ = QFileDialog.getOpenFileName(
             self, 
             "Select Node Configuration File", 
@@ -244,6 +332,24 @@ class CommanderWindow(QMainWindow):
             self.node_manager.scan_log_files()
             self.populate_node_tree()
             
+    # Removed duplicate context menu handler
+        
+    def generate_fieldbus_command(self, item_data):
+        """Generates and sends the fieldbus structure command for FBC tokens"""
+        token_id = item_data["token"]
+        command_text = f"print from fieldbus io structure {token_id}0000"
+        
+        # Set command in telnet input
+        self.cmd_input.setPlainText(command_text)
+        
+        # Navigate to telnet tab if needed
+        self.session_tabs.setCurrentWidget(self.telnet_tab)
+        
+        # Focus command input
+        self.cmd_input.setFocus()
+        
+        self.status_bar.showMessage(f"Command set: {command_text} - Press Execute to run")
+        
     def init_ui(self):
         """Initialize the main UI components"""
         # Create main layout
@@ -257,6 +363,11 @@ class CommanderWindow(QMainWindow):
         # Left Pane - Node Tree (30%)
         left_pane = QWidget()
         left_layout = QVBoxLayout(left_pane)
+        
+        # Install event filter for node_tree
+        self.node_tree = QTreeWidget()
+        self.node_tree.installEventFilter(self)
+        print("Node tree event filter installed")
         
         # Toolbar with buttons
         toolbar_layout = QHBoxLayout()
@@ -276,6 +387,12 @@ class CommanderWindow(QMainWindow):
         self.node_tree.setFont(QFont("Consolas", 10))
         self.node_tree.itemClicked.connect(self.on_node_selected)
         self.node_tree.itemDoubleClicked.connect(self.open_log_file)
+        self.node_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.node_tree.customContextMenuRequested.connect(self.show_context_menu)
+        self.node_tree.installEventFilter(self)
+        print("Node tree context menu handling installed")
+
+    # Removed event filter implementation
         
         left_layout.addWidget(self.node_tree, 1)  # Add stretch factor
         splitter.addWidget(left_pane)
@@ -436,8 +553,13 @@ class CommanderWindow(QMainWindow):
                 if token.token_type == "FBC" and token.log_path and os.path.exists(token.log_path):
                     log_filename = os.path.basename(token.log_path)
                     log_item = QTreeWidgetItem([f"📝 {log_filename}"])
+                    # Add token_type to identify FBC items
                     log_item.setData(0, Qt.ItemDataRole.UserRole,
-                                   {"log_path": token.log_path, "node": node.name, "token": token.token_id})
+                                   {"log_path": token.log_path, 
+                                    "node": node.name, 
+                                    "token": token.token_id,
+                                    "token_type": "FBC"})
+                    print(f"Added FBC item with token: {token.token_id}")
                     log_item.setIcon(0, QIcon(":/icons/page.png"))
                     sections["FBC"].addChild(log_item)
                     added_fbc = True
@@ -492,8 +614,15 @@ class CommanderWindow(QMainWindow):
                         file_path = os.path.join(fbc_dir, filename)
                         if os.path.isfile(file_path):
                             file_item = QTreeWidgetItem([f"📝 {filename}"])
+                            # Extract token from filename: AP01m_192-168-0-11_162.fbc -> token is the number part (162)
+                            # Pattern: {node.name}_{ip}_{token}.fbc
+                            parts = filename.split('_')
+                            token_id = parts[-1].split('.')[0]  # Get 162 from AP01m_192-168-0-11_162.fbc
                             file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                            {"log_path": file_path})
+                                            {"log_path": file_path, 
+                                             "token": token_id, 
+                                             "token_type": "FBC",
+                                             "node": node.name})
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
                             sections["FBC"].addChild(file_item)
                             added_fbc = True
