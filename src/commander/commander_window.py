@@ -10,20 +10,14 @@ from PyQt6.QtWidgets import (
     QTabWidget, QTextEdit, QVBoxLayout, QWidget, QHBoxLayout,
     QPushButton, QStatusBar, QLabel, QLineEdit, QGridLayout
 )
-from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QMenu
 from PyQt6.QtGui import QFont, QIcon, QTextCursor
 
 # Enum for connection states
-from enum import Enum
-
-class ConnectionState(Enum):
-    DISCONNECTED = 0
-    CONNECTING = 1
-    CONNECTED = 2
-    ERROR = 3
+from .widgets import ConnectionBar, ConnectionState
 
 # Import our components
 from .node_manager import NodeManager
@@ -36,73 +30,7 @@ from .icons import get_node_online_icon, get_node_offline_icon, get_token_icon
 from .qt_init import initialize_qt
 
 class CommanderWindow(QMainWindow):
-    class ConnectionBar(QWidget):
-        """Connection bar widget moved inside CommanderWindow to avoid module-level GUI"""
-        # Define a custom signal to communicate button clicks
-        connection_requested = pyqtSignal(bool) # True for connect, False for disconnect
-
-        def __init__(self, ip_address: str, port: int):
-            super().__init__()
-            self.layout = QHBoxLayout()
-            # Replace address label with IP and port input fields
-            self.ip_edit = QLineEdit(ip_address)
-            self.port_edit = QLineEdit(str(port))
-            self.ip_edit.setPlaceholderText("IP Address")
-            self.port_edit.setPlaceholderText("Port")
-            self.status_icon = QLabel("○") # Default disconnected icon
-            self.connect_btn = QPushButton("Connect")
-            
-            self.layout.addWidget(QLabel("IP:"))
-            self.layout.addWidget(self.ip_edit)
-            self.layout.addWidget(QLabel("Port:"))
-            self.layout.addWidget(self.port_edit)
-            self.layout.addWidget(self.status_icon)
-            self.layout.addWidget(self.connect_btn)
-            self.layout.addStretch() # Push buttons to the right
-            self.setLayout(self.layout)
-            
-            # Connect the button click to our internal handler
-            self.connect_btn.clicked.connect(self._on_connect_button_clicked)
-            
-            # Initial status
-            self.update_status(ConnectionState.DISCONNECTED)
-        
-        def get_address(self):
-            """Get current IP and port from input fields"""
-            return self.ip_edit.text(), self.port_edit.text()
-        
-        def update_status(self, state: ConnectionState):
-            icons = {
-                ConnectionState.DISCONNECTED: "○",
-                ConnectionState.CONNECTING: "◑",
-                ConnectionState.CONNECTED: "●",
-                ConnectionState.ERROR: "⨯"
-            }
-            colors = {
-                ConnectionState.DISCONNECTED: "#888",
-                ConnectionState.CONNECTING: "orange",
-                ConnectionState.CONNECTED: "lime",
-                ConnectionState.ERROR: "red"
-            }
-            
-            self.status_icon.setText(icons[state])
-            self.status_icon.setStyleSheet(f"font-size: 16pt; color: {colors[state]};")
-            
-            # Only change button text based on connection state
-            if state == ConnectionState.CONNECTED:
-                self.connect_btn.setText("Disconnect")
-            else:
-                self.connect_btn.setText("Connect")
-        
-        def _on_connect_button_clicked(self):
-            """Internal slot to handle the connect/disconnect button click.
-            Emits connection_requested signal.
-            """
-            if self.connect_btn.text() == "Connect":
-                self.connection_requested.emit(True) # Request a connection
-            else:
-                self.connection_requested.emit(False) # Request a disconnection
-    # Removed duplicate context menu handler
+    """Main Commander window."""
         
     def generate_fieldbus_command(self, item_data):
         """Generates and sends the fieldbus structure command for FBC tokens"""
@@ -477,7 +405,7 @@ class CommanderWindow(QMainWindow):
         self.execute_btn.clicked.connect(self.execute_telnet_command)
         
         # Connection Bar (Telnet)
-        self.telnet_connection_bar = self.ConnectionBar(ip_address="", port=0) # Placeholder
+        self.telnet_connection_bar = ConnectionBar(ip_address="", port=0)
         self.telnet_connection_bar.connection_requested.connect(self.toggle_telnet_connection)
         layout.addWidget(self.telnet_connection_bar)
         
@@ -497,7 +425,7 @@ class CommanderWindow(QMainWindow):
         
         # Connection Bar (VNC/FTP uses a generic one for now)
         # Note: IP/Port will be updated dynamically later
-        connection_bar = self.ConnectionBar(ip_address="", port=0) 
+        connection_bar = ConnectionBar(ip_address="", port=0)
         
         # Store a reference to the connection bar for potential dynamic updates
         # For now, let's keep it simple and assume they will be updated via item selection
@@ -709,12 +637,14 @@ class CommanderWindow(QMainWindow):
             elif token.token_type == "VNC":
                 self.session_tabs.setCurrentWidget(self.vnc_tab)
                 if hasattr(self, 'vnc_connection_bar'):
-                    self.vnc_connection_bar.address_label.setText(f"{token.ip_address}:{token.port}")
+                    self.vnc_connection_bar.ip_edit.setText(token.ip_address)
+                    self.vnc_connection_bar.port_edit.setText(str(token.port))
                     self.vnc_connection_bar.update_status(ConnectionState.DISCONNECTED)
             elif token.token_type == "FTP":
                 self.session_tabs.setCurrentWidget(self.ftp_tab)
                 if hasattr(self, 'ftp_connection_bar'):
-                    self.ftp_connection_bar.address_label.setText(f"{token.ip_address}:{token.port}")
+                    self.ftp_connection_bar.ip_edit.setText(token.ip_address)
+                    self.ftp_connection_bar.port_edit.setText(str(token.port))
                     self.ftp_connection_bar.update_status(ConnectionState.DISCONNECTED)
 
             # Auto-open log file

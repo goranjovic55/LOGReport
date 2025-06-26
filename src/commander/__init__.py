@@ -5,6 +5,7 @@ from .node_manager import NodeManager
 from .session_manager import SessionManager
 from .log_writer import LogWriter
 from .models import Node, NodeToken
+from .widgets import ConnectionBar, ConnectionState
 
 __all__ = [
     'CommanderWindow',
@@ -12,6 +13,8 @@ __all__ = [
     'Node',
     'NodeToken',
     'SessionManager',
-    'LogWriter'
+    'LogWriter',
+    'ConnectionBar',
+    'ConnectionState'
 ]
 
