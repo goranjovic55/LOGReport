@@ -80,19 +80,35 @@ class CommanderWindow(QMainWindow):
             
             print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}")
             
-            if token_type == "FBC" and token_id:
-                print("[Context Menu] Creating context menu for FBC item")
+            if token_id:
+                print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}")
                 menu = QMenu(self.node_tree)
-                action_text = f"Print FieldBus Structure (Token {token_id})"
-                action = QAction(action_text, self)
-                action.triggered.connect(lambda: self.process_fieldbus_command(token_id))
-                menu.addAction(action)
+                
+                if token_type == "FBC":
+                    print("[Context Menu] Creating context menu for FBC item")
+                    action_text = f"Print FieldBus Structure (Token {token_id})"
+                    action = QAction(action_text, self)
+                    action.triggered.connect(lambda: self.process_fieldbus_command(token_id))
+                    menu.addAction(action)
+                    
+                elif token_type == "RPC":
+                    print("[Context Menu] Creating context menu for RPC item")
+                    
+                    # Print Rupi Counters action
+                    print_action = QAction(f"Print Rupi Counters (Token {token_id})", self)
+                    print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
+                    menu.addAction(print_action)
+                    
+                    # Clear Rupi Counters action
+                    clear_action = QAction(f"Clear Rupi Counters (Token {token_id})", self)
+                    clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
+                    menu.addAction(clear_action)
                 
                 # Show menu at cursor position
                 menu.exec(self.node_tree.viewport().mapToGlobal(position))
                 print(f"[Context Menu] Displayed menu for token {token_id}")
             else:
-                print(f"[Context Menu] No action for token type '{token_type}' and token ID '{token_id}'")
+                print(f"[Context Menu] No token ID found")
         except Exception as e:
             print(f"[Context Menu] Error: {str(e)}")
             
@@ -114,6 +130,34 @@ class CommanderWindow(QMainWindow):
             self.status_bar.showMessage(f"Command set: {command_text} - Press Execute to run", 3000)
         except Exception as e:
             print(f"Error processing fieldbus command: {e}")
+            
+    def process_rpc_command(self, token_id, action_type):
+        """Process RPC commands (print/clear Rupi counters)"""
+        if action_type == "print":
+            command_text = f"print from rpc counters {token_id}0000"
+        elif action_type == "clear":
+            command_text = f"clear rpc counters {token_id}0000"
+        else:
+            return
+            
+        try:
+            # Set command in telnet input
+            self.cmd_input.setPlainText(command_text)
+            
+            # Navigate to telnet tab
+            self.session_tabs.setCurrentWidget(self.telnet_tab)
+            
+            # Focus command input
+            self.cmd_input.setFocus()
+            
+            # Show status message
+            action_name = "Print" if action_type == "print" else "Clear"
+            self.status_bar.showMessage(
+                f"{action_name} Rupi counters command set for token {token_id}",
+                3000
+            )
+        except Exception as e:
+            print(f"Error processing RPC command: {e}")
             
     def __init__(self):
         super().__init__()
@@ -499,7 +543,10 @@ class CommanderWindow(QMainWindow):
                     log_filename = os.path.basename(token.log_path)
                     log_item = QTreeWidgetItem([f"📝 {log_filename}"])
                     log_item.setData(0, Qt.ItemDataRole.UserRole,
-                                   {"log_path": token.log_path, "node": node.name, "token": token.token_id})
+                                   {"log_path": token.log_path, 
+                                    "node": node.name, 
+                                    "token": token.token_id,
+                                    "token_type": "RPC"})
                     log_item.setIcon(0, QIcon(":/icons/page.png"))
                     sections["RPC"].addChild(log_item)
                     added_rpc = True
@@ -563,9 +610,15 @@ class CommanderWindow(QMainWindow):
                     if filename.endswith(".rpc") and filename.startswith(node.name + "_"):
                         file_path = os.path.join(rpc_dir, filename)
                         if os.path.isfile(file_path):
+                            # Extract token ID from filename: AP01r_192-168-0-12_363.rpc -> token ID = 363
+                            token_id = filename.rsplit('_', 1)[-1].split('.')[0]
+                            
                             file_item = QTreeWidgetItem([f"📝 {filename}"])
                             file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                            {"log_path": file_path})
+                                            {"log_path": file_path,
+                                             "node": node.name,
+                                             "token": token_id,
+                                             "token_type": "RPC"})
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
                             sections["RPC"].addChild(file_item)
                             added_rpc = True
