@@ -519,38 +519,7 @@ class CommanderWindow(QMainWindow):
             sections["LOG"].setIcon(0, QIcon(":/icons/page.png"))
             sections["LIS"].setIcon(0, QIcon(":/icons/page.png"))
             
-            # Add FBC files to FBC section
-            added_fbc = False
-            for token in node.tokens.values():
-                if token.token_type == "FBC" and token.log_path and os.path.exists(token.log_path):
-                    log_filename = os.path.basename(token.log_path)
-                    log_item = QTreeWidgetItem([f"📝 {log_filename}"])
-                    # Add token_type to identify FBC items
-                    log_item.setData(0, Qt.ItemDataRole.UserRole,
-                                   {"log_path": token.log_path, 
-                                    "node": node.name, 
-                                    "token": token.token_id,
-                                    "token_type": "FBC"})
-                    print(f"Added FBC item with token: {token.token_id}")
-                    log_item.setIcon(0, QIcon(":/icons/page.png"))
-                    sections["FBC"].addChild(log_item)
-                    added_fbc = True
-            
-            # Add RPC files to RPC section
-            added_rpc = False
-            for token in node.tokens.values():
-                if token.token_type == "RPC" and token.log_path and os.path.exists(token.log_path):
-                    log_filename = os.path.basename(token.log_path)
-                    log_item = QTreeWidgetItem([f"📝 {log_filename}"])
-                    log_item.setData(0, Qt.ItemDataRole.UserRole,
-                                   {"log_path": token.log_path, 
-                                    "node": node.name, 
-                                    "token": token.token_id,
-                                    "token_type": "RPC"})
-                    log_item.setIcon(0, QIcon(":/icons/page.png"))
-                    sections["RPC"].addChild(log_item)
-                    added_rpc = True
-            
+            # Add LOG files to LOG section (single implementation)
             added_log = False
             log_dir = os.path.join(log_root, "LOG")
             log_pattern = f"{node.name}_{node.ip_address.replace('.','-')}.log"
@@ -565,37 +534,22 @@ class CommanderWindow(QMainWindow):
                     sections["LOG"].addChild(log_item)
                     added_log = True
             
-            # Add LOG files to LOG section
-            added_log = False
-            logs_dir = os.path.join(log_root, "LOG")
-            # Only show the main node log file matching the pattern
-            log_pattern = f"{node.name}_{node.ip_address.replace('.','-')}.log"
-            log_path = os.path.join(logs_dir, log_pattern)
-            if os.path.isfile(log_path):
-                filename = os.path.basename(log_path)
-                file_item = QTreeWidgetItem([f"📝 {filename}"])
-                file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                {"log_path": log_path})
-                file_item.setIcon(0, QIcon(":/icons/page.png"))
-                sections["LOG"].addChild(file_item)
-                added_log = True
-            
             # Add FBC files to FBC section (from FBC/node_name folder)
             added_fbc = False
             fbc_dir = os.path.join(log_root, "FBC", node.name)
             if os.path.isdir(fbc_dir):
                 for filename in os.listdir(fbc_dir):
-                    if filename.endswith(".fbc") and filename.startswith(node.name + "_"):
+                    if filename.lower().endswith((".fbc", ".log", ".txt")) and filename.startswith(node.name + "_"):
                         file_path = os.path.join(fbc_dir, filename)
                         if os.path.isfile(file_path):
-                            file_item = QTreeWidgetItem([f"📝 {filename}"])
                             # Extract token from filename: AP01m_192-168-0-11_162.fbc -> token is the number part (162)
                             # Pattern: {node.name}_{ip}_{token}.fbc
                             parts = filename.split('_')
                             token_id = parts[-1].split('.')[0]  # Get 162 from AP01m_192-168-0-11_162.fbc
+                            file_item = QTreeWidgetItem([f"📝 {filename}"])
                             file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                            {"log_path": file_path, 
-                                             "token": token_id, 
+                                            {"log_path": file_path,
+                                             "token": token_id,
                                              "token_type": "FBC",
                                              "node": node.name})
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
@@ -607,7 +561,7 @@ class CommanderWindow(QMainWindow):
             rpc_dir = os.path.join(log_root, "RPC", node.name)
             if os.path.isdir(rpc_dir):
                 for filename in os.listdir(rpc_dir):
-                    if filename.endswith(".rpc") and filename.startswith(node.name + "_"):
+                    if filename.lower().endswith((".rpc", ".log", ".txt")) and filename.startswith(node.name + "_"):
                         file_path = os.path.join(rpc_dir, filename)
                         if os.path.isfile(file_path):
                             # Extract token ID from filename: AP01r_192-168-0-12_363.rpc -> token ID = 363
