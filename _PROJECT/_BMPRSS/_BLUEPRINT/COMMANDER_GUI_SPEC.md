@@ -10,7 +10,7 @@
 │         (Fixed 30% width)     │        (70% width)            │
 ├───────────────────────────────┼───────────────────────────────┤
 │ ● Node Tree:                  │ ┌──TABS─────────────────────┐ │
-│   ▼ AP01m (192.168.1.101 ●)   │ │  Telnet | VNC  | FTP      │ │
+│   ▼ AP01m (192.168.1.101 ●)   │ │  Telnet                   │ │
 │     ├─162 [FBC]               │ ├───────────────────────────┤ │
 │     │   Log: test_logs/AP01m/162_fbc.log │ [Session Content]  │
 │     └─163 [VNC]               │ │                           │ │
@@ -48,39 +48,11 @@
 
 ### Telnet Tab Features:
 ```markdown
-- **Command Palette**: Predefined token commands
-- **History Viewer**: Scrollable executed commands
-- **Manual Input**: Raw command editor with:
-   - Syntax highlight
-   - Token substitution (% → current token)
-   - Suggestion autocomplete
-- **Output Console**: ANSI-color supported display
+- **Manual Input**: Raw command editor
+- **Output Console**: Plain text display
 - **Bottom Connection Bar**:
    - IP:Port display with connection status
    - Connect/Disconnect buttons
-
-### VNC Tab Features:
-```markdown
-- **Embedded Viewer**: Tightly integrated VNC client
-- **Clipboard Integration**:
-   - Right-click copy to system clipboard
-   - Copy to Node Log button
-   - OCR text extraction option
-- **Capture Tools**:
-   - Full screen/region selection
-   - Auto-refresh interval setting
-- **Bottom Connection Bar**: VNC-specific IP:Port and controls
-
-### FTP/TFTP Tab Features:
-```markdown
-- **Remote Tree**: Hierarchical folder navigation
-- **File Preview**: Text file viewing
-- **Clipboard Actions**:
-   - Copy file content to log
-   - Copy file metadata
-   - Compare with local version
-- **Log Annotations**: Auto-header with source path
-- **Bottom Connection Bar**: FTP credentials and server info
 ```
 
 ## 4. Connection Management System
@@ -88,17 +60,11 @@
 flowchart TD
     A[Select Node+Token] --> B{Protocol}
     B -->|Telnet| C[Set IP:NodeIP Port:2077]
-    B -->|VNC| D[Set IP:NodeIP Port:5900+Token]
-    B -->|FTP| E[Set IP:NodeIP Port:2121]
     C --> F[Update Connection Bar]
-    D --> F
-    E --> F
     F --> G[Enable Connect Button]
     
     H[Connect Clicked] --> I{Session Type}
     I -->|Telnet| J[Open Telnet Connection]
-    I -->|VNC| K[Launch VNC Viewer]
-    I -->|FTP| L[Init FTP Session]
 ```
 
 ## 5. Content Transfer Protocols
@@ -112,57 +78,23 @@ def transfer_telnet_output(output, log_path):
         log.write(output)
 ```
 
-**VNC Content Transfer:**
-```python
-def vnc_to_log(viewer, log_path):
-    if OCR_ENABLED:
-        text = viewer.extract_text()
-    else:
-        text = viewer.get_clipboard()
-    
-    with open(log_path, 'a') as log:
-        log.write(f"VNC CAPTURE:\n{text}")
-```
-
-**FTP File Transfer:**
-```python
-def ftp_to_log(ftp_client, remote_path, log_path):
-    content = ftp_client.retrieve(remote_path)
-    with open(log_path, 'a', encoding='utf-8') as log:
-        log.write(f"FTP CONTENT [{remote_path}]:\n")
-        log.write(content)
-```
-
 ## 6. Security Implementation
 ```mermaid
 classDiagram
-    class CredentialStore {
-        +encrypt(credentials)
-        +decrypt(token)
-        +rotate_keys()
-    }
-    
     class SessionManager {
         +start_session(type, ip, port)
-        +validate_certificate()
         +close_all()
     }
-    
-    CredentialStore <-- SessionManager
 ```
 
 **Protocol Security:**
-- Telnet: TLS 1.3 encryption
-- VNC: SSH tunneling
-- FTP: FTPS explicit encryption
-- Credential storage: AES-256 encrypted vault
+- Telnet: Unencrypted (no encryption implemented)
+- Credential storage: Not implemented
 
 ## 7. Performance Targets
 | Operation                | Max Latency |
 |--------------------------|-------------|
 | Telnet Command Execution | ≤ 200ms     |
-| VNC Connection           | ≤ 1500ms    |
-| OCR Processing (1080p)   | ≤ 800ms     |
 | Log Write (1MB)          | ≤ 50ms      |
 | GUI Refresh Rate         | 60 FPS      |
 
@@ -171,7 +103,7 @@ classDiagram
    - Auto-reconnect with exponential backoff
    - Session state persistence
    - Connection pooling for high-frequency commands
-   
+    
 2. **Log Handling**:
    - Atomic file writes
    - Buffer management
@@ -181,4 +113,3 @@ classDiagram
    - Windows, macOS, and Linux compatibility
    - Accessibility features
    - High DPI support
-```

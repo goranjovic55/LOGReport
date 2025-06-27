@@ -16,25 +16,15 @@ The Commander GUI provides centralized management of DNA system nodes through:
 sequenceDiagram
     User->>NodeTree: Select token 162@AP01m
     NodeTree->>SessionManager: Set context token 162
-    User->>TelnetTab: Execute "fis" or manual command
-    alt Token Command
-        TelnetTab->>Parser: Parse "fis" 
-        Parser->>TelnetTab: "p f f i s 1620000"
-        TelnetTab->>TelnetSession: Send command
-        TelnetSession->>Node: Execute
-        Node-->>TelnetSession: Response data
-        TelnetSession-->>UI: Display output
-        UI->>User: Prompt to save
-    else Manual Command
-        TelnetTab->>TelnetSession: Send raw command
-        TelnetSession->>Node: Execute
-        Node-->>TelnetSession: Response data
-        TelnetSession-->>UI: Display output
-        UI->>User: Prompt to save
-    end
+    User->>TelnetTab: Execute manual command
+    TelnetTab->>TelnetSession: Send raw command
+    TelnetSession->>Node: Execute
+    Node-->>TelnetSession: Response data
+    TelnetSession-->>UI: Display output
+    UI->>User: Prompt to save
     User->>UI: "Copy to Log"
-    UI->>Formatter: Apply LSR template
-    Formatter->>LogFile: test_logs/AP01m/162_fbc.log
+    UI->>LogWriter: Append raw output
+    LogWriter->>LogFile: test_logs/AP01m/162_fbc.log
     LogFile-->>UI: Write confirmation
 ```
 
@@ -47,23 +37,7 @@ class TelnetHandler:
         # Send command and stream response
         pass
 
-    def format_response(self, output: str) -> str:
-        # Apply ANSI formatting and timestamps
-        pass
-
-class VNCViewer:
-    def capture_screenshot(self) -> Image:
-        # Capture active region or full screen
-        pass
-    
-    def copy_to_clipboard(self, text: str):
-        # Transfer text to system clipboard
-        pass
-
-class FTPClient:
-    def copy_to_log(self, remote_path, log_path):
-        # Download and append to log
-        pass
+# VNC and FTP handlers not implemented
 ```
 
 ### Log Writer Service
@@ -78,7 +52,7 @@ class LogWriter:
     
     def append_to_log(self, token_path: str, content: str):
         self.open_log(token_path)
-        self.handles[token_path].write(f"\n{content}\n")
+        self.handles[token_path].write(content)
         self.handles[token_path].flush()
     
     def close_log(self, token_path: str):
