@@ -372,8 +372,8 @@ class CommanderWindow(QMainWindow):
         # Create buttons for the window
         self.execute_btn = QPushButton("Execute")
         self.copy_to_log_btn = QPushButton("Copy to Node Log")
-        self.stop_btn = QPushButton("Stop Session")
-        self.save_session_btn = QPushButton("Save Session")
+        self.clear_terminal_btn = QPushButton("Clear Terminal")
+        self.clear_node_log_btn = QPushButton("Clear Node Log")
         
         # Right Pane - Session Area (70%)
         right_pane = QWidget()
@@ -396,8 +396,8 @@ class CommanderWindow(QMainWindow):
         # Command Buttons
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.copy_to_log_btn)
-        button_layout.addWidget(self.stop_btn)
-        button_layout.addWidget(self.save_session_btn)
+        button_layout.addWidget(self.clear_terminal_btn)
+        button_layout.addWidget(self.clear_node_log_btn)
         
         right_layout.addLayout(button_layout)
         splitter.addWidget(right_pane)
@@ -413,8 +413,8 @@ class CommanderWindow(QMainWindow):
         
         # Button connections
         self.copy_to_log_btn.clicked.connect(self.copy_to_log)
-        self.stop_btn.clicked.connect(self.stop_active_session)
-        self.save_session_btn.clicked.connect(self.save_session)
+        self.clear_terminal_btn.clicked.connect(self.clear_terminal)
+        self.clear_node_log_btn.clicked.connect(self.clear_node_log)
     
     def create_telnet_tab(self) -> QWidget:
         """Creates telnet tab with IP/port inputs and command execution"""
@@ -829,21 +829,32 @@ class CommanderWindow(QMainWindow):
         except Exception as e:
             self.status_bar.showMessage(f"Log write error: {str(e)}")
     
-    def stop_active_session(self):
-        """Stops any active session on current tab"""
-        tab_index = self.session_tabs.currentIndex()
-        session_type = self.session_tabs.tabText(tab_index).upper()
-        
-        if session_type == "TELNET":
-            self.disconnect_telnet()
-        
-        # TODO: Implement for other sessions
-        self.status_bar.showMessage(f"{session_type} session stopped")
+    def clear_terminal(self):
+        """Clear the telnet output area"""
+        self.telnet_output.clear()
+        self.status_bar.showMessage("Terminal cleared", 3000)
     
-    def save_session(self):
-        """Saves session state"""
-        self.status_bar.showMessage("Session save functionality not yet implemented")
-        return True
+    def clear_node_log(self):
+        """Clear the currently selected node's log file"""
+        selected_items = self.node_tree.selectedItems()
+        if not selected_items:
+            self.status_bar.showMessage("No item selected! Select a log file on the left.")
+            return
+        
+        item = selected_items[0]
+        data = item.data(0, Qt.ItemDataRole.UserRole)
+        if not data or "log_path" not in data:
+            self.status_bar.showMessage("Selected item is not a log file")
+            return
+            
+        log_path = data["log_path"]
+        try:
+            # Open the file in write mode to truncate it
+            with open(log_path, 'w') as f:
+                f.truncate(0)
+            self.status_bar.showMessage(f"Cleared log: {os.path.basename(log_path)}", 3000)
+        except Exception as e:
+            self.status_bar.showMessage(f"Error clearing log: {str(e)}")
     
     def open_log_file(self, item: QTreeWidgetItem, column: int):
         """Opens log file when double-clicked in tree view"""
