@@ -15,3 +15,15 @@ Unknown command. Type 'help' for options.
 
 > rc
 Unknown command. Type 'help' for options.
+13:31:34 >> [TELNET] Connected to 192.168.137.155:1234
+> p s
+VME Configuration from Own Kernel
+
+token VME   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  
+   1   20  CPU CPU CPU         CPU             CPU CPU         CPU     NCU
+13:31:47 >> [TELNET] Connected to 192.168.137.155:1234
+> p s
+VME Configuration from Own Kernel
+
+token VME   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  
+   1   20  CPU CPU CPU         CPU             CPU CPU         CPU     NCU

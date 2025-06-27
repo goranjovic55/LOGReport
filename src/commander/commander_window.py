@@ -597,7 +597,6 @@ class CommanderWindow(QMainWindow):
                 node_item.addChild(sections["FBC"])
             if added_rpc:
                 node_item.addChild(sections["RPC"])
-            if added_log:
                 node_item.addChild(sections["LOG"])
             if added_lis:
                 node_item.addChild(sections["LIS"])
@@ -616,52 +615,47 @@ class CommanderWindow(QMainWindow):
     def on_node_selected(self, item: QTreeWidgetItem, column: int):
         """Handles node/token selection in left pane"""
         if data := item.data(0, Qt.ItemDataRole.UserRole):
-            # Check if log item
-            if "log_path" in data:
-                # Not handling log items further yet
-                return
-            
-            # It's a token item
+            # Check if we have token and node information in the data
             token_id = data.get("token")
             node_name = data.get("node")
-            if not node_name or not token_id:
-                return
-                
-            token = self.node_manager.get_token(node_name, token_id)
             
-            if not token:
-                return
+            # If we have both token and node, set current token
+            if node_name and token_id:
+                token = self.node_manager.get_token(node_name, token_id)
                 
-            self.current_token = token
-            
-            # Update ConnectionBar based on token type
-            if token.token_type == "FBC": # Telnet
-                self.session_tabs.setCurrentWidget(self.telnet_tab)
-                # Set IP and port in the input fields
-                self.telnet_connection_bar.ip_edit.setText(token.ip_address)
-                self.telnet_connection_bar.port_edit.setText(str(token.port))
-                self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)  # Reset status
-            elif token.token_type == "VNC":
-                self.session_tabs.setCurrentWidget(self.vnc_tab)
-                if hasattr(self, 'vnc_connection_bar'):
-                    self.vnc_connection_bar.ip_edit.setText(token.ip_address)
-                    self.vnc_connection_bar.port_edit.setText(str(token.port))
-                    self.vnc_connection_bar.update_status(ConnectionState.DISCONNECTED)
-            elif token.token_type == "FTP":
-                self.session_tabs.setCurrentWidget(self.ftp_tab)
-                if hasattr(self, 'ftp_connection_bar'):
-                    self.ftp_connection_bar.ip_edit.setText(token.ip_address)
-                    self.ftp_connection_bar.port_edit.setText(str(token.port))
-                    self.ftp_connection_bar.update_status(ConnectionState.DISCONNECTED)
-
-            # Auto-open log file
-            try:
-                log_path = self.log_writer.open_log(
-                    node_name, token_id, token.token_type
-                )
-                self.status_bar.showMessage(f"Log ready: {os.path.basename(log_path)}")
-            except OSError as e:
-                self.status_bar.showMessage(f"Error opening log: {str(e)}")
+                if not token:
+                    return
+                    
+                self.current_token = token
+                
+                # Update ConnectionBar based on token type
+                if token.token_type == "FBC": # Telnet
+                    self.session_tabs.setCurrentWidget(self.telnet_tab)
+                    # Set IP and port in the input fields
+                    self.telnet_connection_bar.ip_edit.setText(token.ip_address)
+                    self.telnet_connection_bar.port_edit.setText(str(token.port))
+                    self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)  # Reset status
+                elif token.token_type == "VNC":
+                    self.session_tabs.setCurrentWidget(self.vnc_tab)
+                    if hasattr(self, 'vnc_connection_bar'):
+                        self.vnc_connection_bar.ip_edit.setText(token.ip_address)
+                        self.vnc_connection_bar.port_edit.setText(str(token.port))
+                        self.vnc_connection_bar.update_status(ConnectionState.DISCONNECTED)
+                elif token.token_type == "FTP":
+                    self.session_tabs.setCurrentWidget(self.ftp_tab)
+                    if hasattr(self, 'ftp_connection_bar'):
+                        self.ftp_connection_bar.ip_edit.setText(token.ip_address)
+                        self.ftp_connection_bar.port_edit.setText(str(token.port))
+                        self.ftp_connection_bar.update_status(ConnectionState.DISCONNECTED)
+                
+                # Auto-open log file
+                try:
+                    log_path = self.log_writer.open_log(
+                        node_name, token_id, token.token_type
+                    )
+                    self.status_bar.showMessage(f"Log ready: {os.path.basename(log_path)}")
+                except OSError as e:
+                    self.status_bar.showMessage(f"Error opening log: {str(e)}")
 
     def toggle_telnet_connection(self, connect: bool):
         """Toggles connection/disconnection for Telnet tab"""
@@ -769,41 +763,69 @@ class CommanderWindow(QMainWindow):
         self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
             
     def copy_to_log(self):
-        """Copies current session content to active token log"""
-        if not self.current_token:
-            self.status_bar.showMessage("No token selected! Select a token on the left.")
+        """Copies current session content to selected token or log file"""
+        selected_items = self.node_tree.selectedItems()
+        if not selected_items:
+            self.status_bar.showMessage("No item selected! Select a token or log file on the left.")
             return
-            
+        item = selected_items[0]
+        data = item.data(0, Qt.ItemDataRole.UserRole)
+        if not data:
+            self.status_bar.showMessage("Selected item has no data")
+            return
+        
         tab_index = self.session_tabs.currentIndex()
         session_type = self.session_tabs.tabText(tab_index)
         
         try:
-            # Telnet tab has special output handling
+            # Get session content
             if session_type == "Telnet":
                 content = self.telnet_output.toPlainText()
             else:
-                # For VNC and FTP
                 tab_widget = self.session_tabs.widget(tab_index)
                 content_widget = tab_widget.layout().itemAt(0).widget()
                 if isinstance(content_widget, QTextEdit):
                     content = content_widget.toPlainText()
                 else:
                     return
-                    
-            # Don't copy empty sessions
+
             if not content:
                 self.status_bar.showMessage("No content in current session")
                 return
-                    
-            # Write to log
-            self.log_writer.append_to_log(
-                self.current_token.token_id,
-                content,
-                source=session_type
-            )
-            self.status_bar.showMessage(
-                f"Content copied to {self.current_token.token_id} log"
-            )
+
+            # Handle based on item type
+            if "log_path" in data:
+                log_path = data["log_path"]
+                # Write directly to the file
+                with open(log_path, 'a') as f:
+                    f.write(content + "\n")
+                filename = os.path.basename(log_path)
+                self.status_bar.showMessage(f"Content copied to {filename}")
+
+            elif "token" in data:
+                token_id = data["token"]
+                node_name = data.get("node")
+                token_type = data.get("token_type")
+                if not node_name or not token_type:
+                    self.status_bar.showMessage("Token item missing node or token_type")
+                    return
+
+                node = self.node_manager.get_node(node_name)
+                if not node:
+                    self.status_bar.showMessage(f"Node {node_name} not found")
+                    return
+
+                # Reconstruct the log path for display
+                ip = node.ip_address.replace('.', '-')
+                log_dir = os.path.join(self.node_manager.log_root, token_type, node_name)
+                filename = f"{node_name}_{ip}_{token_id}.{token_type.lower()}"
+                # Write using the log_writer
+                self.log_writer.append_to_log(token_id, content, source=session_type)
+                self.status_bar.showMessage(f"Content copied to {filename}")
+
+            else:
+                self.status_bar.showMessage("Unsupported item type")
+
         except Exception as e:
             self.status_bar.showMessage(f"Log write error: {str(e)}")
     
