@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QTabWidget, QTextEdit, QVBoxLayout, QWidget, QHBoxLayout,
     QPushButton, QStatusBar, QLabel, QLineEdit, QGridLayout
 )
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, QSettings
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QMenu
@@ -164,6 +164,9 @@ class CommanderWindow(QMainWindow):
         self.setWindowTitle("Commander LogCreator v1.0")
         self.setMinimumSize(1200, 800)
         
+        # Load application settings
+        self.settings = QSettings("CommanderLogCreator", "Settings")
+        
         # Dark theme with grey/neutral accents
         self.setStyleSheet("""
             QMainWindow, QWidget, QDialog {
@@ -267,12 +270,29 @@ class CommanderWindow(QMainWindow):
         
         # Try loading default configuration if available
         try:
+            # Load saved configuration path if exists
+            saved_config = self.settings.value("config_path", "")
+            if saved_config and os.path.exists(saved_config):
+                self.node_manager.set_config_path(saved_config)
+            
+            # Load saved log root if exists
+            saved_log_root = self.settings.value("log_root", "")
+            if saved_log_root and os.path.isdir(saved_log_root):
+                self.node_manager.set_log_root(saved_log_root)
+            
             if os.path.exists(self.node_manager.config_path):
                 if self.node_manager.load_configuration():
                     self.node_manager.scan_log_files()
                     self.populate_node_tree()
         except Exception as e:
             print(f"Error loading default configuration: {e}")
+            
+        # Load saved telnet connection
+        telnet_ip = self.settings.value("telnet_ip", "")
+        telnet_port = self.settings.value("telnet_port", "")
+        if telnet_ip and telnet_port:
+            self.telnet_connection_bar.ip_edit.setText(telnet_ip)
+            self.telnet_connection_bar.port_edit.setText(telnet_port)
         
     def load_configuration(self):
         """Load node configuration from selected file"""
@@ -876,6 +896,16 @@ class CommanderWindow(QMainWindow):
         """Cleanup on window close"""
         self.disconnect_telnet()
         self.log_writer.close_all_logs()
+        
+        # Save application state
+        self.settings.setValue("config_path", self.node_manager.config_path)
+        self.settings.setValue("log_root", self.node_manager.log_root)
+        
+        # Save telnet connection state
+        if hasattr(self, 'telnet_connection_bar'):
+            self.settings.setValue("telnet_ip", self.telnet_connection_bar.ip_edit.text())
+            self.settings.setValue("telnet_port", self.telnet_connection_bar.port_edit.text())
+
         super().closeEvent(event)
 
 
