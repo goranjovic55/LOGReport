@@ -64,56 +64,92 @@ class CommanderWindow(QMainWindow):
                 
             print(f"[Context Menu] Found item: {item.text(0)}")
             data = item.data(0, Qt.ItemDataRole.UserRole)
-            
-            if not data:
-                print("[Context Menu] Item has no data")
-                return
+            menu = QMenu(self.node_tree)
+            added_actions = False
+
+            # Check if this is a top-level node with FBC children
+            if not data and item.parent() is None:
+                print("[Context Menu] Processing top-level node")
+                node_name = item.text(0).split(' ')[0]  # Extract node name from text
+                print(f"[Context Menu] Checking node '{node_name}' for FBC children")
+                # Check if node has FBC children
+                for i in range(item.childCount()):
+                    child = item.child(i)
+                    print(f"[Context Menu] Checking child: {child.text(0)}")
+                    if child.text(0) == "FBC" and child.childCount() > 0:
+                        print(f"[Context Menu] Found {child.childCount()} FBC tokens in node '{node_name}'")
+                        # Add "Print Fieldbus Structure" for the node
+                        action_text = f"Print FieldBus Structure for {node_name}"
+                        action = QAction(action_text, self)
+                        action.triggered.connect(lambda: self.process_fieldbus_node(node_name))
+                        menu.addAction(action)
+                        added_actions = True
+                        break
+            # Handle token items
+            elif data and isinstance(data, dict):
+                token_type = data.get("token_type", "").upper()  # Normalize to uppercase
+                token_id = data.get("token", None)
+                node_name = data.get("node", "Unknown")
                 
-            if not isinstance(data, dict):
-                print(f"[Context Menu] Invalid data type: {type(data)}")
-                return
+                print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}, Node: {node_name}")
                 
-            print(f"[Context Menu] Item data: {data}")
-            
-            token_type = data.get("token_type", "")
-            token_id = data.get("token", None)
-            
-            print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}")
-            
-            if token_id:
-                print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}")
-                menu = QMenu(self.node_tree)
-                
-                if token_type == "FBC":
-                    print("[Context Menu] Creating context menu for FBC item")
-                    action_text = f"Print FieldBus Structure (Token {token_id})"
-                    action = QAction(action_text, self)
-                    action.triggered.connect(lambda: self.process_fieldbus_command(token_id))
-                    menu.addAction(action)
+                if token_id:
+                    print(f"[Context Menu] Processing token item: type={token_type}, id={token_id}")
                     
-                elif token_type == "RPC":
-                    print("[Context Menu] Creating context menu for RPC item")
-                    
-                    # Print Rupi Counters action
-                    print_action = QAction(f"Print Rupi Counters (Token {token_id})", self)
-                    print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
-                    menu.addAction(print_action)
-                    
-                    # Clear Rupi Counters action
-                    clear_action = QAction(f"Clear Rupi Counters (Token {token_id})", self)
-                    clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
-                    menu.addAction(clear_action)
-                
+                    if token_type == "FBC":
+                        print("[Context Menu] Creating context menu for FBC item")
+                        action_text = f"Print FieldBus Structure (Token {token_id})"
+                        action = QAction(action_text, self)
+                        action.triggered.connect(lambda: self.process_fieldbus_command(token_id))
+                        menu.addAction(action)
+                        added_actions = True
+                        
+                    elif token_type == "RPC":
+                        print("[Context Menu] Creating context menu for RPC item")
+                        
+                        # Print Rupi Counters action
+                        print_action = QAction(f"Print Rupi Counters (Token {token_id})", self)
+                        print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
+                        menu.addAction(print_action)
+                        
+                        # Clear Rupi Counters action
+                        clear_action = QAction(f"Clear Rupi Counters (Token {token_id})", self)
+                        clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
+                        menu.addAction(clear_action)
+                        added_actions = True
+            
+            if added_actions:
                 # Show menu at cursor position
                 menu.exec(self.node_tree.viewport().mapToGlobal(position))
-                print(f"[Context Menu] Displayed menu for token {token_id}")
+                print(f"[Context Menu] Displayed menu with {menu.actions().count()} actions")
             else:
-                print(f"[Context Menu] No token ID found")
+                print(f"[Context Menu] No applicable actions for this item")
         except Exception as e:
             print(f"[Context Menu] Error: {str(e)}")
             
+    def process_fieldbus_node(self, node_name):
+        """Process fieldbus structure commands for all FBC tokens in a node"""
+        node = self.node_manager.get_node(node_name)
+        if not node:
+            self.status_bar.showMessage(f"Node {node_name} not found", 3000)
+            return
+            
+        # Find all FBC tokens in the node
+        fbc_tokens = [t for t in node.tokens.values() if t.token_type == "FBC"]
+        if not fbc_tokens:
+            self.status_bar.showMessage(f"No FBC tokens found in node {node_name}", 3000)
+            return
+            
+        self.status_bar.showMessage(f"Processing {len(fbc_tokens)} FBC tokens in node {node_name}...", 0)
+        
+        for token in fbc_tokens:
+            self.current_token = token
+            self.process_fieldbus_command(token.token_id)
+            
+        self.status_bar.showMessage(f"Fieldbus commands executed for {len(fbc_tokens)} tokens", 3000)
+            
     def process_fieldbus_command(self, token_id):
-        """Process fieldbus structure command"""
+        """Process fieldbus structure command and automatically execute and log"""
         command_text = f"print from fieldbus io structure {token_id}0000"
         
         try:
@@ -127,8 +163,30 @@ class CommanderWindow(QMainWindow):
             self.cmd_input.setFocus()
             
             # Show status message
-            self.status_bar.showMessage(f"Command set: {command_text} - Press Execute to run", 3000)
+            self.status_bar.showMessage(f"Executing: {command_text}...", 3000)
+            
+            # Execute command immediately
+            if self.telnet_session and self.telnet_session.is_connected:
+                # Execute command and capture output
+                output = self.execute_telnet_command(automatic=True)
+                
+                # Write output to log file
+                if self.current_token and self.current_token.log_path:
+                    # Normalize path and check existence
+                    normalized_path = os.path.normpath(self.current_token.log_path)
+                    if not os.path.exists(normalized_path):
+                        raise FileNotFoundError(f"Log file not found: {normalized_path}")
+                    
+                    with open(normalized_path, 'a') as f:
+                        f.write(output + '\n')
+                    self.status_bar.showMessage(f"Command output written to log", 3000)
+                else:
+                    self.status_bar.showMessage(f"Log path not found for token {token_id}", 3000)
+        except FileNotFoundError as e:
+            self.status_bar.showMessage(f"File not found: {str(e)}", 3000)
+            print(f"File not found: {e}")
         except Exception as e:
+            self.status_bar.showMessage(f"Error: {str(e)}", 3000)
             print(f"Error processing fieldbus command: {e}")
             
     def process_rpc_command(self, token_id, action_type):
@@ -748,21 +806,24 @@ class CommanderWindow(QMainWindow):
         except Exception as e:
             self.telnet_output.append(f"Error: {str(e)}")
             
-    def execute_telnet_command(self):
+    def execute_telnet_command(self, automatic=False):
         """Executes command in Telnet session"""
         if not self.telnet_session:
-            self.status_bar.showMessage("Create a Telnet session first!")
-            return
+            if not automatic:
+                self.status_bar.showMessage("Create a Telnet session first!")
+            return ""
             
         command = self.cmd_input.toPlainText().strip()
         if not command:
-            return
+            return ""
             
-        self.command_history.add(command)
+        if not automatic:
+            self.command_history.add(command)
         
         # Display user command in output
-        self.telnet_output.append(f"> {command}")
-        self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
+        if not automatic:
+            self.telnet_output.append(f"> {command}")
+            self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
         
         try:
             # Resolve command with context if needed
@@ -773,14 +834,21 @@ class CommanderWindow(QMainWindow):
             response = self.telnet_session.send_command(resolved_cmd, timeout=5)
             
             # Display response
-            self.telnet_output.append(response)
+            if not automatic:
+                self.telnet_output.append(response)
             
         except Exception as e:
-            self.telnet_output.append(f"ERROR: {str(e)}")
+            error_msg = f"ERROR: {str(e)}"
+            if not automatic:
+                self.telnet_output.append(error_msg)
+            return error_msg
             
         # Clear input field for next command
-        self.cmd_input.clear()
-        self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
+        if not automatic:
+            self.cmd_input.clear()
+            self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
+            
+        return response
             
     def copy_to_log(self):
         """Copies current session content to selected token or log file"""

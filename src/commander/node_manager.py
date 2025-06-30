@@ -40,12 +40,13 @@ class NodeManager:
             
         try:
             abs_path = os.path.abspath(path)
-            print(f"Loading configuration from: {abs_path}")
-            if not os.path.exists(abs_path):
-                print(f"Configuration file does not exist: {abs_path}")
+            normalized_path = os.path.normpath(abs_path)
+            print(f"Loading configuration from: {normalized_path}")
+            if not os.path.exists(normalized_path):
+                print(f"Configuration file does not exist: {normalized_path}")
                 return False
                 
-            with open(abs_path, 'r', encoding='utf-8') as f:
+            with open(normalized_path, 'r', encoding='utf-8') as f:
                 config_data = json.load(f)
                 self._parse_config(config_data)
             print("Configuration loaded successfully")
@@ -72,8 +73,8 @@ class NodeManager:
         if isinstance(config_data, list) and config_data:
             first_node = config_data[0]
             is_old_format = (
-                'ip' in first_node and 
-                'tokens' in first_node and 
+                'ip' in first_node and
+                'tokens' in first_node and
                 isinstance(first_node['tokens'], list) and
                 all(isinstance(t, str) for t in first_node['tokens'])
             )
@@ -102,20 +103,24 @@ class NodeManager:
                             print(f"Skipping invalid token entry: {token_data}")
                             continue
                             
+                        # Normalize token type to uppercase for consistent classification
+                        token_type = token_data["token_type"].upper()
+                        
                         token = NodeToken(
                             name=f"{node.name} {token_data['token_id']}",
                             token_id=token_data["token_id"],
-                            token_type=token_data["token_type"],
+                            token_type=token_type,  # Use normalized token type
                             ip_address=token_data.get("ip_address", node.ip_address),
                             port=token_data["port"],
                             protocol=token_data.get("protocol", "telnet")
                         )
                         
-                        # Generate log path
+                        # Generate log path with formatted IP
                         token.log_path = self._generate_log_path(
-                            node.name, 
+                            node.name,
                             token.token_id,
-                            token.token_type
+                            token.token_type,
+                            token.ip_address
                         )
                         
                         node.add_token(token)
@@ -220,20 +225,36 @@ class NodeManager:
                             
                         # Find matching token in node (case-insensitive)
                         token = next(
-                            (t for t in matched_node.tokens.values() 
+                            (t for t in matched_node.tokens.values()
                              if t.token_id.lower() == token_id.lower()),
                             None
                         )
                         if token:
-                            # Update token's log path to actual file
-                            token.log_path = os.path.join(node_path, filename)
+                            # Normalize path and check existence before updating token
+                            full_path = os.path.join(node_path, filename)
+                            normalized_path = os.path.normpath(full_path)
+                            if not os.path.exists(normalized_path):
+                                raise FileNotFoundError(f"Log file not found: {normalized_path}")
                             
+                            # Update token's log path to actual file
+                            token.log_path = normalized_path
+                            
+                    except FileNotFoundError as e:
+                        print(f"File not found: {e}")
                     except Exception as e:
                         print(f"Error processing {filename}: {str(e)}")
             
-    def _generate_log_path(self, node_name: str, token_id: str, log_type: str) -> str:
-        """Generates standardized log path"""
-        return os.path.join(self.log_root, node_name, f"{token_id}_{log_type}.log")
+    def _generate_log_path(self, node_name: str, token_id: str, log_type: str, ip_address: str) -> str:
+        """Generates standardized log path with formatted IP"""
+        # Format IP address: 192.168.0.11 -> 192-168-0-11
+        formatted_ip = ip_address.replace('.', '-')
+        
+        # Create path: <log_root>/<token_type>/<node_name>/<filename>
+        if log_type == "FBC":
+            filename = f"{node_name}_{formatted_ip}_{token_id}.fbc"
+        else:
+            filename = f"{token_id}_{log_type}.log"
+        return os.path.join(self.log_root, log_type, node_name, filename)
     
     def get_node(self, node_name: str) -> Optional[Node]:
         """Retrieves node by name"""
@@ -271,9 +292,10 @@ class NodeManager:
                 protocol=token_data.get("protocol", "telnet")
             )
             token.log_path = self._generate_log_path(
-                node.name, 
+                node.name,
                 token.token_id,
-                token.token_type
+                token.token_type,
+                token.ip_address
             )
             node.add_token(token)
             

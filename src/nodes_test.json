@@ -1,0 +1,15 @@
+{
+  "nodes": [
+    {
+      "name": "TestNode",
+      "ip_address": "127.0.0.1",
+      "tokens": [
+        {
+          "token_id": "001",
+          "token_type": "FBC",
+          "port": 23
+        }
+      ]
+    }
+  ]
+}
