@@ -709,10 +709,15 @@ class CommanderWindow(QMainWindow):
                 # Update ConnectionBar based on token type
                 if token.token_type == "FBC": # Telnet
                     self.session_tabs.setCurrentWidget(self.telnet_tab)
-                    # Set IP and port in the input fields
-                    self.telnet_connection_bar.ip_edit.setText(token.ip_address)
-                    self.telnet_connection_bar.port_edit.setText(str(token.port))
-                    self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)  # Reset status
+                    
+                    # Update status only if not already connected to this token
+                    if (self.telnet_session and self.telnet_session.is_connected and
+                        self.telnet_session.config.host == token.ip_address and
+                        self.telnet_session.config.port == token.port):
+                        # Already connected to this token - keep status
+                        pass
+                    else:
+                        self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
                 elif token.token_type == "VNC":
                     self.session_tabs.setCurrentWidget(self.vnc_tab)
                     if hasattr(self, 'vnc_connection_bar'):
@@ -752,6 +757,9 @@ class CommanderWindow(QMainWindow):
             return
             
         if connect:
+            # Save connection parameters to settings
+            self.settings.setValue("telnet_ip", ip_address)
+            self.settings.setValue("telnet_port", port_text)
             self.connect_telnet(ip_address, port)
         else:
             self.disconnect_telnet()
@@ -812,11 +820,11 @@ class CommanderWindow(QMainWindow):
             if not automatic:
                 self.status_bar.showMessage("Create a Telnet session first!")
             return ""
-            
+
         command = self.cmd_input.toPlainText().strip()
         if not command:
             return ""
-            
+
         if not automatic:
             self.command_history.add(command)
         
@@ -836,6 +844,9 @@ class CommanderWindow(QMainWindow):
             # Display response
             if not automatic:
                 self.telnet_output.append(response)
+            
+            # Update connection status to CONNECTED after successful command execution
+            self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
             
         except Exception as e:
             error_msg = f"ERROR: {str(e)}"
