@@ -11,9 +11,11 @@ a = Analysis(
     ['src/main.py'],
     pathex=[os.getcwd()],
     binaries=[],
-    datas=[('src/nodes.json', 'src'),
-           ('version_info.txt', '.'),
-           ('assets', 'assets')],
+    datas=[
+        ('src/nodes.json', 'src'),
+        ('version_info.txt', '.'),
+        (os.path.abspath('assets'), 'assets')
+    ],
     hiddenimports=[
         'docx',
         'PyQt6',

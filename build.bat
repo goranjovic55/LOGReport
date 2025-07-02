@@ -31,7 +31,7 @@ if %errorlevel% neq 0 (
 )
 
 echo ---------------------------------------------------
-echo [5/5] Build successful! Output in dist\LOGReporter
+echo [5/5] Build successful! Output in dist
 echo Launching application for verification...
-start dist\LOGReporter\LOGReporter.exe
+start dist\LOGReporter.exe
 pause
