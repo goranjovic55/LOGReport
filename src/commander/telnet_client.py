@@ -68,16 +68,23 @@ class TelnetClient:
         """Read telnet response with prompt detection"""
         response = b""
         start_time = time.time()
+        timeout_seconds = self.timeout
         
-        while (time.time() - start_time) < self.timeout:
+        while (time.time() - start_time) < timeout_seconds:
             chunk = self.connection.read_very_eager()
             if chunk:
                 response += chunk
                 decoded = response.decode('ascii', 'ignore')
                 if self.prompt_pattern.search(decoded):
                     break
-            else:
-                time.sleep(0.05)
+            # Use non-blocking wait instead of sleep
+            self.connection.get_socket().settimeout(0.05)
+            try:
+                # This will return immediately if no data
+                if self.connection.get_socket().recv(1) == b'':
+                    break
+            except socket.timeout:
+                continue
                 
         return response.decode('ascii', 'ignore') if response else ""
 

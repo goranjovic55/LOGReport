@@ -35,9 +35,12 @@ class BaseSession:
     
     def disconnect(self):
         if self.is_connected:
-            self._disconnect_impl()
+            try:
+                self._disconnect_impl()
+            finally:
+                # Ensure state is reset even if disconnection fails
+                self.is_connected = False
         self.connection = None
-        self.is_connected = False
     
     def _disconnect_impl(self):
         """Implementation-specific disconnect logic"""
@@ -93,10 +96,19 @@ class TelnetSession(BaseSession):
     
     def _disconnect_impl(self):
         if self.connection:
-            self.connection.write(b"exit\n")
-            self.connection.sock.settimeout(2)
-            self.connection.read_all()
-            self.connection.close()
+            try:
+                # Properly close and terminate the telnet connection
+                self.connection.close()
+                # Additional cleanup to ensure complete disconnection
+                if hasattr(self.connection, 'get_socket'):
+                    sock = self.connection.get_socket()
+                    if sock:
+                        sock.shutdown(socket.SHUT_RDWR)
+                        sock.close()
+            except Exception as e:
+                print(f"Error closing telnet connection: {str(e)}")
+            finally:
+                self.connection = None
     
     def send_command(self, command: str, timeout: float = 5.0) -> str:
         if not self.is_connected:

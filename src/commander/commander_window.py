@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QStatusBar, QLabel, QLineEdit, QGridLayout
 )
 from PyQt6.QtCore import Qt, QSize, QSettings
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QFileDialog
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QMenu
@@ -29,8 +30,14 @@ from .icons import get_node_online_icon, get_node_offline_icon, get_token_icon
 # Centralized Qt application initialization
 from .qt_init import initialize_qt
 
+import threading
+import time
+
 class CommanderWindow(QMainWindow):
     """Main Commander window."""
+    
+    # Signal for telnet command completion: (response, automatic)
+    command_finished = pyqtSignal(str, bool)
         
     def generate_fieldbus_command(self, item_data):
         """Generates and sends the fieldbus structure command for FBC tokens"""
@@ -167,21 +174,12 @@ class CommanderWindow(QMainWindow):
             
             # Execute command immediately
             if self.telnet_session and self.telnet_session.is_connected:
-                # Execute command and capture output
-                output = self.execute_telnet_command(automatic=True)
-                
-                # Write output to log file
-                if self.current_token and self.current_token.log_path:
-                    # Normalize path and check existence
-                    normalized_path = os.path.normpath(self.current_token.log_path)
-                    if not os.path.exists(normalized_path):
-                        raise FileNotFoundError(f"Log file not found: {normalized_path}")
-                    
-                    with open(normalized_path, 'a') as f:
-                        f.write(output + '\n')
-                    self.status_bar.showMessage(f"Command output written to log", 3000)
-                else:
-                    self.status_bar.showMessage(f"Log path not found for token {token_id}", 3000)
+                # Execute command in background
+                threading.Thread(
+                    target=self._execute_and_log_command,
+                    args=(command_text, token_id),
+                    daemon=True
+                ).start()
         except FileNotFoundError as e:
             self.status_bar.showMessage(f"File not found: {str(e)}", 3000)
             print(f"File not found: {e}")
@@ -221,6 +219,12 @@ class CommanderWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Commander LogCreator v1.0")
         self.setMinimumSize(1200, 800)
+        
+        # Connect command_finished signal
+        self.command_finished.connect(self.on_telnet_command_finished)
+        
+        # Thread lock for telnet operations
+        self.telnet_lock = threading.Lock()
         
         # Load application settings
         self.settings = QSettings("CommanderLogCreator", "Settings")
@@ -710,12 +714,9 @@ class CommanderWindow(QMainWindow):
                 if token.token_type == "FBC": # Telnet
                     self.session_tabs.setCurrentWidget(self.telnet_tab)
                     
-                    # Update status only if not already connected to this token
-                    if (self.telnet_session and self.telnet_session.is_connected and
-                        self.telnet_session.config.host == token.ip_address and
-                        self.telnet_session.config.port == token.port):
-                        # Already connected to this token - keep status
-                        pass
+                    # Update status based on actual connection state
+                    if self.telnet_session and self.telnet_session.is_connected:
+                        self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
                     else:
                         self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
                 elif token.token_type == "VNC":
@@ -723,13 +724,19 @@ class CommanderWindow(QMainWindow):
                     if hasattr(self, 'vnc_connection_bar'):
                         self.vnc_connection_bar.ip_edit.setText(token.ip_address)
                         self.vnc_connection_bar.port_edit.setText(str(token.port))
-                        self.vnc_connection_bar.update_status(ConnectionState.DISCONNECTED)
+                        if self.vnc_session and self.vnc_session.is_connected:
+                            self.vnc_connection_bar.update_status(ConnectionState.CONNECTED)
+                        else:
+                            self.vnc_connection_bar.update_status(ConnectionState.DISCONNECTED)
                 elif token.token_type == "FTP":
                     self.session_tabs.setCurrentWidget(self.ftp_tab)
                     if hasattr(self, 'ftp_connection_bar'):
                         self.ftp_connection_bar.ip_edit.setText(token.ip_address)
                         self.ftp_connection_bar.port_edit.setText(str(token.port))
-                        self.ftp_connection_bar.update_status(ConnectionState.DISCONNECTED)
+                        if self.ftp_session and self.ftp_session.is_connected:
+                            self.ftp_connection_bar.update_status(ConnectionState.CONNECTED)
+                        else:
+                            self.ftp_connection_bar.update_status(ConnectionState.DISCONNECTED)
                 
                 # Auto-open log file
                 try:
@@ -807,59 +814,105 @@ class CommanderWindow(QMainWindow):
     def disconnect_telnet(self):
         """Disconnects from current telnet session"""
         try:
+            # Only close through session manager to avoid double disconnect
             self.session_manager.close_all_sessions()
+            # Clear local reference AFTER session manager has closed sessions
             self.telnet_session = None
+            # Force UI update to disconnected state
             self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
             self.telnet_output.append("\n>>> DISCONNECTED")
         except Exception as e:
-            self.telnet_output.append(f"Error: {str(e)}")
+            self.telnet_output.append(f"Error disconnecting: {str(e)}")
+            # Still reset UI state even if disconnection failed
+            self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
             
     def execute_telnet_command(self, automatic=False):
-        """Executes command in Telnet session"""
+        """Executes command in Telnet session using background thread"""
         if not self.telnet_session:
             if not automatic:
                 self.status_bar.showMessage("Create a Telnet session first!")
             return ""
-
+        
         command = self.cmd_input.toPlainText().strip()
         if not command:
             return ""
 
         if not automatic:
             self.command_history.add(command)
-        
-        # Display user command in output
-        if not automatic:
+            # Display user command in output
             self.telnet_output.append(f"> {command}")
             self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
+            # Disable execute button during execution
+            self.execute_btn.setEnabled(False)
         
-        try:
-            # Resolve command with context if needed
-            token_id = self.current_token.token_id if self.current_token else ""
-            resolved_cmd = self.command_resolver.resolve(command, token_id)
+        # Start command execution in background thread
+        threading.Thread(
+            target=self._run_telnet_command,
+            args=(command, automatic),
+            daemon=True
+        ).start()
+        
+        return ""  # Response will be handled asynchronously
+
+    def _run_telnet_command(self, command, automatic):
+        """Runs telnet command in background thread"""
+        with self.telnet_lock:
+            try:
+                # Resolve command with context if needed
+                token_id = self.current_token.token_id if self.current_token else ""
+                resolved_cmd = self.command_resolver.resolve(command, token_id)
+                
+                # Execute command
+                response = self.telnet_session.send_command(resolved_cmd, timeout=5)
+                
+                # Update connection status to CONNECTED after successful command execution
+                self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
+                
+            except Exception as e:
+                response = f"ERROR: {str(e)}"
             
-            # Execute command
-            response = self.telnet_session.send_command(resolved_cmd, timeout=5)
-            
-            # Display response
-            if not automatic:
-                self.telnet_output.append(response)
-            
-            # Update connection status to CONNECTED after successful command execution
-            self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
-            
-        except Exception as e:
-            error_msg = f"ERROR: {str(e)}"
-            if not automatic:
-                self.telnet_output.append(error_msg)
-            return error_msg
-            
-        # Clear input field for next command
+            # Emit signal with response
+            self.command_finished.emit(response, automatic)
+
+    def _execute_and_log_command(self, command, token_id):
+        """Executes command and logs output in background thread"""
+        output = self.execute_telnet_command(automatic=True)
+        if self.current_token and self.current_token.log_path:
+            try:
+                # Perform file operations in background thread
+                normalized_path = os.path.normpath(self.current_token.log_path)
+                if not os.path.exists(normalized_path):
+                    self.status_bar.showMessage(f"Log file not found: {normalized_path}", 3000)
+                    return
+                
+                with open(normalized_path, 'a') as f:
+                    f.write(output + '\n')
+                self.status_bar.showMessage(f"Command output written to log", 3000)
+            except Exception as e:
+                self.status_bar.showMessage(f"Error writing to log: {str(e)}", 3000)
+    
+    def on_telnet_command_finished(self, response, automatic):
+        """
+        Handles the completion of a telnet command run in a background thread.
+        :param response: The command response text.
+        :param automatic: True if the command was triggered automatically (e.g., from context menu).
+        """
         if not automatic:
-            self.cmd_input.clear()
+            # For manually executed commands, update the telnet output and re-enable the button.
+            self.telnet_output.append(response)
             self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
-            
-        return response
+            self.execute_btn.setEnabled(True)
+            self.cmd_input.clear()
+        # For automatic commands, we don't update the telnet output.
+        # They are typically used for background operations like logging.
+        
+        # Write to log if this was an automatic command (e.g., from fieldbus context menu)
+        if automatic and self.current_token and self.current_token.log_path:
+            try:
+                with open(self.current_token.log_path, 'a') as f:
+                    f.write(response + '\n')
+            except Exception as e:
+                print(f"Error writing to log: {e}")
             
     def copy_to_log(self):
         """Copies current session content to selected token or log file"""

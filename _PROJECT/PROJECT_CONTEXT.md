@@ -214,3 +214,9 @@ pip install -r requirements-narrow.txt
 - Develop persistent session history
 - Create LIS parser module
 - Refine log analysis algorithms
+
+## Workflow Triggers
+### Auto-Optimization Workflow
+- **Trigger File**: `auto-optimize.md` in the project root directory.
+- **Purpose**: Signals the Orchestrator to initiate a post-task optimization routine.
+- **Mechanism**: The presence of this file indicates that an optimization pass is required after a task's completion.
