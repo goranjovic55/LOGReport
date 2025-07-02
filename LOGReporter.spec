@@ -7,14 +7,13 @@ block_cipher = None
 import sys
 import os
 sys.path.append(os.path.abspath('src'))
-
 a = Analysis(
     ['src/main.py'],
     pathex=[os.getcwd()],
     binaries=[],
-    datas=[('src/nodes.json', 'src'), 
-           ('assets', 'assets'),
-           ('version_info.txt', '.')],
+    datas=[('src/nodes.json', 'src'),
+           ('version_info.txt', '.'),
+           ('assets', 'assets')],
     hiddenimports=[
         'docx',
         'PyQt6',
