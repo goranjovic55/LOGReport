@@ -8,6 +8,7 @@ import time
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
+from .models import NodeToken
 
 class SessionType(Enum):
     TELNET = "TELNET"
@@ -184,6 +185,14 @@ class SessionManager:
         SessionType.VNC: VNCSession,
         SessionType.FTP: FTPSession
     }
+
+    def validate_token(self, token: NodeToken) -> bool:
+        """Validate token structure and permissions"""
+        if not token or not token.token_id:
+            return False
+        if len(token.token_id) != 3 or not token.token_id.isdigit():
+            return False
+        return True
     
     def __init__(self):
         self.active_sessions = {}

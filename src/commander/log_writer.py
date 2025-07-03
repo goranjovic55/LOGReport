@@ -24,7 +24,7 @@ class LogWriter:
         log_dir = os.path.join("test_logs", log_type, node_name)
         os.makedirs(log_dir, exist_ok=True)
         # Handle missing token_id with fallback
-        safe_token_id = str(token_id).strip() if token_id else "unknown-token"
+        safe_token_id = "unknown-token" if not token_id else str(token_id).strip()
         filename = f"{node_name}_{node_ip}_{safe_token_id}.{log_type.lower()}"
         return os.path.join(log_dir, filename)
         
@@ -32,9 +32,11 @@ class LogWriter:
         """Opens a log file for writing. Creates LSR header if new file."""
         # Safely handle token data
         # Validate token before processing
-        if not token or not token.token_id:
-            raise ValueError("Invalid token provided for log creation")
-        token_id_str = str(token.token_id).strip()
+        # Generate default values for missing fields
+        token_id = token.token_id or "unknown-token"
+        node_name = node_name or "unknown-node"
+        node_ip = node_ip or "unknown-ip"
+        token_id_str = str(token.token_id).strip() if token.token_id else "unknown-token"
         
         # Ensure node_name and node_ip are strings and strip them
         node_name_str = str(node_name).strip() if node_name is not None else "unknown-node"
@@ -55,44 +57,47 @@ class LogWriter:
                 
         return log_path
         
-    def _write_header(self, node_name: str, token: str, log_type: str, file_handle: TextIO):
+    def _write_header(self, node_name: str, token_id: str, log_type: str, file_handle: TextIO):
         """Writes LSR-compliant header to log file"""
         header = (
             f"=== COMMANDER LOG ===\n"
             f"Node: {node_name}\n"
-            f"Token: {token}\n"
+            f"Token: {token_id}\n"
             f"Type: {log_type.upper()}\n"
             f"Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"====================\n\n"
         )
         file_handle.write(header)
         
-    def append_to_log(self, token: str, content: str, source: str = ""):
-        """Appends content to log with optional source annotation"""
-        if token not in self.log_handles:
-            raise ValueError(f"No open log for token: {token}")
+    def append_to_log(self, token_id: str, content: str, protocol: str):
+        """Appends content to log with protocol annotation"""
+        if token_id not in self.log_handles:
+            raise ValueError(f"No open log for token ID: {token_id}")
             
+        # Handle empty/null content
+        safe_content = content.strip() if content else "<empty response>"
+        
         # Add source prefix if provided
-        prefix = f"[{source.upper()}] " if source else ""
-        formatted = prefix + content.strip()
+        prefix = f"[{protocol.upper()}] " if protocol else ""
+        formatted = prefix + safe_content
         
         # Add timestamp to each entry
         timestamp = datetime.now().strftime('%H:%M:%S')
-        self.log_handles[token].write(f"{timestamp} >> {formatted}\n")
-        self.log_handles[token].flush()
+        self.log_handles[token_id].write(f"{timestamp} >> {formatted}\n")
+        self.log_handles[token_id].flush()
         
-    def close_log(self, token: str):
-        """Closes log file for a specific token"""
-        if token in self.log_handles:
-            self.log_handles[token].close()
-            del self.log_handles[token]
-            del self.log_paths[token]
+    def close_log(self, token_id: str):
+        """Closes log file for a specific token ID"""
+        if token_id in self.log_handles:
+            self.log_handles[token_id].close()
+            del self.log_handles[token_id]
+            del self.log_paths[token_id]
             
     def close_all_logs(self):
         """Closes all open log files"""
         for token in list(self.log_handles.keys()):
             self.close_log(token)
             
-    def get_log_path(self, token: str) -> str:
+    def get_log_path(self, token_id: str) -> str:
         """Returns the absolute path to a token's log file"""
-        return os.path.abspath(self.log_paths[token])
+        return os.path.abspath(self.log_paths[token_id])

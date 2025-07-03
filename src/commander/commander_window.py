@@ -38,6 +38,7 @@ class CommanderWindow(QMainWindow):
     
     # Signal for telnet command completion: (response, automatic)
     command_finished = pyqtSignal(str, bool)
+    queue_processed = pyqtSignal(int, int)  # Success count, total
     
     # Signals for UI updates from background threads
     status_message_signal = pyqtSignal(str, int)
@@ -190,7 +191,11 @@ class CommanderWindow(QMainWindow):
      
                                 # Pass the NodeToken object directly
                                 self.log_writer.open_log(node_name, node_ip, self.current_token)
-                                self.log_writer.append_to_log(self.current_token.token_id, response, source="telnet")
+                                # Ensure non-empty response before logging
+                                if response.strip():
+                                    self.log_writer.append_to_log(self.current_token.token_id, response, source="telnet")
+                                else:
+                                    self.status_message_signal.emit("Empty response - not logged", 3000)
                                 self.status_message_signal.emit("Command output written to log", 3000)
                             else:
                                 self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
@@ -341,6 +346,8 @@ class CommanderWindow(QMainWindow):
         self.log_writer = LogWriter()
         self.command_resolver = CommandResolver()
         self.command_history = CommandHistory()
+        self.command_queue = CommandQueue()
+        self.command_queue.command_completed.connect(self._handle_queued_command_result)
         
         # State tracking
         self.current_token = None
@@ -917,60 +924,41 @@ class CommanderWindow(QMainWindow):
             # Emit signal with response
             self.command_finished.emit(response, automatic)
 
-    def process_all_fbc_subgroup_commands(self, fbc_subgroup_item):
-        """Process all FBC commands for a node subgroup sequentially in background"""
-        node_item = fbc_subgroup_item.parent()
-        if not node_item:
+    def process_all_fbc_subgroup_commands(self, item):
+        """Process all FBC commands using command queue"""
+        if not self._validate_node(item):
             return
+
+        try:
+            tokens = self._get_valid_tokens()
+            total = len(tokens)
+            for idx, token in enumerate(tokens):
+                if not token or not token.token_id.isdigit():
+                    continue
+                self.command_queue.add_command(
+                    f"print from fieldbus io structure {token.token_id}0000",
+                    token
+                )
+                # Emit progress update
+                self.queue_processed.emit(idx+1, total)
             
-        node_name = node_item.text(0).split(' ')[0]  # Extract node name from text
-        node = self.node_manager.get_node(node_name)
-        if not node:
-            self.status_message_signal.emit(f"Node {node_name} not found", 3000)
-            return
-            
-        # Find all FBC tokens in the node with validation
-        fbc_tokens = []
-        if node.tokens:
-            fbc_tokens = [t for t in node.tokens.values()
-                         if t and t.token_type == "FBC" and t.token_id is not None]
-        if not fbc_tokens:
-            self.status_message_signal.emit(f"No FBC tokens found in node {node_name}", 3000)
-            return
-            
-        # Start background thread for sequential execution
-        def run_commands():
-            self.status_message_signal.emit(f"Processing {len(fbc_tokens)} FBC tokens...", 0)
-            # Create a queue of tokens to process
-            token_queue = fbc_tokens.copy()
-            
-            def process_next_token():
-                if token_queue:
-                    token = token_queue.pop(0)
-                    # Validate token ID format (must be 3 digits)
-                    if not token.token_id.isdigit() or len(token.token_id) != 3:
-                        self.status_message_signal.emit(f"Invalid token ID format: {token.token_id}. Must be 3 digits. Skipping.", 3000)
-                        threading.Timer(0.5, process_next_token).start()
-                        return
-                        
-                    try:
-                        self.current_token = token
-                        self.status_message_signal.emit(f"Executing command for Token {token.token_id}...", 0)
-                        # Process command and schedule next after completion
-                        self.process_fieldbus_command(token.token_id)
-                        # Schedule next token processing after a short delay
-                        threading.Timer(0.5, process_next_token).start()
-                    except Exception as e:
-                        self.status_message_signal.emit(f"Error processing token {token.token_id}: {str(e)}", 3000)
-                        # Continue with next token even if one fails
-                        threading.Timer(0.5, process_next_token).start()
-                else:
-                    self.status_message_signal.emit(f"All FBC commands executed for {node_name}", 3000)
-            
-            # Start processing the first token
-            process_next_token()
-            
-        threading.Thread(target=run_commands, daemon=True).start()
+            self.status_message_signal.emit(f"Queued {len(tokens)} commands", 3000)
+            self.command_queue.start_processing()
+        except ValueError as e:
+            self._handle_queue_error(e)
+
+    def _validate_node(self, item) -> bool:
+        """Validate node structure before processing"""
+        if not item or not item.parent():
+            self.status_message_signal.emit("Invalid node structure", 3000)
+            return False
+        return True
+
+    def _get_valid_tokens(self):
+        """Retrieve and validate FBC tokens"""
+        node = self.node_manager.get_selected_node()
+        return [t for t in node.tokens.values()
+                if t.token_type == "FBC" and self.command_queue.validate_token(t)]
     
     def on_telnet_command_finished(self, response, automatic):
         """

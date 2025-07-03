@@ -11,10 +11,13 @@ class TelnetClient:
         self.mode = "INSERT"  # Default mode
         self.log = []
         
-    def connect(self, host, port):
-        """Establish connection to telnet server using provided host and port"""
+    def connect(self, host: str, port: int) -> tuple[bool, str]:
+        """Establish telnet connection with timeout handling"""
         try:
-            self.connection = telnetlib.Telnet(host, port, self.timeout)
+            self.connection = telnetlib.Telnet()
+            self.connection.open(host, port, self.timeout)
+            if not self.connection.get_socket():
+                return (False, "Connection failed - no socket")
             # Wait for initial connection and read any banner
             time.sleep(1.0)  # Increased for Windows compatibility
             initial_data = self.connection.read_very_eager()
@@ -27,9 +30,11 @@ class TelnetClient:
             # Read any response to clear the buffer
             self.connection.read_very_eager()
             
-            return True
-        except socket.timeout:
-            return False, "Connection timed out"
+            return (True, "Connected successfully")
+        except socket.timeout as e:
+            if self.connection:
+                self.connection.close()
+            return False, f"Connection timed out: {str(e)}"
         except ConnectionRefusedError:
             return False, "Connection refused"
         except Exception as e:
@@ -41,28 +46,31 @@ class TelnetClient:
             self.connection.close()
             self.connection = None
             
-    def send_command(self, command):
-        """Send command and return filtered response"""
+    def send_command(self, command: str) -> str:
+        """Send command and return filtered response with error handling"""
         if not self.connection:
             raise ConnectionError("Not connected to telnet server")
+
+        try:
+            # Clear input buffer and console artifacts
+            self.connection.read_very_eager()
+            self.connection.write(b'\x18')  # Ctrl+X
+            time.sleep(0.1)
+            self.connection.write(b'\x1A')  # Ctrl+Z
+            time.sleep(0.1)
+            self.connection.read_very_eager()
+
+            # Send command with proper termination
+            self.connection.write(command.encode('ascii') + b"\r\n")
             
-        # Clear input buffer before sending command
-        self.connection.read_very_eager()
-        
-        # Clean console using Ctrl+X and Ctrl+Z to avoid artefacts before each command
-        self.connection.write(b'\x18')  # Ctrl+X
-        time.sleep(0.1)
-        self.connection.write(b'\x1A')  # Ctrl+Z
-        time.sleep(0.1)
-        # Clear any response from the cleanup
-        self.connection.read_very_eager()
-        
-        # Send command with CR LF termination
-        self.connection.write(command.encode('ascii') + b"\r\n")
-        
-        # Get response using prompt detection
-        response = self._read_response()
-        return self._process_response(response)
+            # Get and process response
+            response = self._read_response()
+            return self._process_response(response)
+            
+        except socket.timeout as e:
+            return f"Error: Command timed out - {str(e)}"
+        except Exception as e:
+            return f"Error: {str(e)}"
         
     def _read_response(self):
         """Read telnet response with prompt detection"""
@@ -105,14 +113,17 @@ class TelnetClient:
         
     def _filter_output(self, text):
         """Specialized filtering for automation debugger output"""
+        if not text:
+            return ""
+            
         # Remove ANSI codes
         filtered = re.sub(r'\x1b\[[0-9;]*[mK]', '', text)
         # Remove control characters
-        filtered = re.sub(r'[\x00-\x1F\x7F]', '', text)
+        filtered = re.sub(r'[\x00-\x1F\x7F]', '', filtered)
         # Remove artifacts from terminal modes
-        filtered = re.sub(r'\w+\d+~\d+~texitoggleure', '', text)
+        filtered = re.sub(r'\w+\d+~\d+~texitoggleure', '', filtered)
         # Remove stray tildes and newlines
-        filtered = re.sub(r'~+', ' ', text)
-        # Collapse spaces
-        filtered = re.sub(r'\s{2,}', ' ', text).strip()
-        return filtered
+        filtered = re.sub(r'~+', ' ', filtered)
+        # Collapse spaces and trim
+        filtered = re.sub(r'\s{2,}', ' ', filtered).strip()
+        return filtered if filtered else ""
