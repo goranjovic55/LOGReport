@@ -10,10 +10,7 @@ from .models import Node, NodeToken
 class NodeManager:
     def __init__(self):
         self.nodes: Dict[str, Node] = {}
-        self.log_root = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "test_logs"
-        )
+        self.log_root = "C:\\Users\\gorjovicgo\\_DIA\\FBC"
         # Default config path relative to project root
         self.config_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
@@ -96,20 +93,37 @@ class NodeManager:
                 )
                 
                 tokens = node_data.get("tokens", [])
-                for token_data in tokens:
+                for token_data in node_data.get('tokens', []):
+                    token_id = token_data.get('token_id')
+                    if token_id is None:
+                        print(f"Warning: Skipping token with missing 'token_id' in node '{node_name}'.")
+                        continue
+                    
+                    # Ensure token_id is a string and strip whitespace
+                    token_id = str(token_id).strip()
+                    if not token_id:  # Check if empty after stripping
+                        print(f"Warning: Skipping token with empty 'token_id' in node '{node_name}'.")
+                        continue
+
                     try:
-                        # Skip tokens missing required fields
-                        if "token_id" not in token_data or "token_type" not in token_data or "port" not in token_data:
+                        # Validate required fields exist
+                        if "token_type" not in token_data or "port" not in token_data:
                             print(f"Skipping invalid token entry: {token_data}")
                             continue
                             
                         # Normalize token type to uppercase for consistent classification
                         token_type = token_data["token_type"].upper()
                         
+                        # Ensure token_id is string and exists
+                        token_id = str(token_id).strip()
+                        if not token_id:
+                            print(f"Skipping token with empty 'token_id' in node '{node.name}'")
+                            continue
+    
                         token = NodeToken(
-                            name=f"{node.name} {token_data['token_id']}",
-                            token_id=token_data["token_id"],
-                            token_type=token_type,  # Use normalized token type
+                            name=f"{node.name} {token_id}",
+                            token_id=token_id,
+                            token_type=token_type,
                             ip_address=token_data.get("ip_address", node.ip_address),
                             port=token_data["port"],
                             protocol=token_data.get("protocol", "telnet")
@@ -264,6 +278,13 @@ class NodeManager:
         """Retrieves token from a node"""
         if node := self.nodes.get(node_name):
             return node.tokens.get(token_id)
+        return None
+        
+    def get_node_by_token(self, token: NodeToken) -> Optional[Node]:
+        """Finds the node that owns a given token"""
+        for node in self.nodes.values():
+            if token.token_id in node.tokens:
+                return node
         return None
         
     def update_status(self, node_name: str, status: str):

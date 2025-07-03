@@ -1,0 +1,10 @@
+=== COMMANDER LOG ===
+Node: AP01m
+Token: 162
+Type: FBC
+Created: 2025-07-03 08:22:27
+====================
+
+09:33:34 >> [SYSTEM] Command sent: print from fieldbus io structure 1620000
+10:09:39 >> [SYSTEM] Command sent: print from fieldbus io structure 1620000
+10:41:51 >> [SYSTEM] Command sent: print from fieldbus io structure 1620000

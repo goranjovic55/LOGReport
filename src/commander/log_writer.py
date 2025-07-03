@@ -1,3 +1,4 @@
+from .models import NodeToken
 """
 Log Writer Service
 Manages writing to node log files with LSR formatting
@@ -18,24 +19,39 @@ class LogWriter:
         os.makedirs(log_dir, exist_ok=True)
         return log_dir
         
-    def _generate_filename(self, node_name: str, token: str, log_type: str) -> str:
-        """Generates log file path using convention: test_logs/node/token_type.log"""
-        log_dir = self._create_log_directory(node_name)
-        return os.path.join(log_dir, f"{token}_{log_type}.log")
+    def _generate_filename(self, node_name: str, node_ip: str, token_id: str, log_type: str) -> str:
+        """Generates log file path using convention: test_logs/FBC/node_name/node_ip_token.fbc"""
+        log_dir = os.path.join("test_logs", log_type, node_name)
+        os.makedirs(log_dir, exist_ok=True)
+        # Handle missing token_id with fallback
+        safe_token_id = str(token_id).strip() if token_id else "unknown-token"
+        filename = f"{node_name}_{node_ip}_{safe_token_id}.{log_type.lower()}"
+        return os.path.join(log_dir, filename)
         
-    def open_log(self, node_name: str, token: str, log_type: str) -> str:
+    def open_log(self, node_name: str, node_ip: str, token: NodeToken) -> str:
         """Opens a log file for writing. Creates LSR header if new file."""
-        log_path = self._generate_filename(node_name, token, log_type)
-        self.log_paths[token] = log_path
+        # Safely handle token data
+        # Validate token before processing
+        if not token or not token.token_id:
+            raise ValueError("Invalid token provided for log creation")
+        token_id_str = str(token.token_id).strip()
         
-        if token not in self.log_handles:
+        # Ensure node_name and node_ip are strings and strip them
+        node_name_str = str(node_name).strip() if node_name is not None else "unknown-node"
+        node_ip_str = str(node_ip).strip() if node_ip is not None else "unknown-ip"
+        log_type = token.token_type if token else "UNKNOWN"
+
+        log_path = self._generate_filename(node_name_str, node_ip_str, token_id_str, log_type)
+        self.log_paths[token_id_str] = log_path
+        
+        if token_id_str not in self.log_handles:
             is_new_file = not os.path.exists(log_path)
             file_handle = open(log_path, 'a', encoding='utf-8')
-            self.log_handles[token] = file_handle
+            self.log_handles[token_id_str] = file_handle
             
             # Write header for new files
             if is_new_file:
-                self._write_header(node_name, token, log_type, file_handle)
+                self._write_header(node_name_str, token_id_str, log_type, file_handle)
                 
         return log_path
         

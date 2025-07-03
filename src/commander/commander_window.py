@@ -177,14 +177,35 @@ class CommanderWindow(QMainWindow):
                 # Run command in background thread but wait for completion
                 response = self._run_telnet_command(command_text, automatic=True)
                 
-                # Log response to file
-                if self.current_token and self.current_token.log_path:
+                # Log response to file with null checks
+                if self.current_token and hasattr(self.current_token, 'token_id') and self.current_token.token_id:
                     try:
-                        with open(self.current_token.log_path, 'a') as f:
-                            f.write(response + '\n')
-                        self.status_message_signal.emit("Command output written to log", 3000)
+                        if self.current_token and self.current_token.token_id:
+                            node = self.node_manager.get_node_by_token(self.current_token)
+                            if node:
+                                # Ensure node.name is a string, provide a default if None
+                                node_name = node.name if node.name is not None else "unknown-node"
+                                # Ensure node.ip_address is a string, provide a default if None, then replace dots
+                                node_ip = node.ip_address.replace('.', '-') if node.ip_address is not None else "unknown-ip"
+     
+                                # Pass the NodeToken object directly
+                                self.log_writer.open_log(node_name, node_ip, self.current_token)
+                                self.log_writer.append_to_log(self.current_token.token_id, response, source="telnet")
+                                self.status_message_signal.emit("Command output written to log", 3000)
+                            else:
+                                self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
+                        else:
+                            self.status_message_signal.emit("No active token selected", 3000)
                     except Exception as e:
                         self.status_message_signal.emit(f"Error writing to log: {str(e)}", 3000)
+            else:
+                self.status_message_signal.emit("Telnet session not connected. Aborting command.", 3000)
+        except ConnectionRefusedError as e:
+            self.status_message_signal.emit(f"Connection refused: {str(e)}", 3000)
+            print(f"Connection error: {e}")
+        except TimeoutError as e:
+            self.status_message_signal.emit(f"Command timed out: {str(e)}", 3000)
+            print(f"Timeout error: {e}")
         except Exception as e:
             self.status_message_signal.emit(f"Error: {str(e)}", 3000)
             print(f"Error processing fieldbus command: {e}")
@@ -746,10 +767,20 @@ class CommanderWindow(QMainWindow):
                 
                 # Auto-open log file
                 try:
-                    log_path = self.log_writer.open_log(
-                        node_name, token_id, token.token_type
-                    )
-                    self.statusBar().showMessage(f"Log ready: {os.path.basename(log_path)}")
+                    node = self.node_manager.get_node(node_name)
+                    if node:
+                        # Find the specific token in the node's tokens
+                        selected_token = next((t for t in node.tokens.values() if t.token_id == token_id), None)
+                        if selected_token:
+                            node_ip = node.ip_address.replace('.', '-')
+                            log_path = self.log_writer.open_log(
+                                node_name, node.ip_address, selected_token
+                            )
+                            self.statusBar().showMessage(f"Log ready: {os.path.basename(log_path)}")
+                        else:
+                            self.statusBar().showMessage(f"Token {token_id} not found for node {node_name}", 3000)
+                    else:
+                        self.statusBar().showMessage(f"Node {node_name} not found", 3000)
                 except OSError as e:
                     self.statusBar().showMessage(f"Error opening log: {str(e)}")
 
@@ -874,6 +905,12 @@ class CommanderWindow(QMainWindow):
                 # Update connection status to CONNECTED after successful command execution
                 self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
                 
+            except ConnectionRefusedError as e:
+                response = f"ERROR: Connection refused - {str(e)}"
+            except TimeoutError as e:
+                response = f"ERROR: Command timed out - {str(e)}"
+            except socket.timeout as e:
+                response = f"ERROR: Socket timeout - {str(e)}"
             except Exception as e:
                 response = f"ERROR: {str(e)}"
             
@@ -889,26 +926,49 @@ class CommanderWindow(QMainWindow):
         node_name = node_item.text(0).split(' ')[0]  # Extract node name from text
         node = self.node_manager.get_node(node_name)
         if not node:
-            self.statusBar().showMessage(f"Node {node_name} not found", 3000)
+            self.status_message_signal.emit(f"Node {node_name} not found", 3000)
             return
             
-        # Find all FBC tokens in the node
-        fbc_tokens = [t for t in node.tokens.values() if t.token_type == "FBC"]
+        # Find all FBC tokens in the node with validation
+        fbc_tokens = []
+        if node.tokens:
+            fbc_tokens = [t for t in node.tokens.values()
+                         if t and t.token_type == "FBC" and t.token_id is not None]
         if not fbc_tokens:
-            self.statusBar().showMessage(f"No FBC tokens found in node {node_name}", 3000)
+            self.status_message_signal.emit(f"No FBC tokens found in node {node_name}", 3000)
             return
             
         # Start background thread for sequential execution
         def run_commands():
             self.status_message_signal.emit(f"Processing {len(fbc_tokens)} FBC tokens...", 0)
-            for token in fbc_tokens:
-                try:
-                    self.current_token = token
-                    self.status_message_signal.emit(f"Executing command for Token {token.token_id}...", 0)
-                    self.process_fieldbus_command(token.token_id)
-                except Exception as e:
-                    print(f"Error processing token {token.token_id}: {e}")
-            self.status_message_signal.emit(f"All FBC commands executed for {node_name}", 3000)
+            # Create a queue of tokens to process
+            token_queue = fbc_tokens.copy()
+            
+            def process_next_token():
+                if token_queue:
+                    token = token_queue.pop(0)
+                    # Validate token ID format (must be 3 digits)
+                    if not token.token_id.isdigit() or len(token.token_id) != 3:
+                        self.status_message_signal.emit(f"Invalid token ID format: {token.token_id}. Must be 3 digits. Skipping.", 3000)
+                        threading.Timer(0.5, process_next_token).start()
+                        return
+                        
+                    try:
+                        self.current_token = token
+                        self.status_message_signal.emit(f"Executing command for Token {token.token_id}...", 0)
+                        # Process command and schedule next after completion
+                        self.process_fieldbus_command(token.token_id)
+                        # Schedule next token processing after a short delay
+                        threading.Timer(0.5, process_next_token).start()
+                    except Exception as e:
+                        self.status_message_signal.emit(f"Error processing token {token.token_id}: {str(e)}", 3000)
+                        # Continue with next token even if one fails
+                        threading.Timer(0.5, process_next_token).start()
+                else:
+                    self.status_message_signal.emit(f"All FBC commands executed for {node_name}", 3000)
+            
+            # Start processing the first token
+            process_next_token()
             
         threading.Thread(target=run_commands, daemon=True).start()
     
