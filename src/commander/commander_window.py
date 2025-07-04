@@ -25,6 +25,7 @@ from .node_manager import NodeManager
 from .session_manager import SessionManager, SessionType, SessionConfig
 from .log_writer import LogWriter
 from .commands.telnet_commands import CommandResolver, CommandHistory
+from .command_queue import CommandQueue
 from .icons import get_node_online_icon, get_node_offline_icon, get_token_icon
 
 # Centralized Qt application initialization
@@ -115,16 +116,43 @@ class CommanderWindow(QMainWindow):
                         menu.addAction(clear_action)
                         added_actions = True
             
-            # Check if this is an FBC subgroup (item text is "FBC" and has a parent which is a node)
-            elif item.text(0) == "FBC" and item.parent() is not None:
+            # Handle FBC subgroup selection
+            elif item.text(0) == "FBC":
                 print("[Context Menu] Processing FBC subgroup")
-                # Add "Print All FieldBus Structures" for the node
-                node_name = item.parent().text(0).split(' ')[0]  # Extract node name from parent
-                action_text = f"Print All FieldBus Structures for {node_name}"
-                action = QAction(action_text, self)
-                action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
-                menu.addAction(action)
-                added_actions = True
+                # Get parent items with validation
+                node_name = None  # Initialize at function scope
+        
+                try:
+                    # Validate hierarchy
+                    section_item = item.parent()
+                    if not section_item:
+                        raise ValueError("FBC subgroup has no parent section")
+                    
+                    node_item = section_item.parent()
+                    if not node_item:
+                        raise ValueError(f"Section {section_item.text(0)} has no parent node")
+                    
+                    # Extract node name safely
+                    node_name = node_item.text(0).split(' ', 1)[0].strip()
+                    if not node_name:
+                        raise ValueError("Node item text is empty")
+                    
+                    print(f"[Context Menu] Valid structure detected:")
+                    print(f"  Node: {node_name} ({node_item.text(0)})")
+                    print(f"  Section: {section_item.text(0)}")
+                    print(f"  Subgroup: {item.text(0)}")
+
+                    # Create context menu action after validation
+                    action_text = f"Print All FieldBus Structures for {node_name}"
+                    action = QAction(action_text, self)
+                    action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
+                    menu.addAction(action)
+                    added_actions = True
+                    
+                except Exception as e:
+                    print(f"[Context Menu] Structure validation failed: {str(e)}")
+                    return
+                
                 
             if added_actions:
                 # Show menu at cursor position
@@ -947,6 +975,15 @@ class CommanderWindow(QMainWindow):
         except ValueError as e:
             self._handle_queue_error(e)
 
+    def _handle_queued_command_result(self, command: str, result: str, success: bool):
+        """Handle completed commands from the queue"""
+        if success:
+            self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
+            print(f"Command completed successfully: {command}\nResult: {result}")
+        else:
+            self.status_message_signal.emit(f"Command failed: {command} - {result}", 5000)
+            print(f"Command failed: {command}\nError: {result}")
+    
     def _validate_node(self, item) -> bool:
         """Validate node structure before processing"""
         if not item or not item.parent():
@@ -957,6 +994,11 @@ class CommanderWindow(QMainWindow):
     def _get_valid_tokens(self):
         """Retrieve and validate FBC tokens"""
         node = self.node_manager.get_selected_node()
+        if not node:
+            self.status_message_signal.emit("No node selected! Select a node first.", 3000)
+            return []
+            
+        print(f"Selected node: {node.name} ({node.ip_address})")
         return [t for t in node.tokens.values()
                 if t.token_type == "FBC" and self.command_queue.validate_token(t)]
     

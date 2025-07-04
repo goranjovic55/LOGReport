@@ -11,6 +11,7 @@ class NodeManager:
     def __init__(self):
         self.nodes: Dict[str, Node] = {}
         self.log_root = "C:\\Users\\gorjovicgo\\_DIA\\FBC"
+        self.selected_node: Optional[Node] = None
         # Default config path relative to project root
         self.config_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
@@ -357,3 +358,11 @@ class NodeManager:
         """Creates an empty configuration file with proper format"""
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump([], f, indent=2)
+
+    def get_selected_node(self) -> Optional[Node]:
+        """Returns currently selected node or None if none selected"""
+        return self.selected_node
+
+    def set_selected_node(self, node_name: str):
+        """Sets the currently selected node"""
+        self.selected_node = self.nodes.get(node_name)
