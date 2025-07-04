@@ -9,7 +9,8 @@ from datetime import datetime
 from typing import Dict, TextIO
 
 class LogWriter:
-    def __init__(self):
+    def __init__(self, node_manager=None):
+        self.node_manager = node_manager
         self.log_handles: Dict[str, TextIO] = {}
         self.log_paths = {}
         
@@ -21,11 +22,13 @@ class LogWriter:
         
     def _generate_filename(self, node_name: str, node_ip: str, token_id: str, log_type: str) -> str:
         """Generates log file path using convention: test_logs/FBC/node_name/node_ip_token.fbc"""
-        log_dir = os.path.join("test_logs", log_type, node_name)
+        log_dir = os.path.join(self.node_manager.log_root, log_type, node_name)
         os.makedirs(log_dir, exist_ok=True)
+        # Normalize IP address format to hyphens
+        normalized_ip = node_ip.replace('.', '-')
         # Handle missing token_id with fallback
         safe_token_id = "unknown-token" if not token_id else str(token_id).strip()
-        filename = f"{node_name}_{node_ip}_{safe_token_id}.{log_type.lower()}"
+        filename = f"{node_name}_{normalized_ip}_{safe_token_id}.{log_type.lower()}"
         return os.path.join(log_dir, filename)
         
     def open_log(self, node_name: str, node_ip: str, token: NodeToken) -> str:
@@ -71,6 +74,7 @@ class LogWriter:
         
     def append_to_log(self, token_id: str, content: str, protocol: str):
         """Appends content to log with protocol annotation"""
+        print(f"[LogWriter] Received append request - Token: {token_id}, Protocol: {protocol}, Content length: {len(content)}")  # Debug input
         if token_id not in self.log_handles:
             raise ValueError(f"No open log for token ID: {token_id}")
             
@@ -85,6 +89,7 @@ class LogWriter:
         timestamp = datetime.now().strftime('%H:%M:%S')
         self.log_handles[token_id].write(f"{timestamp} >> {formatted}\n")
         self.log_handles[token_id].flush()
+        print(f"[LogWriter] Wrote {len(formatted)} chars to {self.log_paths[token_id]}")  # Debug write confirmation
         
     def close_log(self, token_id: str):
         """Closes log file for a specific token ID"""

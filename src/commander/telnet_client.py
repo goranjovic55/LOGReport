@@ -94,10 +94,10 @@ class TelnetClient:
             except socket.timeout:
                 continue
                 
+        print(f"[TelnetClient] Raw response:\n{response.decode('ascii', 'ignore')}")  # Debug raw response
         return response.decode('ascii', 'ignore') if response else ""
 
     def _process_response(self, response):
-        """Process response and extract clean output"""
         # Detect mode changes
         if "Editor changed to INSERT mode" in response:
             self.mode = "INSERT"
@@ -109,7 +109,9 @@ class TelnetClient:
                         .replace("Editor changed to REPLACE mode", "")
         
         # Filter control characters
-        return self._filter_output(clean)
+        filtered = self._filter_output(clean)
+        print(f"[TelnetClient] Filtered response:\n{filtered}")  # Debug filtered output
+        return filtered
         
     def _filter_output(self, text):
         """Specialized filtering for automation debugger output"""
@@ -118,12 +120,13 @@ class TelnetClient:
             
         # Remove ANSI codes
         filtered = re.sub(r'\x1b\[[0-9;]*[mK]', '', text)
-        # Remove control characters
-        filtered = re.sub(r'[\x00-\x1F\x7F]', '', filtered)
-        # Remove artifacts from terminal modes
-        filtered = re.sub(r'\w+\d+~\d+~texitoggleure', '', filtered)
-        # Remove stray tildes and newlines
-        filtered = re.sub(r'~+', ' ', filtered)
-        # Collapse spaces and trim
-        filtered = re.sub(r'\s{2,}', ' ', filtered).strip()
+        # Remove control characters but preserve newlines
+        filtered = re.sub(r'[\x00-\x09\x0B-\x1F\x7F]', '', filtered)
+        # Preserve tildes and terminal mode artifacts as they're part of the output
+        # Remove only specific known artifacts while preserving content
+        filtered = re.sub(r'texitoggleure', '', filtered)  # Specific artifact
+        # Normalize whitespace but preserve newlines
+        filtered = re.sub(r'[ \t]+', ' ', filtered)  # Replace multiple spaces/tabs with single space
+        filtered = re.sub(r'\n\s+', '\n', filtered)  # Remove leading whitespace after newlines
+        return filtered.strip()
         return filtered if filtered else ""

@@ -98,7 +98,9 @@ class CommanderWindow(QMainWindow):
                         print("[Context Menu] Creating context menu for FBC item")
                         action_text = f"Print FieldBus Structure (Token {token_id})"
                         action = QAction(action_text, self)
-                        action.triggered.connect(lambda: self.process_fieldbus_command(token_id))
+                        action.setProperty("context_item", item)  # Store context menu item reference
+                        action.triggered.connect(lambda checked, n=node_name, t=token_id: self.process_fieldbus_command(t, n))
+                        print(f"[DEBUG] Context menu created for FBC item | Token: {token_id} | Path: {data['log_path']}")
                         menu.addAction(action)
                         added_actions = True
                         
@@ -184,11 +186,43 @@ class CommanderWindow(QMainWindow):
             
         self.statusBar().showMessage(f"Fieldbus commands executed for {len(fbc_tokens)} tokens", 3000)
             
-    def process_fieldbus_command(self, token_id):
-        """Process fieldbus structure command synchronously and log output"""
+    def process_fieldbus_command(self, token_id, node_name):
+        """Process fieldbus structure command and log output automatically"""
         command_text = f"print from fieldbus io structure {token_id}0000"
         
         try:
+            # Get log path from context menu item
+            context_item = self.sender().parent().property("context_item")
+            item_data = context_item.data(0, Qt.ItemDataRole.UserRole) if context_item else None
+            log_path = item_data.get("log_path") if item_data else None
+            print(f"[DEBUG] Processing FBC command | Token: {token_id} | Path: {log_path}")
+            
+            if not log_path:
+                self.status_message_signal.emit("No log file selected", 3000)
+                print(f"[DEBUG] process_fieldbus_command: No log_path in item data")
+                return
+
+            # Get token by ID and type to ensure correct token type (FBC)
+            node = self.node_manager.get_node(node_name)
+            if not node:
+                self.status_message_signal.emit(f"Node {node_name} not found", 3000)
+                return
+
+            # Find token with matching ID and type
+            token_type = data.get("token_type", "FBC")  # Get from context item data
+            token = next((t for t in node.tokens.values()
+                         if t.token_id == token_id and t.token_type == token_type), None)
+            
+            if not token:
+                self.status_message_signal.emit(
+                    f"FBC token {token_id} not found for node {node_name}",
+                    3000
+                )
+                return
+                
+            self.current_token = token
+            self.log_writer.log_paths[self.current_token.token_id] = log_path
+            
             # Set command in telnet input using signal
             self.set_cmd_input_text_signal.emit(command_text)
             
@@ -201,38 +235,14 @@ class CommanderWindow(QMainWindow):
             # Show status message using signal
             self.status_message_signal.emit(f"Executing: {command_text}...", 3000)
             
-            # Execute command synchronously
+            # Execute command automatically
             if self.telnet_session and self.telnet_session.is_connected:
-                # Run command in background thread but wait for completion
-                response = self._run_telnet_command(command_text, automatic=True)
-                
-                # Log response to file with null checks
-                if self.current_token and hasattr(self.current_token, 'token_id') and self.current_token.token_id:
-                    try:
-                        if self.current_token and self.current_token.token_id:
-                            node = self.node_manager.get_node_by_token(self.current_token)
-                            if node:
-                                # Ensure node.name is a string, provide a default if None
-                                node_name = node.name if node.name is not None else "unknown-node"
-                                # Ensure node.ip_address is a string, provide a default if None, then replace dots
-                                node_ip = node.ip_address.replace('.', '-') if node.ip_address is not None else "unknown-ip"
-     
-                                # Pass the NodeToken object directly
-                                self.log_writer.open_log(node_name, node_ip, self.current_token)
-                                # Ensure non-empty response before logging
-                                if response.strip():
-                                    self.log_writer.append_to_log(self.current_token.token_id, response, source="telnet")
-                                else:
-                                    self.status_message_signal.emit("Empty response - not logged", 3000)
-                                self.status_message_signal.emit("Command output written to log", 3000)
-                            else:
-                                self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
-                        else:
-                            self.status_message_signal.emit("No active token selected", 3000)
-                    except Exception as e:
-                        self.status_message_signal.emit(f"Error writing to log: {str(e)}", 3000)
+                self._run_telnet_command(command_text, automatic=True)
             else:
                 self.status_message_signal.emit("Telnet session not connected. Aborting command.", 3000)
+        except Exception as e:
+            self.status_message_signal.emit(f"Error: {str(e)}", 3000)
+            print(f"Error processing fieldbus command: {e}")
         except ConnectionRefusedError as e:
             self.status_message_signal.emit(f"Connection refused: {str(e)}", 3000)
             print(f"Connection error: {e}")
@@ -371,7 +381,7 @@ class CommanderWindow(QMainWindow):
         # Core components
         self.node_manager = NodeManager()
         self.session_manager = SessionManager()
-        self.log_writer = LogWriter()
+        self.log_writer = LogWriter(self.node_manager)
         self.command_resolver = CommandResolver()
         self.command_history = CommandHistory()
         self.command_queue = CommandQueue()
@@ -809,7 +819,7 @@ class CommanderWindow(QMainWindow):
                         if selected_token:
                             node_ip = node.ip_address.replace('.', '-')
                             log_path = self.log_writer.open_log(
-                                node_name, node.ip_address, selected_token
+                                node_name, node_ip, selected_token
                             )
                             self.statusBar().showMessage(f"Log ready: {os.path.basename(log_path)}")
                         else:
@@ -1014,8 +1024,38 @@ class CommanderWindow(QMainWindow):
             self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
             self.execute_btn.setEnabled(True)
             self.cmd_input.clear()
-        # Automatic commands are now handled in process_fieldbus_command
-        # so we don't need to log them here anymore
+        else:
+            # Handle automatic commands (from context menu)
+            if self.current_token:
+                try:
+                    node = self.node_manager.get_node_by_token(self.current_token)
+                    if node:
+                        # Ensure node details are correct
+                        node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
+                        self.log_writer.open_log(node.name, node_ip, self.current_token)
+                        if response.strip():
+                            try:
+                                # Use existing log path or open new one
+                                log_path = self.log_writer.log_paths.get(self.current_token.token_id)
+                                if not log_path:
+                                    node = self.node_manager.get_node_by_token(self.current_token)
+                                    node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
+                                    log_path = self.log_writer.open_log(node.name, node_ip, self.current_token)
+                                
+                                print(f"[CommanderWindow] Writing to log - Token: {self.current_token.token_id}, Content length: {len(response)}")  # Debug log write
+                                self.log_writer.append_to_log(self.current_token.token_id, response, protocol=self.current_token.token_type)
+                                self.status_message_signal.emit(f"Command output appended to {os.path.basename(log_path)}", 3000)
+                            except Exception as e:
+                                print(f"[DEBUG] Log write error: {str(e)}")
+                                self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
+                        else:
+                            self.status_message_signal.emit("Empty response - not logged", 3000)
+                    else:
+                        self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
+                except Exception as e:
+                    self.status_message_signal.emit(f"Error writing to log: {str(e)}", 3000)
+            else:
+                self.status_message_signal.emit("No active token selected", 3000)
             
     def copy_to_log(self):
         """Copies current session content to selected token or log file"""

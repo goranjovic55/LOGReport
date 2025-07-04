@@ -134,3 +134,80 @@ class TestCommanderWindowTokenQueue(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class TestContextMenuCommands(unittest.TestCase):
+    """Tests for right-click context menu command execution"""
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.app = QApplication([])
+        
+    def setUp(self):
+        self.window = CommanderWindow()
+        self.window.node_manager = MagicMock()
+        self.window.log_writer = MagicMock()
+        self.window.execute_telnet_command = MagicMock()
+        
+        # Setup test node with FBC token
+        self.mock_node = Node(name="TEST_NODE", ip_address="192.168.0.1")
+        self.mock_token = NodeToken(token_id="123", token_type="FBC",
+                                  name="test", ip_address="192.168.0.1", port=23)
+        self.mock_node.tokens = {"123": self.mock_token}
+        
+        # Mock UI components
+        self.mock_item = MagicMock()
+        self.mock_item.data.return_value = {
+            "token": "123",
+            "node": "TEST_NODE",
+            "token_type": "FBC"
+        }
+
+    def test_context_menu_command_execution(self):
+        """Test context menu command triggers telnet execution"""
+        with patch.object(self.window, 'status_message_signal') as mock_signal:
+            # Simulate context menu command execution
+            self.window.process_fieldbus_command("123", "TEST_NODE")
+            
+            # Verify command execution
+            self.window.execute_telnet_command.assert_called_once()
+            mock_signal.assert_called_with("Executing: print from fieldbus io structure 1230000...", 3000)
+
+    def test_command_output_logging(self):
+        """Test successful command output is logged correctly"""
+        test_response = "Fieldbus structure data"
+        self.window.current_token = self.mock_token
+        
+        # Simulate command completion
+        self.window.on_telnet_command_finished(test_response, automatic=True)
+        
+        # Verify logging
+        self.window.log_writer.append_to_log.assert_called_with(
+            "123", test_response, source="telnet"
+        )
+
+    def test_invalid_node_logging(self):
+        """Test error handling for invalid node references"""
+        with patch.object(self.window.node_manager, 'get_node', return_value=None):
+            with patch.object(self.window, 'status_message_signal') as mock_signal:
+                self.window.process_fieldbus_command("123", "INVALID_NODE")
+                mock_signal.assert_called_with("Node INVALID_NODE not found", 3000)
+
+    def test_command_error_handling(self):
+        """Test error handling during command execution"""
+        with patch.object(self.window, 'execute_telnet_command',
+                        side_effect=Exception("Connection failed")):
+            with patch.object(self.window, 'status_message_signal') as mock_signal:
+                self.window.process_fieldbus_command("123", "TEST_NODE")
+                mock_signal.assert_called_with("Error: Connection failed", 3000)
+
+    def test_log_file_path_generation(self):
+        """Verify log path matches node and token"""
+        expected_path = os.path.join("logs", "TEST_NODE", "FBC_123.log")
+        self.window.log_writer.open_log.return_value = expected_path
+        
+        self.window.current_token = self.mock_token
+        self.window.on_telnet_command_finished("test output", automatic=True)
+        
+        self.window.log_writer.open_log.assert_called_with(
+            "TEST_NODE", "192-168-0-1", self.mock_token
+        )
