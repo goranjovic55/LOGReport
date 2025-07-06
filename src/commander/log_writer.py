@@ -39,8 +39,9 @@ class LogWriter:
         
         print(f"[DEBUG] Opening log - Token type: {token.token_type}, File type: {log_type}, Path: {log_path}")  # Debug
         
-        # Validate token matches file type
-        if token and token.token_type != log_type:
+        # Validate all supported log types
+        valid_types = {'FBC', 'RPC', 'LOG', 'LIS', 'UNKNOWN'}  # Include UNKNOWN type for validation
+        if token and token.token_type != log_type and log_type in valid_types:
             raise ValueError(f"Token type {token.token_type} conflicts with file type {log_type}")
             
         # Safely handle token data

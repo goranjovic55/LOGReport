@@ -84,7 +84,7 @@ class CommanderWindow(QMainWindow):
 
             # Handle token items
             if data and isinstance(data, dict):
-                token_type = data.get("token_type", "").upper()  # Normalize to uppercase
+                token_type = data.get("token_type", "UNKNOWN").upper()  # Handle all file types
                 token_id = data.get("token", None)
                 node_name = data.get("node", "Unknown")
                 
@@ -672,20 +672,29 @@ class CommanderWindow(QMainWindow):
             sections["LOG"].setIcon(0, QIcon(":/icons/page.png"))
             sections["LIS"].setIcon(0, QIcon(":/icons/page.png"))
             
-            # Add LOG files to LOG section (single implementation)
+            # Add LOG files to LOG section
             added_log = False
-            log_dir = os.path.join(log_root, "LOG")
-            log_pattern = f"{node.name}_{node.ip_address.replace('.','-')}.log"
-            log_files = glob.glob(os.path.join(log_dir, log_pattern))
-            for log_path in log_files:
-                if os.path.isfile(log_path):
-                    log_filename = os.path.basename(log_path)
-                    log_item = QTreeWidgetItem([f"📝 {log_filename}"])
-                    log_item.setData(0, Qt.ItemDataRole.UserRole,
-                                   {"log_path": log_path})
-                    log_item.setIcon(0, QIcon(":/icons/page.png"))
-                    sections["LOG"].addChild(log_item)
-                    added_log = True
+            log_dir = os.path.join(log_root, "LOG", node.name)
+            if os.path.isdir(log_dir):
+                for filename in os.listdir(log_dir):
+                    if filename.lower().endswith(".log") and filename.startswith(node.name + "_"):
+                        file_path = os.path.join(log_dir, filename)
+                        if os.path.isfile(file_path):
+                            # Extract token ID from filename pattern: node_ip_token.log
+                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_([\w-]+)\.log$", filename)
+                            if match:
+                                token_id = match.group(1)
+                                log_item = QTreeWidgetItem([f"📝 {filename}"])
+                                log_item.setData(0, Qt.ItemDataRole.UserRole, {
+                                    "log_path": file_path,
+                                    "token": token_id,
+                                    "token_type": "LOG",
+                                    "node": node.name,
+                                    "ip_address": node.ip_address
+                                })
+                                log_item.setIcon(0, QIcon(":/icons/page.png"))
+                                sections["LOG"].addChild(log_item)
+                                added_log = True
             
             # Add FBC files to FBC section (from FBC/node_name folder)
             added_fbc = False
@@ -737,20 +746,29 @@ class CommanderWindow(QMainWindow):
                             sections["RPC"].addChild(file_item)
                             added_rpc = True
             
-            # Add LIS files to LIS section (from LIS/node_name folder)
+            # Add LIS files to LIS section
             added_lis = False
             lis_dir = os.path.join(log_root, "LIS", node.name)
             if os.path.isdir(lis_dir):
                 for filename in os.listdir(lis_dir):
-                    if filename.endswith(".lis") and filename.startswith(node.name + "_"):
+                    if filename.lower().endswith(".lis") and filename.startswith(node.name + "_"):
                         file_path = os.path.join(lis_dir, filename)
                         if os.path.isfile(file_path):
-                            file_item = QTreeWidgetItem([f"📝 {filename}"])
-                            file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                            {"log_path": file_path})
-                            file_item.setIcon(0, QIcon(":/icons/page.png"))
-                            sections["LIS"].addChild(file_item)
-                            added_lis = True
+                            # Extract token ID from filename pattern: node_ip_token.lis
+                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_([\w-]+)\.lis$", filename)
+                            if match:
+                                token_id = match.group(1)
+                                file_item = QTreeWidgetItem([f"📝 {filename}"])
+                                file_item.setData(0, Qt.ItemDataRole.UserRole, {
+                                    "log_path": file_path,
+                                    "token": token_id,
+                                    "token_type": "LIS",
+                                    "node": node.name,
+                                    "ip_address": node.ip_address
+                                })
+                                file_item.setIcon(0, QIcon(":/icons/page.png"))
+                                sections["LIS"].addChild(file_item)
+                                added_lis = True
             
             # Add only non-empty sections to the node
             if added_fbc:
@@ -841,8 +859,9 @@ class CommanderWindow(QMainWindow):
                         actual_log_path
                     )
                     print(f"[DEBUG] Displaying log: {os.path.basename(actual_log_path)}")  # Debug logging
-                    display_name = os.path.basename(actual_log_path)
-                    self.statusBar().showMessage(f"Log ready: {display_name}")
+                    # Display exact filename with extension
+                    full_filename = os.path.basename(actual_log_path)
+                    self.statusBar().showMessage(f"Log ready: {full_filename}")
                 except OSError as e:
                     self.statusBar().showMessage(f"Error opening log: {str(e)}")
 

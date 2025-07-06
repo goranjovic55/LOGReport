@@ -5,7 +5,7 @@ from typing import Dict
 @dataclass
 class NodeToken:
     token_id: str
-    token_type: str  # FBC/RPC/LOG/LIS
+    token_type: str  # FBC/RPC/LOG/LIS - matches file extension exactly
     name: str = "default"
     ip_address: str = "0.0.0.0"
     port: int = 23
