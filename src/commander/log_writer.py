@@ -31,22 +31,28 @@ class LogWriter:
         filename = f"{node_name}_{normalized_ip}_{safe_token_id}.{log_type.lower()}"
         return os.path.join(log_dir, filename)
         
-    def open_log(self, node_name: str, node_ip: str, token: NodeToken) -> str:
+    def open_log(self, node_name: str, node_ip: str, token: NodeToken, log_path: str) -> str:
         """Opens a log file for writing. Creates LSR header if new file."""
+        # Get log type from actual file extension
+        log_type = os.path.splitext(log_path)[1][1:].upper()  # Extract extension without dot
+        log_type = log_type if log_type in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
+        
+        print(f"[DEBUG] Opening log - Token type: {token.token_type}, File type: {log_type}, Path: {log_path}")  # Debug
+        
+        # Validate token matches file type
+        if token and token.token_type != log_type:
+            raise ValueError(f"Token type {token.token_type} conflicts with file type {log_type}")
+            
         # Safely handle token data
-        # Validate token before processing
-        # Generate default values for missing fields
         token_id = token.token_id or "unknown-token"
         node_name = node_name or "unknown-node"
         node_ip = node_ip or "unknown-ip"
         token_id_str = str(token.token_id).strip() if token.token_id else "unknown-token"
         
-        # Ensure node_name and node_ip are strings and strip them
-        node_name_str = str(node_name).strip() if node_name is not None else "unknown-node"
-        node_ip_str = str(node_ip).strip() if node_ip is not None else "unknown-ip"
-        log_type = token.token_type if token else "UNKNOWN"
-
-        log_path = self._generate_filename(node_name_str, node_ip_str, token_id_str, log_type)
+        # Ensure node_name matches file's node name
+        file_node = os.path.basename(log_path).split('_')[0]
+        if node_name != file_node:
+            raise ValueError(f"Node name {node_name} doesn't match file's node {file_node}")
         self.log_paths[token_id_str] = log_path
         
         if token_id_str not in self.log_handles:

@@ -215,12 +215,10 @@ class NodeManager:
                         continue
                         
                     try:
-                        # Parse filename: <node_name>_<ip>_<token_id>_<token_type>.<ext>
-                        base_name = os.path.splitext(filename)[0]  # Remove extension
-                        parts = base_name.split('_')
-                        
-                        # We need at least 4 parts: node_name, ip, token_id, token_type
-                        if len(parts) < 4:
+                        # Get token type from parent directory name
+                        token_type = os.path.basename(os.path.dirname(token_type_path))
+                        parts = filename.split('_')
+                        if len(parts) < 3:
                             continue
                             
                         # Reconstruct node name from first parts (in case of multi-part name)
@@ -265,10 +263,7 @@ class NodeManager:
         formatted_ip = ip_address.replace('.', '-')
         
         # Create path: <log_root>/<token_type>/<node_name>/<filename>
-        if log_type == "FBC":
-            filename = f"{node_name}_{formatted_ip}_{token_id}.fbc"
-        else:
-            filename = f"{token_id}_{log_type}.log"
+        filename = f"{node_name}_{formatted_ip}_{token_id}.{log_type.lower()}"
         return os.path.join(self.log_root, log_type, node_name, filename)
     
     def get_node(self, node_name: str) -> Optional[Node]:

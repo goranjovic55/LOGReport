@@ -1,3 +1,5 @@
+from .models import NodeToken
+from .models import NodeToken
 """
 Commander Main Window
 Dual-pane interface for managing nodes and sessions
@@ -5,6 +7,7 @@ Dual-pane interface for managing nodes and sessions
 import sys
 import os
 import glob
+import re
 from PyQt6.QtWidgets import (
     QMainWindow, QSplitter, QTreeWidget, QTreeWidgetItem, 
     QTabWidget, QTextEdit, QVBoxLayout, QWidget, QHBoxLayout,
@@ -64,10 +67,6 @@ class CommanderWindow(QMainWindow):
         
         self.status_message_signal.emit(f"Command set: {command_text} - Press Execute to run", 0)
 
-    def determine_token_type(self, token_id):
-        """Simple helper to determine token type based on token ID"""
-        # For now, all log files are FBC - this can be extended later
-        return "FBC"
         
     def show_context_menu(self, position):
         """Context menu handler for node tree items with detailed logging"""
@@ -696,15 +695,20 @@ class CommanderWindow(QMainWindow):
                     if filename.lower().endswith((".fbc", ".log", ".txt")) and filename.startswith(node.name + "_"):
                         file_path = os.path.join(fbc_dir, filename)
                         if os.path.isfile(file_path):
-                            # Extract token from filename: AP01m_192-168-0-11_162.fbc -> token is the number part (162)
-                            # Pattern: {node.name}_{ip}_{token}.fbc
-                            parts = filename.split('_')
-                            token_id = parts[-1].split('.')[0]  # Get 162 from AP01m_192-168-0-11_162.fbc
+                            # Extract token ID using regex to handle varying filename formats
+                            # Matches {node.name}_{ip}_{token}.{ext} where token is numeric
+                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_(\d+)\.", filename)
+                            if not match:
+                                continue  # Skip invalid filenames
+                            token_id = match.group(1)
                             file_item = QTreeWidgetItem([f"📝 {filename}"])
+                            print(f"[DEBUG] Adding FBC item | File: {filename} | Token: {token_id} | Path: {file_path}")  # Debug logging
+                            file_extension = os.path.splitext(file_path)[1][1:].upper()
+                            token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
                             file_item.setData(0, Qt.ItemDataRole.UserRole,
                                             {"log_path": file_path,
                                              "token": token_id,
-                                             "token_type": "FBC",
+                                             "token_type": token_type,
                                              "node": node.name})
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
                             sections["FBC"].addChild(file_item)
@@ -722,11 +726,13 @@ class CommanderWindow(QMainWindow):
                             token_id = filename.rsplit('_', 1)[-1].split('.')[0]
                             
                             file_item = QTreeWidgetItem([f"📝 {filename}"])
+                            file_extension = os.path.splitext(file_path)[1][1:].upper()
+                            token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
                             file_item.setData(0, Qt.ItemDataRole.UserRole,
                                             {"log_path": file_path,
                                              "node": node.name,
                                              "token": token_id,
-                                             "token_type": "RPC"})
+                                             "token_type": token_type})
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
                             sections["RPC"].addChild(file_item)
                             added_rpc = True
@@ -769,21 +775,30 @@ class CommanderWindow(QMainWindow):
     def on_node_selected(self, item: QTreeWidgetItem, column: int):
         """Handles node/token selection in left pane"""
         if data := item.data(0, Qt.ItemDataRole.UserRole):
+            print(f"[DEBUG] Selected item data: {data}")  # Debug logging
             # Check if we have token and node information in the data
             token_id = data.get("token")
             node_name = data.get("node")
             
             # If we have both token and node, set current token
             if node_name and token_id:
-                token = self.node_manager.get_token(node_name, token_id)
+                # Derive token_type from actual file extension
+                log_path = data.get("log_path", "")
+                file_extension = os.path.splitext(log_path)[1][1:].upper() if log_path else "UNKNOWN"
+                token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
+                print(f"[DEBUG] Creating token from file: {log_path} | Type: {token_type}")
                 
-                if not token:
-                    return
-                    
+                # Create token instance using file-derived type
+                token = NodeToken(
+                    token_id=token_id,
+                    token_type=token_type,
+                    name=node_name,
+                    ip_address=data.get("ip_address", "0.0.0.0")
+                )
                 self.current_token = token
                 
                 # Update ConnectionBar based on token type
-                if token.token_type == "FBC": # Telnet
+                if token_type == "FBC": # Telnet
                     self.session_tabs.setCurrentWidget(self.telnet_tab)
                     
                     # Update status based on actual connection state
@@ -791,7 +806,7 @@ class CommanderWindow(QMainWindow):
                         self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
                     else:
                         self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
-                elif token.token_type == "VNC":
+                elif token_type == "VNC":
                     self.session_tabs.setCurrentWidget(self.vnc_tab)
                     if hasattr(self, 'vnc_connection_bar'):
                         self.vnc_connection_bar.ip_edit.setText(token.ip_address)
@@ -800,7 +815,7 @@ class CommanderWindow(QMainWindow):
                             self.vnc_connection_bar.update_status(ConnectionState.CONNECTED)
                         else:
                             self.vnc_connection_bar.update_status(ConnectionState.DISCONNECTED)
-                elif token.token_type == "FTP":
+                elif token_type == "FTP":
                     self.session_tabs.setCurrentWidget(self.ftp_tab)
                     if hasattr(self, 'ftp_connection_bar'):
                         self.ftp_connection_bar.ip_edit.setText(token.ip_address)
@@ -812,20 +827,22 @@ class CommanderWindow(QMainWindow):
                 
                 # Auto-open log file
                 try:
-                    node = self.node_manager.get_node(node_name)
-                    if node:
-                        # Find the specific token in the node's tokens
-                        selected_token = next((t for t in node.tokens.values() if t.token_id == token_id), None)
-                        if selected_token:
-                            node_ip = node.ip_address.replace('.', '-')
-                            log_path = self.log_writer.open_log(
-                                node_name, node_ip, selected_token
-                            )
-                            self.statusBar().showMessage(f"Log ready: {os.path.basename(log_path)}")
-                        else:
-                            self.statusBar().showMessage(f"Token {token_id} not found for node {node_name}", 3000)
-                    else:
-                        self.statusBar().showMessage(f"Node {node_name} not found", 3000)
+                    # Get actual path from tree item data
+                    item_data = self.node_tree.currentItem().data(0, Qt.ItemDataRole.UserRole)
+                    actual_log_path = item_data.get("log_path")
+                    if not actual_log_path:
+                        raise FileNotFoundError("No log path in selected item")
+                    
+                    # Use the actual token created from file-derived type
+                    self.log_writer.open_log(
+                        node_name,
+                        data.get("ip_address", "unknown-ip").replace('.', '-'),
+                        token,
+                        actual_log_path
+                    )
+                    print(f"[DEBUG] Displaying log: {os.path.basename(actual_log_path)}")  # Debug logging
+                    display_name = os.path.basename(actual_log_path)
+                    self.statusBar().showMessage(f"Log ready: {display_name}")
                 except OSError as e:
                     self.statusBar().showMessage(f"Error opening log: {str(e)}")
 
