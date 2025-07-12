@@ -4,13 +4,16 @@ Loads and manages node configuration for Commander UI
 """
 import json
 import os
+import logging
 from typing import Dict, List, Optional
 from .models import Node, NodeToken
 
 class NodeManager:
     def __init__(self):
         self.nodes: Dict[str, Node] = {}
-        self.log_root = "C:\\Users\\gorjovicgo\\_DIA\\FBC"
+        # Set log root to user's DIA directory
+        self.log_root = r"C:\Users\gorjovicgo\_DIA"
+        print(f"[DEBUG] Log root set to: {self.log_root}")
         self.selected_node: Optional[Node] = None
         # Default config path relative to project root
         self.config_path = os.path.join(
@@ -179,84 +182,123 @@ class NodeManager:
             
     def scan_log_files(self, log_root=None):
         """
-        Scans filesystem for log files in the structure:
-        <log_root>/<token_type>/<node_name>/<filename>
-        
-        Filename format: <node_name>_<ip>_<token_id>_<token_type>.<ext>
-        Example: AP01m_192-168-0-11_162_fbc.log
+        Scans filesystem for log files recursively under log root
+        Handles all file locations and structures
         """
         root = log_root or self.log_root
+        print(f"[DEBUG] Scanning log root: {root}")
         if not os.path.exists(root):
+            print(f"[DEBUG] ERROR: Log root does not exist")
             return
             
-        # Scan token type folders (FBC, LIS, LOG, RPC)
-        for token_type in os.listdir(root):
-            token_type_path = os.path.join(root, token_type)
-            if not os.path.isdir(token_type_path) or token_type.upper() not in ["FBC", "LIS", "LOG", "RPC"]:
+        print(f"[DEBUG] Log root exists")
+        
+        # Check directory structure
+        token_types = ["FBC", "RPC", "LOG", "LIS"]
+        for token_type in token_types:
+            token_dir = os.path.join(root, token_type)
+            if os.path.exists(token_dir):
+                print(f"[DEBUG] Found token directory: {token_type}")
+                node_dirs = os.listdir(token_dir)
+                print(f"[DEBUG] Found {len(node_dirs)} node directories in {token_type}: {node_dirs}")
+            else:
+                print(f"[DEBUG] WARNING: Token directory not found: {token_type}")
+        
+        print(f"[DEBUG] Starting recursive scan of: {root}")
+        
+        # Walk through all directories and files
+        for dirpath, _, filenames in os.walk(root):
+            # Skip directories without .log files
+            log_files = [f for f in filenames if f.lower().endswith('.log')]
+            if not log_files:
                 continue
                 
-            # Traverse node folders in token type folder
-            for node_folder in os.listdir(token_type_path):
-                node_path = os.path.join(token_type_path, node_folder)
-                if not os.path.isdir(node_path):
-                    continue
+            print(f"[DEBUG] Found {len(log_files)} .log files in {dirpath}")
+            
+            for filename in log_files:
+                full_path = os.path.join(dirpath, filename)
+                print(f"[DEBUG] Processing log file: {full_path}")
+                
+                # Extract base name without extension for token matching
+                base_name = os.path.splitext(filename)[0]
+                
+                # Extract token type from parent directory name
+                token_type_dir = os.path.basename(dirpath)
+                
+                if token_type_dir == "LOG":
+                    # For LOG directory files, extract node name from filename
+                    node_name = filename.split('_')[0]
+                    print(f"[DEBUG] LOG file - extracted node name from filename: {node_name}")
+                else:
+                    # For other token types, use directory name for node
+                    node_name = os.path.basename(dirpath)
+                    print(f"[DEBUG] Node name from directory: {node_name}")
                     
-                # Find matching node - case insensitive
+                # For FBC files in LOG directory, use directory structure
+                if "LOG" in os.path.basename(os.path.dirname(dirpath)):
+                    token_type_dir = "FBC"
+                
+                # Find matching node (case-insensitive)
                 matched_node = next(
-                    (n for n in self.nodes.values() if n.name.lower() == node_folder.lower()),
+                    (n for n in self.nodes.values() if n.name.lower() == node_name.lower()),
                     None
                 )
+                
                 if not matched_node:
+                    print(f"[DEBUG] ERROR: No node found matching directory name: {node_name}")
+                    print(f"[DEBUG] Available nodes: {[n.name for n in self.nodes.values()]}")
                     continue
                     
-                # Scan log files in node folder
-                for filename in os.listdir(node_path):
-                    if not filename.lower().endswith((".log", ".txt")):
-                        continue
-                        
-                    try:
-                        # Get token type from parent directory name
-                        token_type = os.path.basename(os.path.dirname(token_type_path))
-                        parts = filename.split('_')
-                        if len(parts) < 3:
-                            continue
-                            
-                        # Reconstruct node name from first parts (in case of multi-part name)
-                        # Assuming node name is all parts until the IP address
-                        # But simple approach: node name should match node_folder
-                        file_node_name = parts[0]
-                        token_id = parts[-2]  # Second last part is token_id
-                        file_token_type = parts[-1]  # Last part is token type
-                        
-                        # Match node name (case-insensitive)
-                        if file_node_name.lower() != node_folder.lower():
-                            continue
-                            
-                        # Match token type (case-insensitive)
-                        if file_token_type.lower() != token_type.lower():
-                            continue
-                            
-                        # Find matching token in node (case-insensitive)
-                        token = next(
-                            (t for t in matched_node.tokens.values()
-                             if t.token_id.lower() == token_id.lower()),
-                            None
-                        )
-                        if token:
-                            # Normalize path and check existence before updating token
-                            full_path = os.path.join(node_path, filename)
-                            normalized_path = os.path.normpath(full_path)
-                            if not os.path.exists(normalized_path):
-                                raise FileNotFoundError(f"Log file not found: {normalized_path}")
-                            
-                            # Update token's log path to actual file
-                            token.log_path = normalized_path
-                            
-                    except FileNotFoundError as e:
-                        print(f"File not found: {e}")
-                    except Exception as e:
-                        print(f"Error processing {filename}: {str(e)}")
-            
+                # Find matching token using multiple strategies
+                token = None
+                matching_strategy = "none"
+                
+                # Strategy 1: Exact match with base filename
+                token = next(
+                    (t for t in matched_node.tokens.values() if t.token_id.lower() == base_name.lower()),
+                    None
+                )
+                if token:
+                    matching_strategy = "exact base name match"
+                
+                # Strategy 2: Prefix match (token_id_*)
+                if not token and '_' in base_name:
+                    prefix = base_name.split('_')[0]
+                    token = next(
+                        (t for t in matched_node.tokens.values() if t.token_id.lower() == prefix.lower()),
+                        None
+                    )
+                    if token:
+                        matching_strategy = "prefix match"
+                
+                # Strategy 3: Contains token ID anywhere in filename
+                if not token:
+                    for t in matched_node.tokens.values():
+                        if t.token_id.lower() in base_name.lower():
+                            token = t
+                            matching_strategy = "partial match"
+                            break
+                
+                # For LOG files, create a generic token representation
+                if token_type_dir == "LOG":
+                    token = NodeToken(
+                        name=f"{node_name} LOG",
+                        token_id="LOG",
+                        token_type="LOG",
+                        ip_address=matched_node.ip_address
+                    )
+                    normalized_path = os.path.normpath(full_path)
+                    token.log_path = normalized_path
+                    print(f"[DEBUG] Mapped LOG file | Node: {node_name} | Path: {normalized_path}")
+                else:
+                    if token:
+                        normalized_path = os.path.normpath(full_path)
+                        token.log_path = normalized_path
+                        print(f"[DEBUG] SUCCESS: Mapped log file | Node: {node_name} | Token: {token.token_id} | Strategy: {matching_strategy} | Path: {normalized_path}")
+                    else:
+                        print(f"[DEBUG] ERROR: Could not find matching token for: {filename} in node: {node_name}")
+                        print(f"[DEBUG] Available tokens: {[t.token_id for t in matched_node.tokens.values()]}")
+                    
     def _generate_log_path(self, node_name: str, token_id: str, log_type: str, ip_address: str) -> str:
         """Generates standardized log path with formatted IP"""
         # Format IP address: 192.168.0.11 -> 192-168-0-11

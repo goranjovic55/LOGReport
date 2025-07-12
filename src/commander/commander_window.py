@@ -6,10 +6,11 @@ Dual-pane interface for managing nodes and sessions
 """
 import sys
 import os
+import logging
 import glob
 import re
 from PyQt6.QtWidgets import (
-    QMainWindow, QSplitter, QTreeWidget, QTreeWidgetItem, 
+    QMainWindow, QSplitter, QTreeWidget, QTreeWidgetItem,
     QTabWidget, QTextEdit, QVBoxLayout, QWidget, QHBoxLayout,
     QPushButton, QStatusBar, QLabel, QLineEdit, QGridLayout
 )
@@ -71,6 +72,7 @@ class CommanderWindow(QMainWindow):
     def show_context_menu(self, position):
         """Context menu handler for node tree items with detailed logging"""
         print("[Context Menu] Received show_context_menu request")
+        logging.debug(f"Context menu shown at position: {position}")
         try:
             item = self.node_tree.itemAt(position)
             if not item:
@@ -674,28 +676,34 @@ class CommanderWindow(QMainWindow):
             
             # Add LOG files to LOG section
             added_log = False
-            log_dir = os.path.join(log_root, "LOG", node.name)
+            log_dir = os.path.join(log_root, "LOG")
+            print(f"[DEBUG] Checking LOG dir: {log_dir} for node: {node.name}")
             if os.path.isdir(log_dir):
+                
                 for filename in os.listdir(log_dir):
+                    print(f"[DEBUG] Found file: {filename}")
                     if filename.lower().endswith(".log") and filename.startswith(node.name + "_"):
+                        print(f"[DEBUG] File matches pattern: {filename}")
                         file_path = os.path.join(log_dir, filename)
                         if os.path.isfile(file_path):
-                            # Extract token ID from filename pattern: node_ip_token.log
-                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_([\w-]+)\.log$", filename)
-                            if match:
-                                token_id = match.group(1)
-                                log_item = QTreeWidgetItem([f"📝 {filename}"])
-                                log_item.setData(0, Qt.ItemDataRole.UserRole, {
-                                    "log_path": file_path,
-                                    "token": token_id,
-                                    "token_type": "LOG",
-                                    "node": node.name,
-                                    "ip_address": node.ip_address
-                                })
-                                log_item.setIcon(0, QIcon(":/icons/page.png"))
-                                sections["LOG"].addChild(log_item)
-                                added_log = True
-            
+                            print(f"[DEBUG] File exists: {file_path}")
+                            # For LOG files, we don't need token extraction - just match node name prefix
+                            log_item = QTreeWidgetItem([f"📝 {filename}"])
+                            log_item.setData(0, Qt.ItemDataRole.UserRole, {
+                                "极log_path": file_path,
+                                "token": None,
+                                "token_type": "LOG",
+                                "node": node.name,
+                                "ip_address": node.ip_address
+                            })
+                            log_item.setIcon(0, QIcon(":/icons/page.png"))
+                            sections["LOG"].addChild(log_item)
+                            added_log = True
+                            print(f"[DEBUG] Added LOG item: {filename}")
+                        else:
+                            print(f"[DEBUG] File not found: {file_path}")
+                    else:
+                        print(f"[DEBUG] File skipped - not .log or wrong prefix: {filename}")
             # Add FBC files to FBC section (from FBC/node_name folder)
             added_fbc = False
             fbc_dir = os.path.join(log_root, "FBC", node.name)
@@ -711,7 +719,7 @@ class CommanderWindow(QMainWindow):
                                 continue  # Skip invalid filenames
                             token_id = match.group(1)
                             file_item = QTreeWidgetItem([f"📝 {filename}"])
-                            print(f"[DEBUG] Adding FBC item | File: {filename} | Token: {token_id} | Path: {file_path}")  # Debug logging
+                            print(f"[DEBUG] Adding FBC item | File: {filename} | Token: {token_id} | Path: {file_path} | Type: FBC")  # Debug logging
                             file_extension = os.path.splitext(file_path)[1][1:].upper()
                             token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
                             file_item.setData(0, Qt.ItemDataRole.UserRole,
@@ -722,6 +730,7 @@ class CommanderWindow(QMainWindow):
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
                             sections["FBC"].addChild(file_item)
                             added_fbc = True
+                            print(f"[DEBUG] Assigning to FBC section | Icon: page")
             
             # Add RPC files to RPC section (from RPC/node_name folder)
             added_rpc = False
@@ -745,6 +754,7 @@ class CommanderWindow(QMainWindow):
                             file_item.setIcon(0, QIcon(":/icons/page.png"))
                             sections["RPC"].addChild(file_item)
                             added_rpc = True
+                            print(f"[DEBUG] Assigning to RPC section | Icon: page")
             
             # Add LIS files to LIS section
             added_lis = False
@@ -755,7 +765,7 @@ class CommanderWindow(QMainWindow):
                         file_path = os.path.join(lis_dir, filename)
                         if os.path.isfile(file_path):
                             # Extract token ID from filename pattern: node_ip_token.lis
-                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_([\w-]+)\.lis$", filename)
+                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_([\d\w-]+)\.lis$", filename)
                             if match:
                                 token_id = match.group(1)
                                 file_item = QTreeWidgetItem([f"📝 {filename}"])
@@ -769,15 +779,29 @@ class CommanderWindow(QMainWindow):
                                 file_item.setIcon(0, QIcon(":/icons/page.png"))
                                 sections["LIS"].addChild(file_item)
                                 added_lis = True
+                                print(f"[DEBUG] Assigning to LIS section | Icon: page")
+            
+            # DEBUG: Print token assignment status
+            print(f"[DEBUG] Node: {node.name} | FBC: {added_fbc} | RPC: {added_rpc} | LOG: {added_log} | LIS: {added_lis}")
+            print(f"[DEBUG] Section assignments:")
+            print(f"  FBC section: {sections['FBC'].childCount()} items")
+            print(f"  RPC section: {sections['RPC'].childCount()} items")
+            print(f"  LOG section: {sections['LOG'].childCount()} items")
+            print(f"  LIS section: {sections['LIS'].childCount()} items")
             
             # Add only non-empty sections to the node
             if added_fbc:
                 node_item.addChild(sections["FBC"])
+                print(f"[DEBUG] Added FBC section to node tree")
             if added_rpc:
                 node_item.addChild(sections["RPC"])
+                print(f"[DEBUG] Added RPC section to node tree")
+            if added_log:
                 node_item.addChild(sections["LOG"])
+                print(f"[DEBUG] Added LOG section to node tree")
             if added_lis:
                 node_item.addChild(sections["LIS"])
+                print(f"[DEBUG] Added LIS section to node tree")
             
             # Add warning if no data found
             if not (added_fbc or added_rpc or added_log or added_lis):
@@ -794,6 +818,7 @@ class CommanderWindow(QMainWindow):
         """Handles node/token selection in left pane"""
         if data := item.data(0, Qt.ItemDataRole.UserRole):
             print(f"[DEBUG] Selected item data: {data}")  # Debug logging
+            logging.debug(f"Node selected: {item.text(0)}")
             # Check if we have token and node information in the data
             token_id = data.get("token")
             node_name = data.get("node")
@@ -954,6 +979,8 @@ class CommanderWindow(QMainWindow):
         command = self.cmd_input.toPlainText().strip()
         if not command:
             return ""
+            
+        logging.debug(f"Executing telnet command: {command}")
 
         if not automatic:
             self.command_history.add(command)

@@ -4,6 +4,7 @@ Log Writer Service
 Manages writing to node log files with LSR formatting
 """
 import os
+import logging
 import time
 from datetime import datetime
 from typing import Dict, TextIO
@@ -87,6 +88,7 @@ class LogWriter:
             
         # Handle empty/null content
         safe_content = content.strip() if content else "<empty response>"
+        logging.debug(f"Sanitizing content for log: {self.log_paths[token_id]}")
         
         # Add source prefix if provided
         prefix = f"[{protocol.upper()}] " if protocol else ""
@@ -96,6 +98,11 @@ class LogWriter:
         timestamp = datetime.now().strftime('%H:%M:%S')
         self.log_handles[token_id].write(f"{timestamp} >> {formatted}\n")
         self.log_handles[token_id].flush()
+        
+        # Get file size after write
+        file_size = os.path.getsize(self.log_paths[token_id])
+        logging.debug(f"Log file size: {file_size} bytes for {self.log_paths[token_id]}")
+        logging.debug(f"Content written to log: {self.log_paths[token_id]}")
         print(f"[LogWriter] Wrote {len(formatted)} chars to {self.log_paths[token_id]}")  # Debug write confirmation
         
     def close_log(self, token_id: str):

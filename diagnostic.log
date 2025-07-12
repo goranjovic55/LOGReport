@@ -1,0 +1,13 @@
+﻿Node tree event filter installed
+Node tree context menu handling installed
+Loading configuration from: D:\_APP\LOGReport\nodes.json
+Detected old format - converting to new format
+Configuration loaded successfully
+[DEBUG] Adding FBC item | File: AP01m_192-168-0-11_162.fbc | Token: 162 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+[DEBUG] Adding FBC item | File: AP01m_192-168-0-11_163.fbc | Token: 163 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+[DEBUG] Adding FBC item | File: AP01r_192-168-0-27_362.fbc | Token: 362 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01r\AP01r_192-168-0-27_362.fbc
+[DEBUG] Adding FBC item | File: AP01r_192-168-0-27_363.fbc | Token: 363 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01r\AP01r_192-168-0-27_363.fbc
+[DEBUG] Adding FBC item | File: AP02m_192-168-0-12_182.fbc | Token: 182 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP02m\AP02m_192-168-0-12_182.fbc
+[DEBUG] Adding FBC item | File: AP02m_192-168-0-12_183.fbc | Token: 183 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP02m\AP02m_192-168-0-12_183.fbc
+[DEBUG] Adding FBC item | File: AP02r_192-168-0-28_382.fbc | Token: 382 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP02r\AP02r_192-168-0-28_382.fbc
+[DEBUG] Adding FBC item | File: AP02r_192-168-0-28_383.fbc | Token: 383 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP02r\AP02r_192-168-0-28_383.fbc
