@@ -1,5 +1,5 @@
 from .models import NodeToken
-from .models import NodeToken
+from .services.fbc_command_service import FbcCommandService
 """
 Commander Main Window
 Dual-pane interface for managing nodes and sessions
@@ -42,6 +42,13 @@ import time
 class CommanderWindow(QMainWindow):
     """Main Commander window."""
     
+    # Status message durations in milliseconds
+    STATUS_MSG_SHORT = 3000    # 3 seconds
+    STATUS_MSG_MEDIUM = 5000   # 5 seconds
+    STATUS_MSG_LONG = 10000    # 10 seconds
+    
+    """Main Commander window."""
+    
     # Signal for telnet command completion: (response, automatic)
     command_finished = pyqtSignal(str, bool)
     queue_processed = pyqtSignal(int, int)  # Success count, total
@@ -53,22 +60,6 @@ class CommanderWindow(QMainWindow):
     switch_to_telnet_tab_signal = pyqtSignal()
     set_cmd_focus_signal = pyqtSignal()
         
-    def generate_fieldbus_command(self, item_data):
-        print(f"[DEBUG][FBC] Entered generate_fieldbus_command for token: {item_data['token']}")
-        token_id = item_data["token"]
-        command_text = f"print from fbc io structure {token_id}0000"
-        
-        # Set command in telnet input using signal
-        self.set_cmd_input_text_signal.emit(command_text)
-        
-        # Navigate to telnet tab if needed using signal
-        self.switch_to_telnet_tab_signal.emit()
-        
-        # Focus command input using signal
-        self.set_cmd_focus_signal.emit()
-        
-        self.status_message_signal.emit(f"Command set: {command_text} - Press Execute to run", 0)
-
         
     def show_context_menu(self, position):
         """Context menu handler for node tree items with detailed logging"""
@@ -179,156 +170,49 @@ class CommanderWindow(QMainWindow):
         """Process fieldbus structure commands for all FBC tokens in a node"""
         node = self.node_manager.get_node(node_name)
         if not node:
-            self.statusBar().showMessage(f"Node {node_name} not found", 3000)
+            self.statusBar().showMessage(f"Node {node_name} not found", self.STATUS_MSG_SHORT)
             return
             
         # Find all FBC tokens in the node
         fbc_tokens = [t for t in node.tokens.values() if t.token_type == "FBC"]
         if not fbc_tokens:
-            self.statusBar().showMessage(f"No FBC tokens found in node {node_name}", 3000)
+            self.statusBar().showMessage(f"No FBC tokens found in node {node_name}", self.STATUS_MSG_SHORT)
             return
             
-        self.statusBar().showMessage(f"Processing {len(fbc_tokens)} FBC tokens in node {node_name}...", 0)
+        self.statusBar().showMessage(f"Processing {len(fbc_tokens)} FBC tokens in node {node_name}...", self.STATUS_MSG_LONG)
         
         for token in fbc_tokens:
             self.current_token = token
             self.process_fieldbus_command(token.token_id)
             
-        self.statusBar().showMessage(f"Fieldbus commands executed for {len(fbc_tokens)} tokens", 3000)
+        self.statusBar().showMessage(f"Fieldbus commands executed for {len(fbc_tokens)} tokens", self.STATUS_MSG_SHORT)
+            
+    def _report_error(self, message: str, exception: Exception = None, duration: int = None):
+        """Centralized error reporting with logging and status bar updates"""
+        duration = duration or self.STATUS_MSG_MEDIUM
+        error_msg = f"{message}: {str(exception)}" if exception else message
+        logging.error(error_msg)
+        self.status_message_signal.emit(error_msg, duration)
+        print(f"[ERROR] {error_msg}")
+        
+    def _handle_fbc_error(self, error_msg: str):
+        """Handle FBC service errors by reporting them"""
+        self._report_error("FBC Service Error", Exception(error_msg))
+            
+    def _handle_fbc_error(self, error_msg: str):
+        """Handle FBC service errors by reporting them"""
+        self._report_error("FBC Service Error", Exception(error_msg))
             
     def process_fieldbus_command(self, token_id, node_name):
-        """Process fieldbus structure command and log output automatically"""
-        print(f"[DEBUG][FBC] Handling action for token: {token_id}, node: {node_name}")
-        # Verify token is string and ends with expected value
-        token_str = str(token_id).strip()
-        print(f"[DEBUG][FBC] Token as string: {token_str}")
-        
-        # Normalize FBC token to 3 digits with leading zeros
-        if token_str.isdigit():
-            token_str = token_str.zfill(3)
-            print(f"[DEBUG][FBC] Normalized token: {token_str}")
-        else:
-            print(f"[WARNING] Token is not numeric: {token_str}")
-            
-        command_text = f"print from fbc io structure {token_str}0000"
-        print(f"[DEBUG][FBC] Generated command: {command_text}")
-        # Removed debug output as per task requirements
-        
+        """Process fieldbus structure command using FBC service"""
         try:
-            # Get context item directly from sender
-            context_item = self.sender().property("context_item")
-            if not context_item:
-                print("[DEBUG][FBC] Context item missing")
-                self.status_message_signal.emit("Context item missing", 3000)
-                return
-                
-            item_data = context_item.data(0, Qt.ItemDataRole.UserRole)
-            log_path = item_data.get("log_path")
-            print(f"[DEBUG][FBC] Log path: {log_path}")
-            
-            if not log_path:
-                print("[DEBUG][FBC] No log path found")
-                self.status_message_signal.emit("No log file selected", 3000)
-                return
-                
-            # Removed debug line that printed empty command state
-
-            # Always retrieve fresh token from node manager to avoid stale data
-            # Bypass any cached data by directly accessing the node's tokens
-            node = self.node_manager.get_node(node_name)
-            token = None
-            if node:
-                # Try multiple token formats for lookup
-                token_formats = [token_str]
-                # Add integer version if token is numeric
-                if token_str.isdigit():
-                    token_formats.append(str(int(token_str)))
-                # Add padded version
-                token_formats.append(token_str.zfill(3))
-                
-                # Try each format until we find a match
-                for format in token_formats:
-                    token = node.tokens.get(format)
-                    if token:
-                        break
-                        
-            if not token or token.token_type != "FBC":
-                # Create temporary token if not found
-                token = NodeToken(
-                    token_id=token_str,
-                    token_type="FBC",
-                    name=node_name,
-                    ip_address="0.0.0.0"
-                )
-                self.status_message_signal.emit(
-                    f"Using temporary token for {token_str}",
-                    2000
-                )
-            # Update current token with fresh instance
-            self.current_token = token
-            self.log_writer.log_paths[token.token_id] = log_path
-            
-            # Switch to telnet tab first
-            self.switch_to_telnet_tab_signal.emit()
-            
-            # Process events to ensure tab switch completes
-            from PyQt6.QtWidgets import QApplication
-            QApplication.processEvents()
-            
-            # Ensure telnet tab is active
-            try:
-                self.session_tabs.setCurrentWidget(self.telnet_tab)
-            except Exception as e:
-                print(f"[ERROR] Failed to switch tab: {str(e)}")
-                
-            # Use signal to set command to ensure thread safety
-            self.set_cmd_input_text_signal.emit(command_text)
-            self.status_message_signal.emit(f"Command set: {command_text}", 3000)
-            print(f"[DEBUG] Command set via signal: {command_text}")
-            
-            # Focus command input using signal
-            try:
-                self.set_cmd_focus_signal.emit()
-                # Focus signal emitted
-            except Exception as e:
-                print(f"[ERROR] Failed to focus input: {str(e)}")
-            
-            # Show status message
-            try:
-                self.status_message_signal.emit(f"Executing: {command_text}...", 3000)
-                # Status message set
-            except Exception as e:
-                print(f"[ERROR] Failed to set status: {str(e)}")
-            
-            # Set command in input field regardless of connection
-            try:
-                self.set_cmd_input_text_signal.emit(command_text)
-                self.status_message_signal.emit(f"Command set: {command_text}", 3000)
-                print(f"[DEBUG] Command set in input field: {command_text}")
-            except Exception as e:
-                self.status_message_signal.emit(f"Error setting command: {str(e)}", 3000)
-            
-            # Execute automatically only if connected
-            is_connected = self.telnet_session and self.telnet_session.is_connected
-            if is_connected:
-                print(f"[DEBUG] Executing command: {command_text}")
-                self._run_telnet_command(command_text, automatic=True)
-            else:
-                warning_msg = "Telnet session not connected. Command set but not executed."
-                self.status_message_signal.emit(warning_msg, 3000)
-                print(f"[DEBUG] {warning_msg}")
+            self.fbc_service.process_fieldbus_command(token_id, node_name)
         except Exception as e:
-            self.status_message_signal.emit(f"Error: {str(e)}", 3000)
-            print(f"Error processing fieldbus command: {e}")
+            self._report_error("Error processing fieldbus command", e)
         except ConnectionRefusedError as e:
-            self.status_message_signal.emit(f"Connection refused: {str(e)}", 3000)
-            print(f"Connection error: {e}")
+            self._report_error("Connection refused", e)
         except TimeoutError as e:
-            self.status_message_signal.emit(f"Command timed out: {str(e)}", 3000)
-            print(f"Timeout error: {e}")
-        except Exception as e:
-            self.status_message_signal.emit(f"Error: {str(e)}", 3000)
-            print(f"Error processing fieldbus command: {e}")
+            self._report_error("Connection timed out", e)
             
     def process_rpc_command(self, token_id, action_type):
         """Process RPC commands (print/clear Rupi counters)"""
@@ -463,6 +347,14 @@ class CommanderWindow(QMainWindow):
         self.command_history = CommandHistory()
         self.command_queue = CommandQueue()
         self.command_queue.command_completed.connect(self._handle_queued_command_result)
+        
+        # FBC Command Service
+        self.fbc_service = FbcCommandService(self.node_manager, self.command_queue, self)
+        self.fbc_service.set_command_text.connect(self.set_cmd_input_text_signal)
+        self.fbc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
+        self.fbc_service.focus_command_input.connect(self.set_cmd_focus_signal)
+        self.fbc_service.status_message.connect(self.status_message_signal)
+        self.fbc_service.report_error.connect(self._handle_fbc_error)
         
         # State tracking
         self.current_token = None
@@ -1087,26 +979,39 @@ class CommanderWindow(QMainWindow):
 
     def process_all_fbc_subgroup_commands(self, item):
         """Process all FBC commands using command queue"""
-        if not self._validate_node(item):
-            return
-
         try:
-            tokens = self._get_valid_tokens()
-            total = len(tokens)
-            for idx, token in enumerate(tokens):
-                if not token or not token.token_id.isdigit():
-                    continue
-                self.command_queue.add_command(
-                    f"print from fbc io structure {token.token_id}0000",
-                    token
-                )
-                # Emit progress update
-                self.queue_processed.emit(idx+1, total)
+            # Get node name from item hierarchy
+            section_item = item.parent()
+            if not section_item:
+                raise ValueError("FBC subgroup has no parent section")
+            node_item = section_item.parent()
+            if not node_item:
+                raise ValueError(f"Section {section_item.text(0)} has no parent node")
+            node_name = node_item.text(0).split(' ', 1)[0].strip()
             
-            self.status_message_signal.emit(f"Queued {len(tokens)} commands", 3000)
+            node = self.node_manager.get_node(node_name)
+            if not node:
+                self.status_message_signal.emit(f"Node {node_name} not found", self.STATUS_MSG_SHORT)
+                return
+                
+            # Find all FBC tokens in the node
+            fbc_tokens = [t for t in node.tokens.values() if t.token_type == "FBC"]
+            if not fbc_tokens:
+                self.status_message_signal.emit(f"No FBC tokens found in node {node_name}", self.STATUS_MSG_SHORT)
+                return
+                
+            self.status_message_signal.emit(f"Processing {len(fbc_tokens)} FBC tokens in node {node_name}...", 0)
+            
+            # Queue commands for all FBC tokens
+            for token in fbc_tokens:
+                command_text = f"print from fbc io structure {token.token_id}0000"
+                self.command_queue.add_command(command_text, token)
+                
+            self.status_message_signal.emit(f"Queued {len(fbc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
             self.command_queue.start_processing()
-        except ValueError as e:
-            self._handle_queue_error(e)
+            
+        except Exception as e:
+            self.status_message_signal.emit(f"Error processing FBC commands: {str(e)}", self.STATUS_MSG_MEDIUM)
 
     def _handle_queued_command_result(self, command: str, result: str, success: bool):
         """Handle completed commands from the queue"""

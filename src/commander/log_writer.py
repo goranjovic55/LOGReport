@@ -11,9 +11,18 @@ from typing import Dict, TextIO
 
 class LogWriter:
     def __init__(self, node_manager=None):
+        super().__init__()
+        self.node极
+    def __init__(self, node_manager=None):
+        super().__init__()
         self.node_manager = node_manager
         self.log_handles: Dict[str, TextIO] = {}
         self.log_paths = {}
+        self.thread_pool = None  # Will be set by CommanderWindow
+        
+    def set_thread_pool(self, thread_pool):
+        """Set the thread pool for asynchronous operations"""
+        self.thread_pool = thread_pool
         
     def _create_log_directory(self, node_name: str) -> str:
         """Creates log directory for a node if it doesn't exist"""
