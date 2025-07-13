@@ -53,7 +53,7 @@ class CommanderWindow(QMainWindow):
     set_cmd_focus_signal = pyqtSignal()
         
     def generate_fieldbus_command(self, item_data):
-        """Generates and sends the fieldbus structure command for FBC tokens"""
+        print(f"[DEBUG][FBC] Entered generate_fieldbus_command for token: {item_data['token']}")
         token_id = item_data["token"]
         command_text = f"print from fieldbus io structure {token_id}0000"
         
@@ -97,11 +97,19 @@ class CommanderWindow(QMainWindow):
                     
                     if token_type == "FBC":
                         print("[Context Menu] Creating context menu for FBC item")
-                        action_text = f"Print FieldBus Structure (Token {token_id})"
+                        # Ensure token is string to prevent normalization issues
+                        token_str = str(token_id)
+                        action_text = f"Print FieldBus Structure (Token {token_str})"
                         action = QAction(action_text, self)
                         action.setProperty("context_item", item)  # Store context menu item reference
-                        action.triggered.connect(lambda checked, n=node_name, t=token_id: self.process_fieldbus_command(t, n))
-                        print(f"[DEBUG] Context menu created for FBC item | Token: {token_id} | Path: {data['log_path']}")
+                        print(f"[DEBUG] Creating FBC action: Token={token_str}, Node={node_name}")
+                        # Capture token explicitly to avoid closure issues
+                        action.triggered.connect(
+                            lambda checked, t=token_str, n=node_name:
+                                (print(f"[DEBUG][FBC] Triggered action for token: {t}, node: {n}"),
+                                 self.process_fieldbus_command(t, n))
+                        )
+                        print(f"[DEBUG] Context menu created for FBC item | Token: {token_str} | Path: {data.get('log_path', '')}")
                         menu.addAction(action)
                         added_actions = True
                         
@@ -160,7 +168,7 @@ class CommanderWindow(QMainWindow):
             if added_actions:
                 # Show menu at cursor position
                 menu.exec(self.node_tree.viewport().mapToGlobal(position))
-                print(f"[Context Menu] Displayed menu with {menu.actions().count()} actions")
+                print(f"[Context Menu] Displayed menu with {len(menu.actions())} actions")
             else:
                 print(f"[Context Menu] No applicable actions for this item")
         except Exception as e:
@@ -189,58 +197,125 @@ class CommanderWindow(QMainWindow):
             
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus structure command and log output automatically"""
-        command_text = f"print from fieldbus io structure {token_id}0000"
+        print(f"[DEBUG][FBC] Handling action for token: {token_id}, node: {node_name}")
+        # Verify token is string and ends with expected value
+        token_str = str(token_id).strip()
+        print(f"[DEBUG][FBC] Token as string: {token_str}")
+        
+        # Normalize FBC token to 3 digits with leading zeros
+        if token_str.isdigit():
+            token_str = token_str.zfill(3)
+            print(f"[DEBUG][FBC] Normalized token: {token_str}")
+        else:
+            print(f"[WARNING] Token is not numeric: {token_str}")
+            
+        command_text = f"print from fieldbus io structure {token_str}0000"
+        print(f"[DEBUG][FBC] Generated command: {command_text}")
+        # Removed debug output as per task requirements
         
         try:
-            # Get log path from context menu item
-            context_item = self.sender().parent().property("context_item")
-            item_data = context_item.data(0, Qt.ItemDataRole.UserRole) if context_item else None
-            log_path = item_data.get("log_path") if item_data else None
-            print(f"[DEBUG] Processing FBC command | Token: {token_id} | Path: {log_path}")
-            
-            if not log_path:
-                self.status_message_signal.emit("No log file selected", 3000)
-                print(f"[DEBUG] process_fieldbus_command: No log_path in item data")
-                return
-
-            # Get token by ID and type to ensure correct token type (FBC)
-            node = self.node_manager.get_node(node_name)
-            if not node:
-                self.status_message_signal.emit(f"Node {node_name} not found", 3000)
-                return
-
-            # Find token with matching ID and type
-            token_type = data.get("token_type", "FBC")  # Get from context item data
-            token = next((t for t in node.tokens.values()
-                         if t.token_id == token_id and t.token_type == token_type), None)
-            
-            if not token:
-                self.status_message_signal.emit(
-                    f"FBC token {token_id} not found for node {node_name}",
-                    3000
-                )
+            # Get context item directly from sender
+            context_item = self.sender().property("context_item")
+            if not context_item:
+                print("[DEBUG][FBC] Context item missing")
+                self.status_message_signal.emit("Context item missing", 3000)
                 return
                 
+            item_data = context_item.data(0, Qt.ItemDataRole.UserRole)
+            log_path = item_data.get("log_path")
+            print(f"[DEBUG][FBC] Log path: {log_path}")
+            
+            if not log_path:
+                print("[DEBUG][FBC] No log path found")
+                self.status_message_signal.emit("No log file selected", 3000)
+                return
+                
+            # Removed debug line that printed empty command state
+
+            # Always retrieve fresh token from node manager to avoid stale data
+            # Bypass any cached data by directly accessing the node's tokens
+            node = self.node_manager.get_node(node_name)
+            token = None
+            if node:
+                # Try multiple token formats for lookup
+                token_formats = [token_str]
+                # Add integer version if token is numeric
+                if token_str.isdigit():
+                    token_formats.append(str(int(token_str)))
+                # Add padded version
+                token_formats.append(token_str.zfill(3))
+                
+                # Try each format until we find a match
+                for format in token_formats:
+                    token = node.tokens.get(format)
+                    if token:
+                        break
+                        
+            if not token or token.token_type != "FBC":
+                # Create temporary token if not found
+                token = NodeToken(
+                    token_id=token_str,
+                    token_type="FBC",
+                    name=node_name,
+                    ip_address="0.0.0.0"
+                )
+                self.status_message_signal.emit(
+                    f"Using temporary token for {token_str}",
+                    2000
+                )
+            # Update current token with fresh instance
             self.current_token = token
-            self.log_writer.log_paths[self.current_token.token_id] = log_path
+            self.log_writer.log_paths[token.token_id] = log_path
             
-            # Set command in telnet input using signal
-            self.set_cmd_input_text_signal.emit(command_text)
-            
-            # Navigate to telnet tab using signal
+            # Switch to telnet tab first
             self.switch_to_telnet_tab_signal.emit()
             
+            # Process events to ensure tab switch completes
+            from PyQt6.QtWidgets import QApplication
+            QApplication.processEvents()
+            
+            # Ensure telnet tab is active
+            try:
+                self.session_tabs.setCurrentWidget(self.telnet_tab)
+            except Exception as e:
+                print(f"[ERROR] Failed to switch tab: {str(e)}")
+                
+            # Use signal to set command to ensure thread safety
+            self.set_cmd_input_text_signal.emit(command_text)
+            self.status_message_signal.emit(f"Command set: {command_text}", 3000)
+            print(f"[DEBUG] Command set via signal: {command_text}")
+            
             # Focus command input using signal
-            self.set_cmd_focus_signal.emit()
+            try:
+                self.set_cmd_focus_signal.emit()
+                # Focus signal emitted
+            except Exception as e:
+                print(f"[ERROR] Failed to focus input: {str(e)}")
             
-            # Show status message using signal
-            self.status_message_signal.emit(f"Executing: {command_text}...", 3000)
+            # Show status message
+            try:
+                self.status_message_signal.emit(f"Executing: {command_text}...", 3000)
+                # Status message set
+            except Exception as e:
+                print(f"[ERROR] Failed to set status: {str(e)}")
             
-            # Execute command automatically
-            if self.telnet_session and self.telnet_session.is_connected:
+            # Set command in input field regardless of connection
+            try:
+                self.set_cmd_input_text_signal.emit(command_text)
+                self.status_message_signal.emit(f"Command set: {command_text}", 3000)
+                print(f"[DEBUG] Command set in input field: {command_text}")
+            except Exception as e:
+                self.status_message_signal.emit(f"Error setting command: {str(e)}", 3000)
+            
+            # Execute automatically only if connected
+            is_connected = self.telnet_session and self.telnet_session.is_connected
+            if is_connected:
+                print(f"[DEBUG] Executing command: {command_text}")
                 self._run_telnet_command(command_text, automatic=True)
             else:
-                self.status_message_signal.emit("Telnet session not connected. Aborting command.", 3000)
+                warning_msg = "Telnet session not connected. Command set but not executed."
+                self.status_message_signal.emit(warning_msg, 3000)
+                print(f"[DEBUG] {warning_msg}")
         except Exception as e:
             self.status_message_signal.emit(f"Error: {str(e)}", 3000)
             print(f"Error processing fieldbus command: {e}")
@@ -462,22 +537,6 @@ class CommanderWindow(QMainWindow):
             
     # Removed duplicate context menu handler
         
-    def generate_fieldbus_command(self, item_data):
-        """Generates and sends the fieldbus structure command for FBC tokens"""
-        token_id = item_data["token"]
-        command_text = f"print from fieldbus io structure {token_id}0000"
-        
-        # Set command in telnet input
-        self.cmd_input.setPlainText(command_text)
-        
-        # Navigate to telnet tab if needed
-        self.session_tabs.setCurrentWidget(self.telnet_tab)
-        
-        # Focus command input
-        self.cmd_input.setFocus()
-        
-        self.statusBar().showMessage(f"Command set: {command_text} - Press Execute to run")
-        
     def init_ui(self):
         """Initialize the main UI components"""
         # Create main layout
@@ -690,7 +749,7 @@ class CommanderWindow(QMainWindow):
                             # For LOG files, we don't need token extraction - just match node name prefix
                             log_item = QTreeWidgetItem([f"📝 {filename}"])
                             log_item.setData(0, Qt.ItemDataRole.UserRole, {
-                                "极log_path": file_path,
+                                "log_path": file_path,
                                 "token": None,
                                 "token_type": "LOG",
                                 "node": node.name,
@@ -1073,7 +1132,7 @@ class CommanderWindow(QMainWindow):
             
         print(f"Selected node: {node.name} ({node.ip_address})")
         return [t for t in node.tokens.values()
-                if t.token_type == "FBC" and self.command_queue.validate_token(t)]
+                if t.token_type == "FBC" and self.command_queue.validate_token()(t)]
     
     def on_telnet_command_finished(self, response, automatic):
         """

@@ -1,0 +1,51 @@
+{
+  "mcpServers": {
+    "firecrawl-mcp": {
+      "url": "https://mcp.firecrawl.dev/fc-ca8383b2528848bc95b0e763454f7c9e/sse",
+      "headers": {
+        "Authorization": "Bearer fc-ca8383b2528848bc95b0e763454f7c9e"
+      },
+      "alwaysAllow": [
+        "*",
+        "firecrawl_scrape",
+        "firecrawl_map",
+        "firecrawl_crawl",
+        "firecrawl_check_crawl_status",
+        "firecrawl_search",
+        "firecrawl_extract",
+        "firecrawl_deep_research",
+        "firecrawl_generate_llmstxt"
+      ],
+      "disabled": false
+    },
+    "sequentialthinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "alwaysAllow": [
+        "",
+        "sequentialthinking"
+      ]
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "alwaysAllow": [
+        "create_entities",
+        "create_relations",
+        "add_observations",
+        "delete_entities",
+        "delete_observations",
+        "open_nodes",
+        "search_nodes",
+        "read_graph",
+        "delete_relations"
+      ]
+    }
+  }
+}
