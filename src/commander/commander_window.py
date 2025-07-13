@@ -126,14 +126,10 @@ class CommanderWindow(QMainWindow):
                 node_name = None  # Initialize at function scope
         
                 try:
-                    # Validate hierarchy
-                    section_item = item.parent()
-                    if not section_item:
-                        raise ValueError("FBC subgroup has no parent section")
-                    
-                    node_item = section_item.parent()
+                    # The FBC subgroup item's direct parent is the node item
+                    node_item = item.parent()
                     if not node_item:
-                        raise ValueError(f"Section {section_item.text(0)} has no parent node")
+                        raise ValueError("FBC subgroup has no parent node")
                     
                     # Extract node name safely
                     node_name = node_item.text(0).split(' ', 1)[0].strip()
@@ -142,7 +138,6 @@ class CommanderWindow(QMainWindow):
                     
                     print(f"[Context Menu] Valid structure detected:")
                     print(f"  Node: {node_name} ({node_item.text(0)})")
-                    print(f"  Section: {section_item.text(0)}")
                     print(f"  Subgroup: {item.text(0)}")
 
                     # Create context menu action after validation
@@ -150,6 +145,27 @@ class CommanderWindow(QMainWindow):
                     action = QAction(action_text, self)
                     action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
                     menu.addAction(action)
+                    
+                    # Add new Print FBC Tokens submenu
+                    tokens_submenu = QMenu("Print FBC Tokens", self)
+                    added_tokens = False
+                    
+                    # Get node tokens
+                    node = self.node_manager.get_node(node_name)
+                    if node:
+                        for token in node.tokens.values():
+                            if token.token_type == "FBC":
+                                token_id = token.token_id
+                                token_action = QAction(f"Token {token_id}", self)
+                                token_action.triggered.connect(
+                                    lambda checked, t=token_id, n=node_name: self._print_fbc_tokens_sequentially(t, n)
+                                )
+                                tokens_submenu.addAction(token_action)
+                                added_tokens = True
+                    
+                    if added_tokens:
+                        menu.addMenu(tokens_submenu)
+                    
                     added_actions = True
                     
                 except Exception as e:
@@ -187,6 +203,17 @@ class CommanderWindow(QMainWindow):
             
         self.statusBar().showMessage(f"Fieldbus commands executed for {len(fbc_tokens)} tokens", self.STATUS_MSG_SHORT)
             
+    def _print_fbc_tokens_sequentially(self, token_id, node_name):
+        """Print token values sequentially for the given token"""
+        try:
+            self.fbc_service.queue_fieldbus_command(node_name, token_id)
+        except Exception as e:
+            self._report_error("Error processing fieldbus command", e)
+        except ConnectionRefusedError as e:
+            self._report_error("Connection refused", e)
+        except TimeoutError as e:
+            self._report_error("Connection timed out", e)
+            
     def _report_error(self, message: str, exception: Exception = None, duration: int = None):
         """Centralized error reporting with logging and status bar updates"""
         duration = duration or self.STATUS_MSG_MEDIUM
@@ -204,43 +231,38 @@ class CommanderWindow(QMainWindow):
         self._report_error("FBC Service Error", Exception(error_msg))
             
     def process_fieldbus_command(self, token_id, node_name):
-        """Process fieldbus structure command using FBC service"""
+        """Process fieldbus command with optimized error handling"""
         try:
-            self.fbc_service.process_fieldbus_command(token_id, node_name)
+            self.fbc_service.queue_fieldbus_command(node_name, token_id)
+        except (ConnectionRefusedError, TimeoutError) as e:
+            self._report_error(f"{type(e).__name__} processing command", e)
         except Exception as e:
-            self._report_error("Error processing fieldbus command", e)
-        except ConnectionRefusedError as e:
-            self._report_error("Connection refused", e)
-        except TimeoutError as e:
-            self._report_error("Connection timed out", e)
+            self._report_error("Unexpected error processing command", e)
             
     def process_rpc_command(self, token_id, action_type):
-        """Process RPC commands (print/clear Rupi counters)"""
-        if action_type == "print":
-            command_text = f"print from fbc rupi counters {token_id}0000"
-        elif action_type == "clear":
-            command_text = f"clear fbc rupi counters {token_id}0000"
-        else:
+        """Process RPC commands with token validation"""
+        if action_type not in ["print", "clear"]:
             return
             
         try:
-            # Set command in telnet input
+            if not token_id or not isinstance(token_id, str):
+                raise ValueError("Invalid token ID")
+                
+            command_text = (
+                f"print from fbc rupi counters {token_id}0000"
+                if action_type == "print"
+                else f"clear fbc rupi counters {token_id}0000"
+            )
+            
             self.cmd_input.setPlainText(command_text)
-            
-            # Navigate to telnet tab
             self.session_tabs.setCurrentWidget(self.telnet_tab)
-            
-            # Focus command input
             self.cmd_input.setFocus()
             
-            # Show status message
             action_name = "Print" if action_type == "print" else "Clear"
             self.statusBar().showMessage(
-                f"{action_name} Rupi counters command set for token {token_id}",
-                3000
-            )
+                f"{action_name} Rupi counters for token {token_id}", 3000)
         except Exception as e:
-            print(f"Error processing RPC command: {e}")
+            self._report_error("RPC command setup failed", e)
             
     def __init__(self):
         super().__init__()
@@ -591,180 +613,117 @@ class CommanderWindow(QMainWindow):
         return tab
         
     def populate_node_tree(self):
-        """Populates tree view with nodes and sections for FBC, RPC, LOG, LIS with relevant files"""
+        """Optimized tree population with glob patterns and reduced complexity"""
         self.node_tree.clear()
         
         for node in self.node_manager.get_all_nodes():
-            # Create node item
-            node_item = QTreeWidgetItem([f"{node.name} ({node.ip_address})"])
-            if node.status == "online":
-                node_item.setIcon(0, get_node_online_icon())
-            else:
-                node_item.setIcon(0, get_node_offline_icon())
-            
-            # Ensure log_root is set
-            log_root = self.node_manager.log_root
-            if not log_root or not os.path.isdir(log_root):
-                # Add placeholder if log root not set
-                no_folder = QTreeWidgetItem(["Please set log root folder"])
-                no_folder.setIcon(0, QIcon(":/icons/warning.png"))
-                node_item.addChild(no_folder)
-                self.node_tree.addTopLevelItem(node_item)
+            node_item = self._create_node_item(node)
+            if not node_item:
                 continue
-            
-            # Create top-level sections
+                
+            added_sections = False
             sections = {
-                "FBC": QTreeWidgetItem(["FBC"]),
-                "RPC": QTreeWidgetItem(["RPC"]),
-                "LOG": QTreeWidgetItem(["LOG"]),
-                "LIS": QTreeWidgetItem(["LIS"])
+                "FBC": self._add_section("FBC", node, "FBC", ['.fbc', '.log', '.txt']),
+                "RPC": self._add_section("RPC", node, "RPC", ['.rpc', '.log', '.txt']),
+                "LOG": self._add_section("LOG", node, "LOG", ['.log']),
+                "LIS": self._add_section("LIS", node, "LIS", ['.lis'])
             }
             
-            # Set icons for sections
-            sections["FBC"].setIcon(0, get_token_icon())
-            sections["RPC"].setIcon(0, get_token_icon())
-            sections["LOG"].setIcon(0, QIcon(":/icons/page.png"))
-            sections["LIS"].setIcon(0, QIcon(":/icons/page.png"))
+            for section_type, section_data in sections.items():
+                if section_data["items"]:
+                    section = QTreeWidgetItem([section_type])
+                    section.setIcon(0, get_token_icon() if section_type in ("FBC", "RPC")
+                                   else QIcon(":/icons/page.png"))
+                    for item in section_data["items"]:
+                        section.addChild(item)
+                    node_item.addChild(section)
+                    added_sections = True
             
-            # Add LOG files to LOG section
-            added_log = False
-            log_dir = os.path.join(log_root, "LOG")
-            print(f"[DEBUG] Checking LOG dir: {log_dir} for node: {node.name}")
-            if os.path.isdir(log_dir):
-                
-                for filename in os.listdir(log_dir):
-                    print(f"[DEBUG] Found file: {filename}")
-                    if filename.lower().endswith(".log") and filename.startswith(node.name + "_"):
-                        print(f"[DEBUG] File matches pattern: {filename}")
-                        file_path = os.path.join(log_dir, filename)
-                        if os.path.isfile(file_path):
-                            print(f"[DEBUG] File exists: {file_path}")
-                            # For LOG files, we don't need token extraction - just match node name prefix
-                            log_item = QTreeWidgetItem([f"📝 {filename}"])
-                            log_item.setData(0, Qt.ItemDataRole.UserRole, {
-                                "log_path": file_path,
-                                "token": None,
-                                "token_type": "LOG",
-                                "node": node.name,
-                                "ip_address": node.ip_address
-                            })
-                            log_item.setIcon(0, QIcon(":/icons/page.png"))
-                            sections["LOG"].addChild(log_item)
-                            added_log = True
-                            print(f"[DEBUG] Added LOG item: {filename}")
-                        else:
-                            print(f"[DEBUG] File not found: {file_path}")
-                    else:
-                        print(f"[DEBUG] File skipped - not .log or wrong prefix: {filename}")
-            # Add FBC files to FBC section (from FBC/node_name folder)
-            added_fbc = False
-            fbc_dir = os.path.join(log_root, "FBC", node.name)
-            if os.path.isdir(fbc_dir):
-                for filename in os.listdir(fbc_dir):
-                    if filename.lower().endswith((".fbc", ".log", ".txt")) and filename.startswith(node.name + "_"):
-                        file_path = os.path.join(fbc_dir, filename)
-                        if os.path.isfile(file_path):
-                            # Extract token ID using regex to handle varying filename formats
-                            # Matches {node.name}_{ip}_{token}.{ext} where token is alphanumeric
-                            match = re.search(rf"^{re.escape(node.name)}_[\d\.-]+_([\w-]+)\.", filename)
-                            if not match:
-                                continue  # Skip invalid filenames
-                            token_id = match.group(1)
-                            file_item = QTreeWidgetItem([f"📝 {filename}"])
-                            print(f"[DEBUG] Adding FBC item | File: {filename} | Token: {token_id} | Path: {file_path} | Type: FBC")  # Debug logging
-                            file_extension = os.path.splitext(file_path)[1][1:].upper()
-                            token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
-                            file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                            {"log_path": file_path,
-                                             "token": token_id,
-                                             "token_type": token_type,
-                                             "node": node.name})
-                            file_item.setIcon(0, QIcon(":/icons/page.png"))
-                            sections["FBC"].addChild(file_item)
-                            added_fbc = True
-                            print(f"[DEBUG] Assigning to FBC section | Icon: page")
-            
-            # Add RPC files to RPC section (from RPC/node_name folder)
-            added_rpc = False
-            rpc_dir = os.path.join(log_root, "RPC", node.name)
-            if os.path.isdir(rpc_dir):
-                for filename in os.listdir(rpc_dir):
-                    if filename.lower().endswith((".rpc", ".log", ".txt")) and filename.startswith(node.name + "_"):
-                        file_path = os.path.join(rpc_dir, filename)
-                        if os.path.isfile(file_path):
-                            # Extract token ID from filename: AP01r_192-168-0-12_363.rpc -> token ID = 363
-                            token_id = filename.rsplit('_', 1)[-1].split('.')[0]
-                            
-                            file_item = QTreeWidgetItem([f"📝 {filename}"])
-                            file_extension = os.path.splitext(file_path)[1][1:].upper()
-                            token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
-                            file_item.setData(0, Qt.ItemDataRole.UserRole,
-                                            {"log_path": file_path,
-                                             "node": node.name,
-                                             "token": token_id,
-                                             "token_type": token_type})
-                            file_item.setIcon(0, QIcon(":/icons/page.png"))
-                            sections["RPC"].addChild(file_item)
-                            added_rpc = True
-                            print(f"[DEBUG] Assigning to RPC section | Icon: page")
-            
-            # Add LIS files to LIS section
-            added_lis = False
-            lis_dir = os.path.join(log_root, "LIS", node.name)
-            if os.path.isdir(lis_dir):
-                for filename in os.listdir(lis_dir):
-                    if filename.lower().endswith(".lis") and filename.startswith(node.name + "_"):
-                        file_path = os.path.join(lis_dir, filename)
-                        if os.path.isfile(file_path):
-                            # Extract token ID from filename pattern: node_ip_token.lis
-                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_([\d\w-]+)\.lis$", filename)
-                            if match:
-                                token_id = match.group(1)
-                                file_item = QTreeWidgetItem([f"📝 {filename}"])
-                                file_item.setData(0, Qt.ItemDataRole.UserRole, {
-                                    "log_path": file_path,
-                                    "token": token_id,
-                                    "token_type": "LIS",
-                                    "node": node.name,
-                                    "ip_address": node.ip_address
-                                })
-                                file_item.setIcon(0, QIcon(":/icons/page.png"))
-                                sections["LIS"].addChild(file_item)
-                                added_lis = True
-                                print(f"[DEBUG] Assigning to LIS section | Icon: page")
-            
-            # DEBUG: Print token assignment status
-            print(f"[DEBUG] Node: {node.name} | FBC: {added_fbc} | RPC: {added_rpc} | LOG: {added_log} | LIS: {added_lis}")
-            print(f"[DEBUG] Section assignments:")
-            print(f"  FBC section: {sections['FBC'].childCount()} items")
-            print(f"  RPC section: {sections['RPC'].childCount()} items")
-            print(f"  LOG section: {sections['LOG'].childCount()} items")
-            print(f"  LIS section: {sections['LIS'].childCount()} items")
-            
-            # Add only non-empty sections to the node
-            if added_fbc:
-                node_item.addChild(sections["FBC"])
-                print(f"[DEBUG] Added FBC section to node tree")
-            if added_rpc:
-                node_item.addChild(sections["RPC"])
-                print(f"[DEBUG] Added RPC section to node tree")
-            if added_log:
-                node_item.addChild(sections["LOG"])
-                print(f"[DEBUG] Added LOG section to node tree")
-            if added_lis:
-                node_item.addChild(sections["LIS"])
-                print(f"[DEBUG] Added LIS section to node tree")
-            
-            # Add warning if no data found
-            if not (added_fbc or added_rpc or added_log or added_lis):
+            if not added_sections:
                 no_files = QTreeWidgetItem(["No files found for this node"])
                 no_files.setIcon(0, QIcon(":/icons/warning.png"))
                 node_item.addChild(no_files)
             
             self.node_tree.addTopLevelItem(node_item)
         
-        # Expand all by default
         self.node_tree.expandAll()
+        
+    def _create_node_item(self, node):
+        """Create node tree item with status icon"""
+        node_item = QTreeWidgetItem([f"{node.name} ({node.ip_address})"])
+        node_item.setIcon(0, get_node_online_icon() if node.status == "online"
+                         else get_node_offline_icon())
+        
+        # Check log root
+        log_root = self.node_manager.log_root
+        if not log_root or not os.path.isdir(log_root):
+            no_folder = QTreeWidgetItem(["Please set log root folder"])
+            no_folder.setIcon(0, QIcon(":/icons/warning.png"))
+            node_item.addChild(no_folder)
+            return node_item
+            
+        return node_item
+        
+    def _add_section(self, section_type, node, dir_name, extensions):
+        """Add file items to section using glob patterns for efficiency"""
+        section_dir = os.path.join(self.node_manager.log_root, dir_name, node.name)
+        items = []
+        
+        if not os.path.isdir(section_dir):
+            return {"items": items, "count": 0}
+            
+        # Process files matching patterns
+        for ext in extensions:
+            pattern = os.path.join(section_dir, f"{node.name}_*{ext}")
+            for file_path in glob.glob(pattern):
+                filename = os.path.basename(file_path)
+                token_id = self._extract_token_id(filename, node.name, section_type)
+                
+                if not token_id and section_type != "LOG":
+                    continue  # Skip invalid tokens except for LOG
+                    
+                file_item = self._create_file_item(
+                    filename, file_path, node,
+                    token_id, section_type
+                )
+                items.append(file_item)
+                
+        return {"items": items, "count": len(items)}
+        
+    def _extract_token_id(self, filename, node_name, section_type):
+        """Extract token ID from filename based on section type"""
+        if section_type == "LOG":
+            return None
+            
+        try:
+            if section_type == "FBC":
+                match = re.search(rf"^{re.escape(node_name)}_[\d\.-]+_([\w-]+)\.", filename)
+                return match.group(1) if match else None
+            elif section_type == "RPC":
+                return filename.rsplit('_', 1)[-1].split('.')[0]
+            elif section_type == "LIS":
+                match = re.search(rf"^{re.escape(node_name)}_[\d-]+_([\d\w-]+)\.lis$", filename)
+                return match.group(1) if match else None
+        except (IndexError, AttributeError):
+            return None
+            
+        return None
+        
+    def _create_file_item(self, filename, file_path, node, token_id, token_type):
+        """Create standardized file tree item"""
+        file_item = QTreeWidgetItem([f"📝 {filename}"])
+        file_extension = os.path.splitext(file_path)[1][1:].upper()
+        resolved_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else token_type
+        
+        file_item.setData(0, Qt.ItemDataRole.UserRole, {
+            "log_path": file_path,
+            "token": token_id,
+            "token_type": resolved_type,
+            "node": node.name,
+            "ip_address": node.ip_address
+        })
+        file_item.setIcon(0, QIcon(":/icons/page.png"))
+        return file_item
     
     def on_node_selected(self, item: QTreeWidgetItem, column: int):
         """Handles node/token selection in left pane"""
@@ -952,30 +911,28 @@ class CommanderWindow(QMainWindow):
         return ""  # Response will be handled asynchronously
 
     def _run_telnet_command(self, command, automatic):
-        """Runs telnet command in background thread"""
+        """Runs telnet command in background thread with improved error handling"""
         with self.telnet_lock:
             try:
-                # Resolve command with context if needed
                 token_id = self.current_token.token_id if self.current_token else ""
                 resolved_cmd = self.command_resolver.resolve(command, token_id)
-                
-                # Execute command
                 response = self.telnet_session.send_command(resolved_cmd, timeout=5)
-                
-                # Update connection status to CONNECTED after successful command execution
                 self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
-                
-            except ConnectionRefusedError as e:
-                response = f"ERROR: Connection refused - {str(e)}"
-            except TimeoutError as e:
-                response = f"ERROR: Command timed out - {str(e)}"
-            except socket.timeout as e:
-                response = f"ERROR: Socket timeout - {str(e)}"
+            except (ConnectionRefusedError, TimeoutError, socket.timeout) as e:
+                response = f"ERROR: {type(e).__name__} - {str(e)}"
+                self._handle_connection_error(e)
             except Exception as e:
-                response = f"ERROR: {str(e)}"
+                response = f"ERROR: {type(e).__name__} - {str(e)}"
+                logging.error(f"Telnet command failed: {command}", exc_info=True)
             
-            # Emit signal with response
             self.command_finished.emit(response, automatic)
+            
+    def _handle_connection_error(self, error):
+        """Centralized connection error handling"""
+        error_type = type(error).__name__
+        if error_type in ["ConnectionRefusedError", "TimeoutError", "socket.timeout"]:
+            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
+            self.status_message_signal.emit(f"Connection error: {str(error)}", self.STATUS_MSG_MEDIUM)
 
     def process_all_fbc_subgroup_commands(self, item):
         """Process all FBC commands using command queue"""
