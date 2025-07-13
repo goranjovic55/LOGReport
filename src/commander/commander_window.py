@@ -773,8 +773,8 @@ class CommanderWindow(QMainWindow):
                         file_path = os.path.join(fbc_dir, filename)
                         if os.path.isfile(file_path):
                             # Extract token ID using regex to handle varying filename formats
-                            # Matches {node.name}_{ip}_{token}.{ext} where token is numeric
-                            match = re.search(rf"^{re.escape(node.name)}_[\d-]+_(\d+)\.", filename)
+                            # Matches {node.name}_{ip}_{token}.{ext} where token is alphanumeric
+                            match = re.search(rf"^{re.escape(node.name)}_[\d\.-]+_([\w-]+)\.", filename)
                             if not match:
                                 continue  # Skip invalid filenames
                             token_id = match.group(1)

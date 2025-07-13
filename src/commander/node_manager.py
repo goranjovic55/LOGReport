@@ -12,7 +12,11 @@ class NodeManager:
     def __init__(self):
         self.nodes: Dict[str, Node] = {}
         # Set log root to user's DIA directory
-        self.log_root = r"C:\Users\gorjovicgo\_DIA"
+        # Set log root to project's test_logs directory
+        self.log_root = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "test_logs"
+        )
         print(f"[DEBUG] Log root set to: {self.log_root}")
         self.selected_node: Optional[Node] = None
         # Default config path relative to project root
@@ -109,9 +113,12 @@ class NodeManager:
                         print(f"Warning: Skipping token with empty 'token_id' in node '{node_name}'.")
                         continue
                         
-                    # Normalize FBC token IDs to 3 digits with leading zeros
-                    if token_data["token_type"].upper() == "FBC" and token_id.isdigit():
-                        token_id = token_id.zfill(3)
+                    # Normalize FBC token IDs: pad numeric IDs with zeros, convert alphanumeric to uppercase
+                    if token_data["token_type"].upper() == "FBC":
+                        if token_id.isdigit():
+                            token_id = token_id.zfill(3)
+                        else:
+                            token_id = token_id.upper()
 
                     try:
                         # Validate required fields exist
@@ -235,13 +242,23 @@ class NodeManager:
                     token_type_dir = parent_dir
                 
                 # Extract node name from either filename or directory
+                # Extract node name from directory for all token types except LOG
+                node_name = os.path.basename(dirpath)
+                
+                # For LOG files, override with filename-based extraction
                 if token_type_dir == "LOG":
-                    # For LOG files, extract node name from filename (format: NODE_IP.log)
                     node_name = filename.split('_')[0]
                     print(f"[DEBUG] LOG file - extracted node name from filename: {node_name}")
+                # For FBC files in nested directories, ensure proper node name extraction
+                elif token_type_dir == "FBC" and node_name != os.path.basename(os.path.dirname(dirpath)):
+                    # Handle case where we're in a subdirectory of FBC
+                    parent_dir = os.path.basename(os.path.dirname(dirpath))
+                    if parent_dir == "FBC":
+                        # The actual node directory is the current directory name
+                        print(f"[DEBUG] FBC file in node directory - using directory name: {node_name}")
+                    else:
+                        print(f"[DEBUG] Node name from directory: {node_name}")
                 else:
-                    # For token-specific files, use directory name for node
-                    node_name = os.path.basename(dirpath)
                     print(f"[DEBUG] Node name from directory: {node_name}")
                 
                 # Find matching node (case-insensitive)
@@ -259,45 +276,77 @@ class NodeManager:
                 token = None
                 matching_strategy = "none"
                 
-                # Extract potential token ID from filename (last numeric part)
-                token_candidates = [part for part in base_name.split('_') if part.isdigit()]
-                token_id_candidate = token_candidates[-1] if token_candidates else None
+                # Extract token ID from filename (last alphanumeric part)
+                parts = base_name.split('_')
+                token_id_candidate = parts[-1] if parts else None
                 
-                # Strategy 1: Match by extracted token ID candidate
+                # Normalize token ID candidate:
+                # - Pad numeric IDs to 3 digits
+                # - Convert alphanumeric to uppercase for FBC tokens only
+                if token_id_candidate:
+                    if token_type_dir == "FBC":
+                        if token_id_candidate.isdigit():
+                            token_id_candidate = token_id_candidate.zfill(3)
+                        else:
+                            token_id_candidate = token_id_candidate.upper()
+                    else:
+                        # For non-FBC tokens, just strip whitespace
+                        token_id_candidate = token_id_candidate.strip()
+                
+                # Strategy 1: Case-insensitive exact token ID match
                 if token_id_candidate:
                     token = next(
                         (t for t in matched_node.tokens.values()
-                         if t.token_id == token_id_candidate),
+                         if t.token_id.lower() == token_id_candidate.lower()),
                         None
                     )
                     if token:
                         matching_strategy = "extracted token ID match"
                 
-                # Strategy 2: Filename contains token ID
+                # Strategy 2: Case-insensitive token ID substring match
                 if not token:
                     for t in matched_node.tokens.values():
-                        if t.token_id in base_name:
+                        if token_id_candidate and token_id_candidate.lower() in t.token_id.lower():
                             token = t
                             matching_strategy = "token ID in filename"
                             break
                 
-                # Strategy 3: Match by token type and closest numeric match
+                # Strategy 3: Match by token type and closest alphanumeric match
                 if not token:
                     same_type_tokens = [t for t in matched_node.tokens.values()
                                         if t.token_type == token_type_dir]
-                    if same_type_tokens:
-                        # Try to find closest numeric match
-                        if token_id_candidate and token_id_candidate.isdigit():
-                            token_id_int = int(token_id_candidate)
-                            closest = min(
-                                same_type_tokens,
-                                key=lambda t: abs(int(t.token_id) - token_id_int)
-                            )
-                            token = closest
-                            matching_strategy = "closest numeric token match"
+                    if same_type_tokens and token_id_candidate:
+                        # DEBUG: Log alphanumeric matching attempt
+                        print(f"[DEBUG] Starting Strategy 3 for alphanumeric token: {token_id_candidate}")
+                        print(f"[DEBUG] Available {token_type_dir} tokens: {[t.token_id for t in same_type_tokens]}")
+                        
+                        # Try to find closest alphanumeric match
+                        token = min(
+                            same_type_tokens,
+                            key=lambda t: self._token_distance(t.token_id.lower(), token_id_candidate.lower())
+                        )
+                        
+                        # DEBUG: Log match result
+                        distance = self._token_distance(token.token_id.lower(), token_id_candidate.lower())
+                        print(f"[DEBUG] Closest match: {token.token_id} (distance: {distance})")
+                        matching_strategy = "closest alphanumeric token match"
                 
-                # For LOG files, create a generic token representation
-                if token_type_dir == "LOG" or (not token and token_type_dir in token_types):
+                # For FBC files, create token representation and add to node
+                if token_type_dir == "FBC" and not token:
+                    # Preserve original token ID case for FBC files
+                    token = NodeToken(
+                        name=f"{node_name} {token_type_dir}",
+                        token_id=token_id_candidate or "UNKNOWN",
+                        token_type=token_type_dir,
+                        ip_address=matched_node.ip_address
+                    )
+                    normalized_path = os.path.normpath(full_path)
+                    token.log_path = normalized_path
+                    matched_node.add_token(token)
+                    print(f"[DEBUG] ADDED FBC token to node: {token.token_id} | Path: {normalized_path}")
+                
+                # For other token types, maintain existing behavior
+                elif token_type_dir == "LOG" or (not token and token_type_dir in token_types):
                     token = NodeToken(
                         name=f"{node_name} {token_type_dir}",
                         token_id=token_id_candidate or "UNKNOWN",
@@ -310,10 +359,17 @@ class NodeManager:
                 elif token:
                     normalized_path = os.path.normpath(full_path)
                     token.log_path = normalized_path
+                    
+                    # Ensure token is added to node if not already present
+                    if token.token_id not in matched_node.tokens:
+                        matched_node.add_token(token)
+                        print(f"[DEBUG] ADDED token to node: {token.token_id} ({token.token_type})")
+                    
                     print(f"[DEBUG] SUCCESS: Mapped log file | Node: {node_name} | Token: {token.token_id} | Strategy: {matching_strategy} | Path: {normalized_path}")
                 else:
                     print(f"[DEBUG] WARNING: Could not find matching token for: {filename} in node: {node_name}")
                     print(f"[DEBUG] Available tokens: {[t.token_id for t in matched_node.tokens.values()]}")
+                    print(f"[DEBUG] Token ID candidate: {token_id_candidate}")
     def _generate_log_path(self, node_name: str, token_id: str, log_type: str, ip_address: str) -> str:
         """Generates standardized log path with formatted IP"""
         # Format IP address: 192.168.0.11 -> 192-168-0-11
@@ -322,6 +378,18 @@ class NodeManager:
         # Create path: <log_root>/<token_type>/<node_name>/<filename>
         filename = f"{node_name}_{formatted_ip}_{token_id}.{log_type.lower()}"
         return os.path.join(self.log_root, log_type, node_name, filename)
+    
+    def _token_distance(self, token1: str, token2: str) -> int:
+        """Calculates similarity distance between two token IDs"""
+        # Normalize tokens to lowercase for case-insensitive comparison
+        token1 = token1.lower()
+        token2 = token2.lower()
+        
+        if token1 == token2:
+            return 0
+        if token1.startswith(token2) or token2.startswith(token1):
+            return 1
+        return 2
     
     def get_node(self, node_name: str) -> Optional[Node]:
         """Retrieves node by name"""
