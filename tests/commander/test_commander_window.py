@@ -170,7 +170,7 @@ class TestContextMenuCommands(unittest.TestCase):
             
             # Verify command execution
             self.window.execute_telnet_command.assert_called_once()
-            mock_signal.assert_called_with("Executing: print from fieldbus io structure 1230000...", 3000)
+            mock_signal.assert_called_with("Executing: print from fbc io structure 1230000...", 3000)
 
     def test_command_output_logging(self):
         """Test successful command output is logged correctly"""

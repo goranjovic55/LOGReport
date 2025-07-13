@@ -9,6 +9,7 @@ import os
 import logging
 import glob
 import re
+import socket
 from PyQt6.QtWidgets import (
     QMainWindow, QSplitter, QTreeWidget, QTreeWidgetItem,
     QTabWidget, QTextEdit, QVBoxLayout, QWidget, QHBoxLayout,
@@ -55,7 +56,7 @@ class CommanderWindow(QMainWindow):
     def generate_fieldbus_command(self, item_data):
         print(f"[DEBUG][FBC] Entered generate_fieldbus_command for token: {item_data['token']}")
         token_id = item_data["token"]
-        command_text = f"print from fieldbus io structure {token_id}0000"
+        command_text = f"print from fbc io structure {token_id}0000"
         
         # Set command in telnet input using signal
         self.set_cmd_input_text_signal.emit(command_text)
@@ -209,7 +210,7 @@ class CommanderWindow(QMainWindow):
         else:
             print(f"[WARNING] Token is not numeric: {token_str}")
             
-        command_text = f"print from fieldbus io structure {token_str}0000"
+        command_text = f"print from fbc io structure {token_str}0000"
         print(f"[DEBUG][FBC] Generated command: {command_text}")
         # Removed debug output as per task requirements
         
@@ -332,9 +333,9 @@ class CommanderWindow(QMainWindow):
     def process_rpc_command(self, token_id, action_type):
         """Process RPC commands (print/clear Rupi counters)"""
         if action_type == "print":
-            command_text = f"print from rpc counters {token_id}0000"
+            command_text = f"print from fbc rupi counters {token_id}0000"
         elif action_type == "clear":
-            command_text = f"clear rpc counters {token_id}0000"
+            command_text = f"clear fbc rupi counters {token_id}0000"
         else:
             return
             
@@ -1096,7 +1097,7 @@ class CommanderWindow(QMainWindow):
                 if not token or not token.token_id.isdigit():
                     continue
                 self.command_queue.add_command(
-                    f"print from fieldbus io structure {token.token_id}0000",
+                    f"print from fbc io structure {token.token_id}0000",
                     token
                 )
                 # Emit progress update

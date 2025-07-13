@@ -33,9 +33,9 @@ def test_path_handling():
     # Test telnet command execution
     print("\nTesting telnet command execution with fixed paths:")
     commands = [
-        "print from fieldbus io structure 1620000",
-        "print from fieldbus io structure 3620000",
-        "print from fieldbus io structure 2a20000"
+        "print from fbc io structure 1620000",
+        "print from fbc io structure 3620000",
+        "print from fbc io structure 2a20000"
     ]
     
     # This would normally connect to telnet server
