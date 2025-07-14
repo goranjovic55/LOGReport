@@ -115,12 +115,12 @@ class CommanderWindow(QMainWindow):
                         logging.debug("Context menu creating context menu for RPC item")
                         
                         # Print Rupi Counters action
-                        print_action = QAction(f"Print Rupi Counters (Token {token_id})", self)
+                        print_action = QAction(f"Print Rupi counters Token '{token_id}'", self)
                         print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
                         menu.addAction(print_action)
                         
                         # Clear Rupi Counters action
-                        clear_action = QAction(f"Clear Rupi Counters (Token {token_id})", self)
+                        clear_action = QAction(f"Clear Rupi counters '{token_id}'", self)
                         clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
                         menu.addAction(clear_action)
                         added_actions = True
@@ -293,10 +293,11 @@ class CommanderWindow(QMainWindow):
             if not token_id or not isinstance(token_id, str):
                 raise ValueError("Invalid token ID")
                 
+            token_num = token_id.split('_')[-1]  # Extract token number after last underscore
             command_text = (
-                f"print from fbc rupi counters {token_id}0000"
+                f"print from fbc rupi counters {token_num}0000"
                 if action_type == "print"
-                else f"clear fbc rupi counters {token_id}0000"
+                else f"clear fbc rupi counters {token_num}0000"
             )
             
             self.cmd_input.setPlainText(command_text)
@@ -305,7 +306,7 @@ class CommanderWindow(QMainWindow):
             
             action_name = "Print" if action_type == "print" else "Clear"
             self.statusBar().showMessage(
-                f"{action_name} Rupi counters for token {token_id}", 3000)
+                f"{action_name} Rupi counters for token {token_num}", 3000)
         except ValueError as e:
             self._report_error("Invalid RPC command parameters", e)
         except AttributeError as e:

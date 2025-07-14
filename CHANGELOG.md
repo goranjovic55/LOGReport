@@ -17,8 +17,11 @@
 - Updated README.md with links to new documentation
 - Improved code comments throughout the codebase
 - Standardized documentation format across all files
+- RPC command format now includes "0000" suffix (e.g., `print from fbc rupi counters {token_id}0000`)
+- Context menu text updated to "Print Rupi counters Token 'tokenid_number'" and "Clear Rupi counters 'tokenid_number'"
 
 ### Fixed
+- RPC tokens now correctly extracted and displayed as numerical/alphanumeric IDs only (no IP addresses or node names)
 - LOG file detection in CommanderWindow now correctly:
   - Uses directory path: `log_root/LOG/`
   - Matches files with pattern: `{node.name}_*.log`
