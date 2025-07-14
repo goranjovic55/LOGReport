@@ -233,33 +233,31 @@ class NodeManager:
                 # Extract base name without extension for token matching
                 base_name = os.path.splitext(filename)[0]
                 
-                # Extract token type from parent directory name
-                token_type_dir = os.path.basename(dirpath)
+                # Extract token type and node name based on file pattern
+                token_type_dir = None
+                node_name = None
                 
-                # Handle nested directory structures (e.g., FBC/LOG/)
-                parent_dir = os.path.basename(os.path.dirname(dirpath))
-                if parent_dir in token_types:
-                    token_type_dir = parent_dir
-                
-                # Extract node name from either filename or directory
-                # Extract node name from directory for all token types except LOG
-                node_name = os.path.basename(dirpath)
-                
-                # For LOG files, override with filename-based extraction
-                if token_type_dir == "LOG":
+                # Handle LOG files by filename pattern
+                if filename.lower().endswith('.log'):
+                    token_type_dir = "LOG"
+                    # Extract node name from filename (before first underscore)
                     node_name = filename.split('_')[0]
-                    print(f"[DEBUG] LOG file - extracted node name from filename: {node_name}")
-                # For FBC files in nested directories, ensure proper node name extraction
-                elif token_type_dir == "FBC" and node_name != os.path.basename(os.path.dirname(dirpath)):
-                    # Handle case where we're in a subdirectory of FBC
-                    parent_dir = os.path.basename(os.path.dirname(dirpath))
-                    if parent_dir == "FBC":
-                        # The actual node directory is the current directory name
-                        print(f"[DEBUG] FBC file in node directory - using directory name: {node_name}")
-                    else:
-                        print(f"[DEBUG] Node name from directory: {node_name}")
+                    print(f"[DEBUG] LOG file detected: node_name={node_name}")
+                # Handle other file types by directory structure
                 else:
-                    print(f"[DEBUG] Node name from directory: {node_name}")
+                    # Token type is the parent directory name
+                    token_type_dir = os.path.basename(dirpath)
+                    
+                    # Handle nested directories (e.g., FBC/AP01m/)
+                    parent_dir = os.path.basename(os.path.dirname(dirpath))
+                    if parent_dir in token_types:
+                        token_type_dir = parent_dir
+                        node_name = os.path.basename(dirpath)
+                        print(f"[DEBUG] {token_type_dir} file in node directory: node_name={node_name}")
+                    else:
+                        # For files directly in token type directories
+                        node_name = os.path.basename(dirpath)
+                        print(f"[DEBUG] {token_type_dir} file: node_name={node_name}")
                 
                 # Find matching node (case-insensitive)
                 matched_node = next(

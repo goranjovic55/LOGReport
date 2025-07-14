@@ -16,11 +16,17 @@ Follow these steps:
 6. Use `confirm_with_user` to ask whether the rule should be tagged with the session origin (`#retrospective_july`, etc.)
 7. Save and commit changes using `commit_file` with a message like `Add/update workspace rule from dev session`
 
+## Log File Handling Best Practices
+
+- **Directory Structure**: Maintain consistent log directory structure (`log_root/LOG/`) for all log files
+- **File Naming**: Use standardized log file naming pattern (`{node.name}_*.log`) for easy identification and parsing
+- **Token Extraction**: Extract tokens from log filenames without extensions for consistent processing
+- **Path Handling**: Always use normalized paths when working with log files to ensure cross-platform compatibility
+- **Validation**: Implement validation for log file paths and names in UI components that interact with log files
+
 Parameters needed (ask if not provided):
 
 * Session file or context
 * Rule type (code / structure / workflow)
 * Section to update (optional: infer if not given)
 * Rule importance or enforcement level (info/warning/block)
-
-

@@ -1,5 +1,6 @@
 from .models import NodeToken
 from .services.fbc_command_service import FbcCommandService
+from .services.rpc_command_service import RpcCommandService
 """
 Commander Main Window
 Dual-pane interface for managing nodes and sessions
@@ -47,6 +48,11 @@ class CommanderWindow(QMainWindow):
     STATUS_MSG_MEDIUM = 5000   # 5 seconds
     STATUS_MSG_LONG = 10000    # 10 seconds
     
+    # Compiled regex patterns for token extraction
+    FBC_TOKEN_PATTERN = re.compile(r"^([\w-]+)_[\d\.-]+_([\w-]+)\.")
+    RPC_TOKEN_PATTERN = re.compile(r"_([\d\w-]+)\.[^.]*$")  # Matches last _token.extension
+    LIS_TOKEN_PATTERN = re.compile(r"^([\w-]+)_[\d-]+_([\d\w-]+)\.lis$")
+    
     """Main Commander window."""
     
     # Signal for telnet command completion: (response, automatic)
@@ -63,15 +69,15 @@ class CommanderWindow(QMainWindow):
         
     def show_context_menu(self, position):
         """Context menu handler for node tree items with detailed logging"""
-        print("[Context Menu] Received show_context_menu request")
+        logging.debug("Context menu received show_context_menu request")
         logging.debug(f"Context menu shown at position: {position}")
         try:
             item = self.node_tree.itemAt(position)
             if not item:
-                print("[Context Menu] No item at position")
+                logging.debug("Context menu - no item at position")
                 return
                 
-            print(f"[Context Menu] Found item: {item.text(0)}")
+            logging.debug(f"Context menu found item: {item.text(0)}")
             data = item.data(0, Qt.ItemDataRole.UserRole)
             menu = QMenu(self.node_tree)
             added_actions = False
@@ -82,31 +88,31 @@ class CommanderWindow(QMainWindow):
                 token_id = data.get("token", None)
                 node_name = data.get("node", "Unknown")
                 
-                print(f"[Context Menu] Token type: '{token_type}', Token ID: {token_id}, Node: {node_name}")
+                logging.debug(f"Context menu token type: '{token_type}', Token ID: {token_id}, Node: {node_name}")
                 
                 if token_id:
-                    print(f"[Context Menu] Processing token item: type={token_type}, id={token_id}")
+                    logging.debug(f"Context menu processing token item: type={token_type}, id={token_id}")
                     
                     if token_type == "FBC":
-                        print("[Context Menu] Creating context menu for FBC item")
+                        logging.debug("Context menu creating context menu for FBC item")
                         # Ensure token is string to prevent normalization issues
                         token_str = str(token_id)
                         action_text = f"Print FieldBus Structure (Token {token_str})"
                         action = QAction(action_text, self)
                         action.setProperty("context_item", item)  # Store context menu item reference
-                        print(f"[DEBUG] Creating FBC action: Token={token_str}, Node={node_name}")
+                        logging.debug(f"Creating FBC action: Token={token_str}, Node={node_name}")
                         # Capture token explicitly to avoid closure issues
                         action.triggered.connect(
                             lambda checked, t=token_str, n=node_name:
-                                (print(f"[DEBUG][FBC] Triggered action for token: {t}, node: {n}"),
+                                (logging.debug(f"FBC action triggered for token: {t}, node: {n}"),
                                  self.process_fieldbus_command(t, n))
                         )
-                        print(f"[DEBUG] Context menu created for FBC item | Token: {token_str} | Path: {data.get('log_path', '')}")
+                        logging.debug(f"Context menu created for FBC item | Token: {token_str} | Path: {data.get('log_path', '')}")
                         menu.addAction(action)
                         added_actions = True
                         
                     elif token_type == "RPC":
-                        print("[Context Menu] Creating context menu for RPC item")
+                        logging.debug("Context menu creating context menu for RPC item")
                         
                         # Print Rupi Counters action
                         print_action = QAction(f"Print Rupi Counters (Token {token_id})", self)
@@ -119,46 +125,50 @@ class CommanderWindow(QMainWindow):
                         menu.addAction(clear_action)
                         added_actions = True
             
-            # Handle FBC subgroup selection
-            elif item.text(0) == "FBC":
-                print("[Context Menu] Processing FBC subgroup")
+            # Handle FBC/RPC subgroup selection
+            elif item.text(0) in ["FBC", "RPC"]:
+                logging.debug(f"Context menu processing {item.text(0)} subgroup")
                 # Get parent items with validation
                 node_name = None  # Initialize at function scope
         
                 try:
-                    # The FBC subgroup item's direct parent is the node item
+                    # The subgroup item's direct parent is the node item
                     node_item = item.parent()
                     if not node_item:
-                        raise ValueError("FBC subgroup has no parent node")
+                        raise ValueError(f"{item.text(0)} subgroup has no parent node")
                     
                     # Extract node name safely
                     node_name = node_item.text(0).split(' ', 1)[0].strip()
                     if not node_name:
                         raise ValueError("Node item text is empty")
                     
-                    print(f"[Context Menu] Valid structure detected:")
-                    print(f"  Node: {node_name} ({node_item.text(0)})")
-                    print(f"  Subgroup: {item.text(0)}")
+                    logging.debug(f"Context menu valid structure detected:")
+                    logging.debug(f"  Node: {node_name} ({node_item.text(0)})")
+                    logging.debug(f"  Subgroup: {item.text(0)}")
 
                     # Create context menu action after validation
-                    action_text = f"Print All FieldBus Structures for {node_name}"
+                    action_text = f"Print All {item.text(0)} Tokens for {node_name}"
                     action = QAction(action_text, self)
-                    action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
+                    if item.text(0) == "FBC":
+                        action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
+                    else:
+                        action.triggered.connect(lambda: self.process_all_rpc_subgroup_commands(item))
                     menu.addAction(action)
                     
-                    # Add new Print FBC Tokens submenu
-                    tokens_submenu = QMenu("Print FBC Tokens", self)
+                    # Add new Print Tokens submenu
+                    tokens_submenu = QMenu(f"Print {item.text(0)} Tokens", self)
                     added_tokens = False
                     
                     # Get node tokens
                     node = self.node_manager.get_node(node_name)
                     if node:
                         for token in node.tokens.values():
-                            if token.token_type == "FBC":
+                            if token.token_type == item.text(0):
                                 token_id = token.token_id
                                 token_action = QAction(f"Token {token_id}", self)
                                 token_action.triggered.connect(
-                                    lambda checked, t=token_id, n=node_name: self._print_fbc_tokens_sequentially(t, n)
+                                    lambda checked, t=token_id, n=node_name, tt=item.text(0):
+                                        self._print_tokens_sequentially(t, n, tt)
                                 )
                                 tokens_submenu.addAction(token_action)
                                 added_tokens = True
@@ -169,18 +179,18 @@ class CommanderWindow(QMainWindow):
                     added_actions = True
                     
                 except Exception as e:
-                    print(f"[Context Menu] Structure validation failed: {str(e)}")
+                    logging.error(f"Context menu structure validation failed: {str(e)}")
                     return
                 
                 
             if added_actions:
                 # Show menu at cursor position
                 menu.exec(self.node_tree.viewport().mapToGlobal(position))
-                print(f"[Context Menu] Displayed menu with {len(menu.actions())} actions")
+                logging.debug(f"Context menu displayed with {len(menu.actions())} actions")
             else:
-                print(f"[Context Menu] No applicable actions for this item")
+                logging.debug("Context menu - no applicable actions for this item")
         except Exception as e:
-            print(f"[Context Menu] Error: {str(e)}")
+            logging.error(f"Context menu error: {str(e)}")
             
     def process_fieldbus_node(self, node_name):
         """Process fieldbus structure commands for all FBC tokens in a node"""
@@ -203,33 +213,68 @@ class CommanderWindow(QMainWindow):
             
         self.statusBar().showMessage(f"Fieldbus commands executed for {len(fbc_tokens)} tokens", self.STATUS_MSG_SHORT)
             
-    def _print_fbc_tokens_sequentially(self, token_id, node_name):
-        """Print token values sequentially for the given token"""
-        try:
-            self.fbc_service.queue_fieldbus_command(node_name, token_id)
-        except Exception as e:
-            self._report_error("Error processing fieldbus command", e)
-        except ConnectionRefusedError as e:
-            self._report_error("Connection refused", e)
-        except TimeoutError as e:
-            self._report_error("Connection timed out", e)
-            
     def _report_error(self, message: str, exception: Exception = None, duration: int = None):
         """Centralized error reporting with logging and status bar updates"""
         duration = duration or self.STATUS_MSG_MEDIUM
         error_msg = f"{message}: {str(exception)}" if exception else message
         logging.error(error_msg)
         self.status_message_signal.emit(error_msg, duration)
-        print(f"[ERROR] {error_msg}")
+        logging.error(error_msg)
         
+    def _print_tokens_sequentially(self, token_id, node_name, token_type):
+        """Print token values sequentially for the given token"""
+        try:
+            if token_type == "FBC":
+                self.fbc_service.queue_fieldbus_command(node_name, token_id)
+            else:
+                self.rpc_service.queue_rpc_command(node_name, token_id, "print")
+        except Exception as e:
+            self._report_error(f"Error processing {token_type} command", e)
+        except ConnectionRefusedError as e:
+            self._report_error("Connection refused", e)
+        except TimeoutError as e:
+            self._report_error("Connection timed out", e)
+
     def _handle_fbc_error(self, error_msg: str):
         """Handle FBC service errors by reporting them"""
         self._report_error("FBC Service Error", Exception(error_msg))
+
+    def process_all_rpc_subgroup_commands(self, item):
+        """Process all RPC commands using command queue"""
+        try:
+            # Get node name from item hierarchy
+            section_item = item.parent()
+            if not section_item:
+                raise ValueError("RPC subgroup has no parent section")
+            node_item = section_item.parent()
+            if not node_item:
+                raise ValueError(f"Section {section_item.text(0)} has no parent node")
+            node_name = node_item.text(0).split(' ', 1)[0].strip()
             
-    def _handle_fbc_error(self, error_msg: str):
-        """Handle FBC service errors by reporting them"""
-        self._report_error("FBC Service Error", Exception(error_msg))
+            node = self.node_manager.get_node(node_name)
+            if not node:
+                self.status_message_signal.emit(f"Node {node_name} not found", self.STATUS_MSG_SHORT)
+                return
+                
+            # Find all RPC tokens in the node
+            rpc_tokens = [t for t in node.tokens.values() if t.token_type == "RPC"]
+            if not rpc_tokens:
+                self.status_message_signal.emit(f"No RPC tokens found in node {node_name}", self.STATUS_MSG_SHORT)
+                return
+                
+            self.status_message_signal.emit(f"Processing {len(rpc_tokens)} RPC tokens in node {node_name}...", 0)
             
+            # Queue commands for all RPC tokens
+            for token in rpc_tokens:
+                command_text = f"print from fbc rupi counters {token.token_id}0000"
+                self.command_queue.add_command(command_text, token)
+                
+            self.status_message_signal.emit(f"Queued {len(rpc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
+            self.command_queue.start_processing()
+            
+        except Exception as e:
+            self.status_message_signal.emit(f"Error processing RPC commands: {str(e)}", self.STATUS_MSG_MEDIUM)
+
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
         try:
@@ -261,7 +306,12 @@ class CommanderWindow(QMainWindow):
             action_name = "Print" if action_type == "print" else "Clear"
             self.statusBar().showMessage(
                 f"{action_name} Rupi counters for token {token_id}", 3000)
+        except ValueError as e:
+            self._report_error("Invalid RPC command parameters", e)
+        except AttributeError as e:
+            self._report_error("UI component access error", e)
         except Exception as e:
+            logging.error(f"Unexpected error in RPC command setup: {str(e)}")
             self._report_error("RPC command setup failed", e)
             
     def __init__(self):
@@ -274,6 +324,27 @@ class CommanderWindow(QMainWindow):
         
         # Load application settings
         self.settings = QSettings("CommanderLogCreator", "Settings")
+
+        # Core components needed for services
+        self.node_manager = NodeManager()
+        self.command_queue = CommandQueue()
+        self.command_queue.command_completed.connect(self._handle_queued_command_result)
+
+        # Initialize RPC Command Service
+        self.rpc_service = RpcCommandService(self.node_manager, self.command_queue, self)
+        self.rpc_service.set_command_text.connect(self.set_cmd_input_text_signal)
+        self.rpc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
+        self.rpc_service.focus_command_input.connect(self.set_cmd_focus_signal)
+        self.rpc_service.status_message.connect(self.status_message_signal)
+        self.rpc_service.report_error.connect(lambda msg: self._report_error("RPC Service Error", Exception(msg)))
+        
+        # Initialize FBC Command Service
+        self.fbc_service = FbcCommandService(self.node_manager, self.command_queue, self)
+        self.fbc_service.set_command_text.connect(self.set_cmd_input_text_signal)
+        self.fbc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
+        self.fbc_service.focus_command_input.connect(self.set_cmd_focus_signal)
+        self.fbc_service.status_message.connect(self.status_message_signal)
+        self.fbc_service.report_error.connect(lambda msg: self._report_error("FBC Service Error", Exception(msg)))
         
         # Dark theme with grey/neutral accents
         self.setStyleSheet("""
@@ -362,13 +433,10 @@ class CommanderWindow(QMainWindow):
         """)
         
         # Core components
-        self.node_manager = NodeManager()
         self.session_manager = SessionManager()
         self.log_writer = LogWriter(self.node_manager)
         self.command_resolver = CommandResolver()
         self.command_history = CommandHistory()
-        self.command_queue = CommandQueue()
-        self.command_queue.command_completed.connect(self._handle_queued_command_result)
         
         # FBC Command Service
         self.fbc_service = FbcCommandService(self.node_manager, self.command_queue, self)
@@ -376,7 +444,7 @@ class CommanderWindow(QMainWindow):
         self.fbc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
         self.fbc_service.focus_command_input.connect(self.set_cmd_focus_signal)
         self.fbc_service.status_message.connect(self.status_message_signal)
-        self.fbc_service.report_error.connect(self._handle_fbc_error)
+        self.fbc_service.report_error.connect(lambda msg: self._report_error("FBC Service Error", Exception(msg)))
         
         # State tracking
         self.current_token = None
@@ -411,7 +479,7 @@ class CommanderWindow(QMainWindow):
                     self.node_manager.scan_log_files()
                     self.populate_node_tree()
         except Exception as e:
-            print(f"Error loading default configuration: {e}")
+            logging.error(f"Error loading default configuration: {e}")
             
         # Load saved telnet connection
         telnet_ip = self.settings.value("telnet_ip", "")
@@ -435,7 +503,7 @@ class CommanderWindow(QMainWindow):
                 self.node_manager.scan_log_files()
                 self.populate_node_tree()
             else:
-                print("Error loading node configuration")
+                logging.error("Error loading node configuration")
     
     def set_log_root_folder(self):
         """Set the root folder for log files"""
@@ -469,7 +537,7 @@ class CommanderWindow(QMainWindow):
         # Install event filter for node_tree
         self.node_tree = QTreeWidget()
         self.node_tree.installEventFilter(self)
-        print("Node tree event filter installed")
+        logging.debug("Node tree event filter installed")
         
         # Toolbar with buttons
         toolbar_layout = QHBoxLayout()
@@ -492,7 +560,7 @@ class CommanderWindow(QMainWindow):
         self.node_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.node_tree.customContextMenuRequested.connect(self.show_context_menu)
         self.node_tree.installEventFilter(self)
-        print("Node tree context menu handling installed")
+        logging.debug("Node tree context menu handling installed")
 
     # Removed event filter implementation
         
@@ -613,46 +681,105 @@ class CommanderWindow(QMainWindow):
         return tab
         
     def populate_node_tree(self):
-        """Optimized tree population with glob patterns and reduced complexity"""
+        """Lazy-loading tree population - only loads top-level nodes initially"""
         self.node_tree.clear()
+        self.node_tree.itemExpanded.connect(self._handle_item_expanded)
         
         for node in self.node_manager.get_all_nodes():
             node_item = self._create_node_item(node)
-            if not node_item:
-                continue
-                
-            added_sections = False
-            sections = {
-                "FBC": self._add_section("FBC", node, "FBC", ['.fbc', '.log', '.txt']),
-                "RPC": self._add_section("RPC", node, "RPC", ['.rpc', '.log', '.txt']),
-                "LOG": self._add_section("LOG", node, "LOG", ['.log']),
-                "LIS": self._add_section("LIS", node, "LIS", ['.lis'])
-            }
-            
-            for section_type, section_data in sections.items():
-                if section_data["items"]:
-                    section = QTreeWidgetItem([section_type])
-                    section.setIcon(0, get_token_icon() if section_type in ("FBC", "RPC")
-                                   else QIcon(":/icons/page.png"))
-                    for item in section_data["items"]:
-                        section.addChild(item)
-                    node_item.addChild(section)
-                    added_sections = True
-            
-            if not added_sections:
-                no_files = QTreeWidgetItem(["No files found for this node"])
-                no_files.setIcon(0, QIcon(":/icons/warning.png"))
-                node_item.addChild(no_files)
-            
-            self.node_tree.addTopLevelItem(node_item)
+            if node_item:
+                # Add placeholder child that will trigger loading when expanded
+                placeholder = QTreeWidgetItem(["Click to load..."])
+                placeholder.setData(0, Qt.ItemDataRole.UserRole, {"node": node.name, "type": "placeholder"})
+                node_item.addChild(placeholder)
+                self.node_tree.addTopLevelItem(node_item)
+                logging.debug(f"Added node with placeholder: {node.name}")
         
-        self.node_tree.expandAll()
+    def _handle_item_expanded(self, item):
+        """Handle lazy loading of node children when expanded"""
+        logging.debug(f"Item expanded: {item.text(0)}")
+        data = item.data(0, Qt.ItemDataRole.UserRole)
+        # Check if expanded item is a node with placeholder child
+        if data and data.get("type") == "node":
+            # Find placeholder child (if exists)
+            for i in range(item.childCount()):
+                child = item.child(i)
+                child_data = child.data(0, Qt.ItemDataRole.UserRole)
+                if child_data and child_data.get("type") == "placeholder":
+                    item.removeChild(child)
+                    logging.debug(f"Removed placeholder for node: {item.text(0)}")
+                    self._load_node_children(item)
+                    break  # Only remove first placeholder found
+        else:
+            logging.debug("Expanded item is not a node or has no placeholder")
+    
+    def _load_node_children(self, node_item):
+        """Load actual children for a node"""
+        # Get node name from stored user data
+        data = node_item.data(0, Qt.ItemDataRole.UserRole)
+        if not data or data.get("type") != "node":
+            logging.debug("_load_node_children: Item is not a node")
+            return
+            
+        node_name = data["node_name"]
+        logging.debug(f"_load_node_children: Loading children for node: {node_name}")
+        node = self.node_manager.get_node(node_name)
+        if not node:
+            logging.debug(f"_load_node_children: Node {node_name} not found")
+            return
+            
+        added_sections = False
+        
+        # Create sections for each token type
+        sections = [
+            ("FBC", self._add_section("FBC", node, "FBC", ['.fbc', '.log', '.txt'])),
+            ("RPC", self._add_section("RPC", node, "RPC", ['.rpc', '.log', '.txt'])),
+            ("LOG", self._add_section("LOG", node, "LOG", ['.log'])),
+            ("LIS", self._add_section("LIS", node, "LIS", ['.lis']))
+        ]
+        
+        logging.debug(f"_load_node_children: Processing sections for node: {node.name}")
+        for section_type, section_data in sections:
+            logging.debug(f"_load_node_children: Processing {section_type} section")
+            logging.debug(f"_load_node_children: Section data: items={len(section_data['items'])}")
+            
+            # Always create the section item even if no files are found
+            section = QTreeWidgetItem([section_type])
+            section.setIcon(0, get_token_icon() if section_type in ("FBC", "RPC")
+                           else QIcon(":/icons/page.png"))
+            
+            if section_data["items"]:
+                logging.debug(f"_load_node_children: Adding {len(section_data['items'])} files to {section_type} section")
+                for item in section_data["items"]:
+                    section.addChild(item)
+                logging.debug(f"_load_node_children: Added {section_type} section with {section_data['count']} items")
+            else:
+                # Add placeholder text if no files found
+                placeholder = QTreeWidgetItem(["No files found"])
+                placeholder.setIcon(0, QIcon(":/icons/warning.png"))
+                section.addChild(placeholder)
+                logging.debug(f"_load_node_children: No items found for {section_type} section")
+            
+            node_item.addChild(section)
+            added_sections = True
+            logging.debug(f"_load_node_children: Added {section_type} subsection to node tree")
+        
+        if not added_sections:
+            no_files = QTreeWidgetItem(["No files found for this node"])
+            no_files.setIcon(0, QIcon(":/icons/warning.png"))
+            node_item.addChild(no_files)
+            logging.debug(f"_load_node_children: No files found for node: {node_name}")
         
     def _create_node_item(self, node):
         """Create node tree item with status icon"""
         node_item = QTreeWidgetItem([f"{node.name} ({node.ip_address})"])
         node_item.setIcon(0, get_node_online_icon() if node.status == "online"
                          else get_node_offline_icon())
+        # Store node name in user data for later retrieval
+        node_item.setData(0, Qt.ItemDataRole.UserRole, {
+            "type": "node",
+            "node_name": node.name
+        })
         
         # Check log root
         log_root = self.node_manager.log_root
@@ -666,18 +793,37 @@ class CommanderWindow(QMainWindow):
         
     def _add_section(self, section_type, node, dir_name, extensions):
         """Add file items to section using glob patterns for efficiency"""
-        section_dir = os.path.join(self.node_manager.log_root, dir_name, node.name)
+        # For LOG files, directory is <log_root>/LOG/<node.name>
+        # For others, it's <log_root>/<dir_name>/<node.name>
+        if section_type == "LOG":
+            section_dir = os.path.join(self.node_manager.log_root, "LOG")
+        else:
+            section_dir = os.path.join(self.node_manager.log_root, dir_name, node.name)
+            
         items = []
         
         if not os.path.isdir(section_dir):
+            logging.debug(f"Directory not found: {section_dir}")
             return {"items": items, "count": 0}
             
         # Process files matching patterns
         for ext in extensions:
-            pattern = os.path.join(section_dir, f"{node.name}_*{ext}")
-            for file_path in glob.glob(pattern):
+            if section_type == "LOG":
+                pattern = os.path.join(section_dir, f"{node.name}_*.log")
+                logging.debug(f"LOG SECTION DEBUG: Scanning directory: {section_dir}")
+                logging.debug(f"LOG SECTION DEBUG: Using pattern: {pattern}")
+            else:
+                pattern = os.path.join(section_dir, f"{node.name}_*{ext}")
+                
+            logging.debug(f"Scanning for {section_type} files with pattern: {pattern}")
+            files_found = glob.glob(pattern)
+            logging.debug(f"Found {len(files_found)} files matching pattern")
+            
+            for file_path in files_found:
                 filename = os.path.basename(file_path)
                 token_id = self._extract_token_id(filename, node.name, section_type)
+                
+                logging.debug(f"LOG SECTION DEBUG: Processing file: {filename} | Extracted token: {token_id}")
                 
                 if not token_id and section_type != "LOG":
                     continue  # Skip invalid tokens except for LOG
@@ -687,23 +833,32 @@ class CommanderWindow(QMainWindow):
                     token_id, section_type
                 )
                 items.append(file_item)
+                logging.debug(f"Found {section_type} file: {filename}")
                 
+        logging.debug(f"Total {section_type} files found: {len(items)}")
+        if section_type == "LOG" and len(items) == 0:
+            logging.warning("No LOG files found! Possible causes:")
+            logging.warning(f"1. Directory doesn't exist: {section_dir}")
+            logging.warning(f"2. Pattern mismatch: {pattern}")
+            logging.warning(f"3. Token extraction failed for existing files")
         return {"items": items, "count": len(items)}
         
     def _extract_token_id(self, filename, node_name, section_type):
         """Extract token ID from filename based on section type"""
         if section_type == "LOG":
-            return None
+            # Use the filename without extension as token ID
+            return os.path.splitext(filename)[0]
             
         try:
             if section_type == "FBC":
-                match = re.search(rf"^{re.escape(node_name)}_[\d\.-]+_([\w-]+)\.", filename)
-                return match.group(1) if match else None
+                match = self.FBC_TOKEN_PATTERN.match(filename)
+                return match.group(2) if match and match.group(1) == node_name else None
             elif section_type == "RPC":
-                return filename.rsplit('_', 1)[-1].split('.')[0]
-            elif section_type == "LIS":
-                match = re.search(rf"^{re.escape(node_name)}_[\d-]+_([\d\w-]+)\.lis$", filename)
+                match = self.RPC_TOKEN_PATTERN.search(filename)
                 return match.group(1) if match else None
+            elif section_type == "LIS":
+                match = self.LIS_TOKEN_PATTERN.match(filename)
+                return match.group(2) if match and match.group(1) == node_name else None
         except (IndexError, AttributeError):
             return None
             
@@ -728,7 +883,7 @@ class CommanderWindow(QMainWindow):
     def on_node_selected(self, item: QTreeWidgetItem, column: int):
         """Handles node/token selection in left pane"""
         if data := item.data(0, Qt.ItemDataRole.UserRole):
-            print(f"[DEBUG] Selected item data: {data}")  # Debug logging
+            logging.debug(f"Selected item data: {data}")
             logging.debug(f"Node selected: {item.text(0)}")
             # Check if we have token and node information in the data
             token_id = data.get("token")
@@ -740,7 +895,7 @@ class CommanderWindow(QMainWindow):
                 log_path = data.get("log_path", "")
                 file_extension = os.path.splitext(log_path)[1][1:].upper() if log_path else "UNKNOWN"
                 token_type = file_extension if file_extension in {'FBC','RPC','LOG','LIS'} else 'UNKNOWN'
-                print(f"[DEBUG] Creating token from file: {log_path} | Type: {token_type}")
+                logging.debug(f"Creating token from file: {log_path} | Type: {token_type}")
                 
                 # Create token instance using file-derived type
                 token = NodeToken(
@@ -794,7 +949,7 @@ class CommanderWindow(QMainWindow):
                         token,
                         actual_log_path
                     )
-                    print(f"[DEBUG] Displaying log: {os.path.basename(actual_log_path)}")  # Debug logging
+                    logging.debug(f"Displaying log: {os.path.basename(actual_log_path)}")
                     # Display exact filename with extension
                     full_filename = os.path.basename(actual_log_path)
                     self.statusBar().showMessage(f"Log ready: {full_filename}")
@@ -974,10 +1129,10 @@ class CommanderWindow(QMainWindow):
         """Handle completed commands from the queue"""
         if success:
             self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
-            print(f"Command completed successfully: {command}\nResult: {result}")
+            logging.info(f"Command completed successfully: {command}\nResult: {result}")
         else:
             self.status_message_signal.emit(f"Command failed: {command} - {result}", 5000)
-            print(f"Command failed: {command}\nError: {result}")
+            logging.error(f"Command failed: {command}\nError: {result}")
     
     def _validate_node(self, item) -> bool:
         """Validate node structure before processing"""
@@ -993,7 +1148,7 @@ class CommanderWindow(QMainWindow):
             self.status_message_signal.emit("No node selected! Select a node first.", 3000)
             return []
             
-        print(f"Selected node: {node.name} ({node.ip_address})")
+        logging.debug(f"Selected node: {node.name} ({node.ip_address})")
         return [t for t in node.tokens.values()
                 if t.token_type == "FBC" and self.command_queue.validate_token()(t)]
     
@@ -1027,11 +1182,11 @@ class CommanderWindow(QMainWindow):
                                     node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
                                     log_path = self.log_writer.open_log(node.name, node_ip, self.current_token)
                                 
-                                print(f"[CommanderWindow] Writing to log - Token: {self.current_token.token_id}, Content length: {len(response)}")  # Debug log write
+                                logging.debug(f"Writing to log - Token: {self.current_token.token_id}, Content length: {len(response)}")
                                 self.log_writer.append_to_log(self.current_token.token_id, response, protocol=self.current_token.token_type)
                                 self.status_message_signal.emit(f"Command output appended to {os.path.basename(log_path)}", 3000)
                             except Exception as e:
-                                print(f"[DEBUG] Log write error: {str(e)}")
+                                logging.error(f"Log write error: {str(e)}")
                                 self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
                         else:
                             self.status_message_signal.emit("Empty response - not logged", 3000)
