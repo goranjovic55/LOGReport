@@ -8,9 +8,13 @@
 - Architecture overview document
 - Component-specific documentation:
   - CommanderWindow with UI workflow examples
-  - NodeManager with configuration examples  
+  - NodeManager with configuration examples
   - CommandServices with API usage
   - LogWriter with file format specifications
+- Automatic output logging for context menu commands:
+  - Command output is automatically captured and written to selected log files
+  - Includes error handling and status messages
+  - Supports both manual and automatic command execution
 - Troubleshooting guide for common issues
 
 ### Changed
@@ -28,3 +32,5 @@
   - Extracts tokens from filenames without extension
 - Minor documentation inaccuracies in method descriptions
 - Updated outdated configuration examples
+- Fixed SyntaxError in commander_window.py (line 1185) - corrected incomplete ternary operator to valid Python syntax
+- Fixed Telnet command output redirection - responses now correctly display in terminal when executing via right-click on .fbc/.rpc files while maintaining manual log writing capability

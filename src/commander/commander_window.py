@@ -77,6 +77,9 @@ class CommanderWindow(QMainWindow):
                 logging.debug("Context menu - no item at position")
                 return
                 
+            # Ensure the item is selected to set current_token
+            self.node_tree.setCurrentItem(item)
+                
             logging.debug(f"Context menu found item: {item.text(0)}")
             data = item.data(0, Qt.ItemDataRole.UserRole)
             menu = QMenu(self.node_tree)
@@ -114,13 +117,16 @@ class CommanderWindow(QMainWindow):
                     elif token_type == "RPC":
                         logging.debug("Context menu creating context menu for RPC item")
                         
+                        # Extract numerical token part (last segment after underscore)
+                        display_token = token_id.split('_')[-1] if '_' in token_id else token_id
+                        
                         # Print Rupi Counters action
-                        print_action = QAction(f"Print Rupi counters Token '{token_id}'", self)
+                        print_action = QAction(f"Print Rupi counters Token '{display_token}'", self)
                         print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
                         menu.addAction(print_action)
                         
                         # Clear Rupi Counters action
-                        clear_action = QAction(f"Clear Rupi counters '{token_id}'", self)
+                        clear_action = QAction(f"Clear Rupi counters '{display_token}'", self)
                         clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
                         menu.addAction(clear_action)
                         added_actions = True
@@ -285,7 +291,7 @@ class CommanderWindow(QMainWindow):
             self._report_error("Unexpected error processing command", e)
             
     def process_rpc_command(self, token_id, action_type):
-        """Process RPC commands with token validation"""
+        """Process RPC commands with token validation and auto-execute"""
         if action_type not in ["print", "clear"]:
             return
             
@@ -300,9 +306,16 @@ class CommanderWindow(QMainWindow):
                 else f"clear fbc rupi counters {token_num}0000"
             )
             
+            # Log context menu command initiation
+            logging.debug(f"Context menu command: {action_type} for token {token_id}")
+            
+            # Set command and switch to telnet tab
             self.cmd_input.setPlainText(command_text)
             self.session_tabs.setCurrentWidget(self.telnet_tab)
             self.cmd_input.setFocus()
+            
+            # Execute command immediately
+            self.execute_telnet_command(automatic=True)
             
             action_name = "Print" if action_type == "print" else "Clear"
             self.statusBar().showMessage(
@@ -1159,44 +1172,38 @@ class CommanderWindow(QMainWindow):
         :param response: The command response text.
         :param automatic: True if the command was triggered automatically (e.g., from context menu).
         """
+        # Always display response in terminal for both manual and automatic commands
+        self.telnet_output.append(response)
+        self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
+        
         if not automatic:
-            # For manually executed commands, update the telnet output and re-enable the button.
-            self.telnet_output.append(response)
-            self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
+            # For manual commands: re-enable button and clear input
             self.execute_btn.setEnabled(True)
             self.cmd_input.clear()
-        else:
-            # Handle automatic commands (from context menu)
-            if self.current_token:
+            
+            # Only write to log for manual commands when explicitly requested
+            if self.current_token and response.strip():
                 try:
                     node = self.node_manager.get_node_by_token(self.current_token)
                     if node:
-                        # Ensure node details are correct
                         node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
-                        self.log_writer.open_log(node.name, node_ip, self.current_token)
-                        if response.strip():
-                            try:
-                                # Use existing log path or open new one
-                                log_path = self.log_writer.log_paths.get(self.current_token.token_id)
-                                if not log_path:
-                                    node = self.node_manager.get_node_by_token(self.current_token)
-                                    node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
-                                    log_path = self.log_writer.open_log(node.name, node_ip, self.current_token)
-                                
-                                logging.debug(f"Writing to log - Token: {self.current_token.token_id}, Content length: {len(response)}")
-                                self.log_writer.append_to_log(self.current_token.token_id, response, protocol=self.current_token.token_type)
-                                self.status_message_signal.emit(f"Command output appended to {os.path.basename(log_path)}", 3000)
-                            except Exception as e:
-                                logging.error(f"Log write error: {str(e)}")
-                                self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
-                        else:
-                            self.status_message_signal.emit("Empty response - not logged", 3000)
+                        log_path = self.log_writer.log_paths.get(self.current_token.token_id)
+                        if not log_path:
+                            log_path = self.log_writer.open_log(node.name, node_ip, self.current_token)
+                            
+                        self.log_writer.append_to_log(self.current_token.token_id, response, protocol=self.current_token.token_type)
+                        self.status_message_signal.emit(f"Command output appended to {os.path.basename(log_path)}", 3000)
                     else:
                         self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
                 except Exception as e:
-                    self.status_message_signal.emit(f"Error writing to log: {str(e)}", 3000)
+                    logging.error(f"Log write error: {str(e)}")
+                    self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
+        else:
+            # For automatic commands: just show status message
+            if response.strip():
+                self.status_message_signal.emit("Command executed successfully", 3000)
             else:
-                self.status_message_signal.emit("No active token selected", 3000)
+                self.status_message_signal.emit("Empty response received", 3000)
             
     def copy_to_log(self):
         """Copies current session content to selected token or log file"""

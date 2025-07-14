@@ -8,6 +8,15 @@
 - **Log File Structure**: Maintain consistent log directory structure (`log_root/LOG/`) for all log files.
 - **Log Naming Pattern**: Use standardized log file naming pattern (`{node.name}_*.log`) for easy identification and parsing.
 - **Token Extraction**: Extract tokens from log filenames without extensions for consistent processing.
+- **Parsing Utilities**: Centralize filename parsing logic into dedicated utility modules for maintainability.
+
+- **Output Destination Management**: Use OutputDestination enum for clear output handling configuration
+- **UI Update Decoupling**: Centralize UI updates via signals to separate presentation logic
+- **LogWriter Enhancements**: Extend LogWriter capabilities for flexible output management
+- **Debug Logging Strategy**: Implement configurable logging levels for better debugging visibility
+- **Code Quality**: Implement automated linting/static analysis to catch syntax errors early
+- **Pre-commit Hooks**: Utilize pre-commit hooks for local syntax validation
+- **Code Review**: Strengthen code review focus on Pythonic syntax and idioms
 
 **Usage**:
 Kilo Code will automatically apply these rules across all modes. If it suggests creating files or performing refactors, ensure it adheres to this structure—otherwise, prompt correction ("Follow the rule in `.kilocode/rules/structure.md`).
