@@ -84,6 +84,7 @@ class CommanderWindow(QMainWindow):
             data = item.data(0, Qt.ItemDataRole.UserRole)
             menu = QMenu(self.node_tree)
             added_actions = False
+            logging.debug(f"DEBUG: Context menu item data: {data}")
 
             # Handle token items
             if data and isinstance(data, dict):
@@ -326,6 +327,10 @@ class CommanderWindow(QMainWindow):
             self.cmd_input.setPlainText(command_text)
             self.session_tabs.setCurrentWidget(self.telnet_tab)
             self.cmd_input.setFocus()
+            
+            # Display command in terminal before execution
+            self.telnet_output.append(f"> {command_text}")
+            self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
             
             # Execute command immediately
             self.execute_telnet_command(automatic=True)
@@ -1074,6 +1079,7 @@ class CommanderWindow(QMainWindow):
             return ""
             
         logging.debug(f"Executing telnet command: {command}")
+        logging.debug(f"DEBUG: Automatic={automatic}, Current token: {self.current_token.token_id if self.current_token else 'None'}")
 
         if not automatic:
             self.command_history.add(command)
@@ -1187,8 +1193,11 @@ class CommanderWindow(QMainWindow):
         """
         logging.info(f"Telnet command finished (automatic={automatic}), response length: {len(response)}")
         
-        # Always display response in terminal for both manual and automatic commands
-        self.telnet_output.append(response)
+        # For automatic commands, show command + response
+        if automatic:
+            self.telnet_output.append(f"{response}\n")
+        else:
+            self.telnet_output.append(response)
         self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
         
         if not automatic:

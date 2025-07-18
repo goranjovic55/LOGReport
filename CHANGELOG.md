@@ -1,6 +1,17 @@
 # Changelog
 
 ## [Unreleased] - 2025-07-18
+### Added
+- Size-based log rotation in LogWriter:
+  - Implemented 10MB max file size with 5 backup files
+  - Uses Python's RotatingFileHandler for reliable rotation
+  - Preserves existing LSR header writing functionality
+  - Improved logger cleanup in close methods
+- Enhanced commander window display:
+  - Improved context menu handling and logging
+  - Added detailed debug logging for command execution
+  - Streamlined token processing workflow
+
 ### Fixed
 - Debugging session for multiple context menu and log file errors:
   - `QMenu` not defined in commander_window.py
@@ -10,6 +21,7 @@
   - Removed unnecessary `try` block at line 1190
   - Corrected indentation of subsequent code
   - Fixed typo (`Q极TextCursor` to `QTextCursor`) at line 1193
+- Fixed AttributeError in log_writer.py for token handling
 - Reverted changes via `git reset --hard` to previous stable commit
 
 ## [1.1.0] - 2025-07-14

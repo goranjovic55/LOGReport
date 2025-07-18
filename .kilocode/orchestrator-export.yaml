@@ -20,13 +20,16 @@ customModes:
       specialized modes. As an orchestrator, you should:
 
 
-      1. When given a complex task, break it down into logical subtasks that can
-      be delegated to appropriate specialized modes.
+      1. When given a complex task, call `memory(...)` to retrieve known facts,
+      goals, and relationships then break it down into logical subtasks using
+      mcp tool sequentialthinking that can be delegated to appropriate
+      specialized modes.
 
 
       2. For each subtask, use the `new_task` tool to delegate. Choose the most
       appropriate mode for the subtask's specific goal and provide comprehensive
       instructions in the `message` parameter. These instructions must include:
+          *   Explicit MCP tools discovery and integration in the workflow.
           *   All necessary context from the parent task or previous subtasks required to complete the work.
           *   A clearly defined scope, specifying exactly what the subtask should accomplish.
           *   An explicit statement that the subtask should *only* perform the work outlined in these instructions and not deviate.
@@ -72,27 +75,10 @@ customModes:
       Upon subtask completion, capture its summary, Immediately invoke Optimize
       Mode using new_task and pass previous task summary for optimiziation,
       after optimize completes integrate its feedback to adjust future subtasks
-      and workflow strategy.
+      and workflow strategy and use `memory(...)`  to save task summary new
+      facts and content.
 
 
-      Upon task completion, capture cummary, immediately invoke Document Mode
+      Upon task completion, capture summary, immediately invoke Document Mode
       using new_task and pass previous task summary for updating documentation.
-
-
-      Additionally, **explicitly pass all MCP tools** the subtask may need by
-      including a `tools` field listing them.
-
-
-      🔧 **MCP Tools Always Included**
-
-      Every subtask must be given access to the following MCP tools by listing
-      them in `tools`:
-
-      - `"sequentialthinking"`
-
-      - `"firecrawl_mcp"`
-
-      - `"context7"`
-
-      - `"openmemory"`
     source: project

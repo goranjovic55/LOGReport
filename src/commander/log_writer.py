@@ -5,6 +5,7 @@ Manages writing to node log files with LSR formatting
 """
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 import time
 from datetime import datetime
 from typing import Dict, TextIO
@@ -12,11 +13,8 @@ from typing import Dict, TextIO
 class LogWriter:
     def __init__(self, node_manager=None):
         super().__init__()
-        self.node极
-    def __init__(self, node_manager=None):
-        super().__init__()
         self.node_manager = node_manager
-        self.log_handles: Dict[str, TextIO] = {}
+        self.loggers: Dict[str, logging.Logger] = {}
         self.log_paths = {}
         self.thread_pool = None  # Will be set by CommanderWindow
         
@@ -66,14 +64,32 @@ class LogWriter:
             raise ValueError(f"Node name {node_name} doesn't match file's node {file_node}")
         self.log_paths[token_id_str] = log_path
         
-        if token_id_str not in self.log_handles:
-            is_new_file = not os.path.exists(log_path)
-            file_handle = open(log_path, 'a', encoding='utf-8')
-            self.log_handles[token_id_str] = file_handle
+        if token_id_str not in self.loggers:
+            # Create logger specific to this token
+            logger = logging.getLogger(f"commander.{token_id_str}")
+            logger.setLevel(logging.INFO)
             
-            # Write header for new files
-            if is_new_file:
-                self._write_header(node_name_str, token_id_str, log_type, file_handle)
+            # Create rotating file handler (10MB max, keep 5 backups)
+            handler = RotatingFileHandler(
+                log_path,
+                maxBytes=10*1024*1024,  # 10MB
+                backupCount=5,
+                encoding='utf-8',
+                delay=True  # Delay opening until first write to check file existence
+            )
+            
+            # Create formatter that just passes through messages (we format them ourselves)
+            handler.setFormatter(logging.Formatter('%(message)s'))
+            logger.addHandler(handler)
+            
+            # Check if file is new (handler creates it on first write)
+            # Ensure file is created by forcing first write
+            if not os.path.exists(log_path) or os.path.getsize(log_path) == 0:
+                # Create file and write header
+                with open(log_path, 'w', encoding='utf-8') as f:
+                    self._write_header(node_name, token_id_str, log_type, f)
+                    
+            self.loggers[token_id_str] = logger
                 
         return log_path
         
@@ -93,7 +109,7 @@ class LogWriter:
         """Appends content to log with protocol annotation"""
         try:
             logging.info(f"Attempting to append to log for token {token_id}")
-            if token_id not in self.log_handles:
+            if token_id not in self.loggers:
                 raise ValueError(f"No open log for token ID: {token_id}")
                 
             # Handle empty/null content
@@ -108,13 +124,10 @@ class LogWriter:
             timestamp = datetime.now().strftime('%H:%M:%S')
             
             try:
-                self.log_handles[token_id].write(f"{timestamp} >> {formatted}\n")
-                self.log_handles[token_id].flush()
+                # Use logger to write formatted message
+                self.loggers[token_id].info(f"{timestamp} >> {formatted}")
                 logging.info(f"Successfully appended to log for token {token_id}")
-                
-                # Get file size after write
-                file_size = os.path.getsize(self.log_paths[token_id])
-                logging.debug(f"Log file size: {file_size} bytes for {self.log_paths[token_id]}")
+                logging.debug(f"DEBUG: Wrote to log: {self.log_paths[token_id]}")
                 
             except IOError as e:
                 logging.error(f"Failed to write to log file {self.log_paths[token_id]}: {str(e)}")
@@ -126,14 +139,18 @@ class LogWriter:
         
     def close_log(self, token_id: str):
         """Closes log file for a specific token ID"""
-        if token_id in self.log_handles:
-            self.log_handles[token_id].close()
-            del self.log_handles[token_id]
+        if token_id in self.loggers:
+            logger = self.loggers[token_id]
+            # Remove and close all handlers
+            for handler in logger.handlers[:]:
+                handler.close()
+                logger.removeHandler(handler)
+            del self.loggers[token_id]
             del self.log_paths[token_id]
             
     def close_all_logs(self):
         """Closes all open log files"""
-        for token in list(self.log_handles.keys()):
+        for token in list(self.loggers.keys()):
             self.close_log(token)
             
     def get_log_path(self, token_id: str) -> str:
