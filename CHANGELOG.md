@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased] - 2025-07-18
+### Fixed
+- Debugging session for multiple context menu and log file errors:
+  - `QMenu` not defined in commander_window.py
+  - `CommanderWindow` missing `node_tree` reference
+  - `open_log_file()` missing `column` parameter
+- Fixed SyntaxError in commander_window.py:
+  - Removed unnecessary `try` block at line 1190
+  - Corrected indentation of subsequent code
+  - Fixed typo (`Q极TextCursor` to `QTextCursor`) at line 1193
+- Reverted changes via `git reset --hard` to previous stable commit
+
 ## [1.1.0] - 2025-07-14
 ### Added
 - Comprehensive developer documentation in .docs/ directory

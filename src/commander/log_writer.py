@@ -91,28 +91,38 @@ class LogWriter:
         
     def append_to_log(self, token_id: str, content: str, protocol: str):
         """Appends content to log with protocol annotation"""
-        print(f"[LogWriter] Received append request - Token: {token_id}, Protocol: {protocol}, Content length: {len(content)}")  # Debug input
-        if token_id not in self.log_handles:
-            raise ValueError(f"No open log for token ID: {token_id}")
+        try:
+            logging.info(f"Attempting to append to log for token {token_id}")
+            if token_id not in self.log_handles:
+                raise ValueError(f"No open log for token ID: {token_id}")
+                
+            # Handle empty/null content
+            safe_content = content.strip() if content else "<empty response>"
+            logging.debug(f"Sanitizing content for log: {self.log_paths[token_id]}")
             
-        # Handle empty/null content
-        safe_content = content.strip() if content else "<empty response>"
-        logging.debug(f"Sanitizing content for log: {self.log_paths[token_id]}")
-        
-        # Add source prefix if provided
-        prefix = f"[{protocol.upper()}] " if protocol else ""
-        formatted = prefix + safe_content
-        
-        # Add timestamp to each entry
-        timestamp = datetime.now().strftime('%H:%M:%S')
-        self.log_handles[token_id].write(f"{timestamp} >> {formatted}\n")
-        self.log_handles[token_id].flush()
-        
-        # Get file size after write
-        file_size = os.path.getsize(self.log_paths[token_id])
-        logging.debug(f"Log file size: {file_size} bytes for {self.log_paths[token_id]}")
-        logging.debug(f"Content written to log: {self.log_paths[token_id]}")
-        print(f"[LogWriter] Wrote {len(formatted)} chars to {self.log_paths[token_id]}")  # Debug write confirmation
+            # Add source prefix if provided
+            prefix = f"[{protocol.upper()}] " if protocol else ""
+            formatted = prefix + safe_content
+            
+            # Add timestamp to each entry
+            timestamp = datetime.now().strftime('%H:%M:%S')
+            
+            try:
+                self.log_handles[token_id].write(f"{timestamp} >> {formatted}\n")
+                self.log_handles[token_id].flush()
+                logging.info(f"Successfully appended to log for token {token_id}")
+                
+                # Get file size after write
+                file_size = os.path.getsize(self.log_paths[token_id])
+                logging.debug(f"Log file size: {file_size} bytes for {self.log_paths[token_id]}")
+                
+            except IOError as e:
+                logging.error(f"Failed to write to log file {self.log_paths[token_id]}: {str(e)}")
+                raise
+                
+        except Exception as e:
+            logging.error(f"Error in append_to_log for token {token_id}: {str(e)}", exc_info=True)
+            raise
         
     def close_log(self, token_id: str):
         """Closes log file for a specific token ID"""

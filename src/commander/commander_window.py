@@ -284,6 +284,19 @@ class CommanderWindow(QMainWindow):
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
         try:
+            # Get log path from current tree item if available
+            current_item = self.node_tree.currentItem()
+            log_path = None
+            if current_item:
+                item_data = current_item.data(0, Qt.ItemDataRole.UserRole)
+                if item_data and "log_path" in item_data:
+                    log_path = item_data["log_path"]
+            
+            # Pass log path to command queue via token
+            token = self.fbc_service.get_token(node_name, token_id)
+            if log_path and hasattr(token, 'log_path'):
+                token.log_path = log_path
+            
             self.fbc_service.queue_fieldbus_command(node_name, token_id)
         except (ConnectionRefusedError, TimeoutError) as e:
             self._report_error(f"{type(e).__name__} processing command", e)
@@ -1172,6 +1185,8 @@ class CommanderWindow(QMainWindow):
         :param response: The command response text.
         :param automatic: True if the command was triggered automatically (e.g., from context menu).
         """
+        logging.info(f"Telnet command finished (automatic={automatic}), response length: {len(response)}")
+        
         # Always display response in terminal for both manual and automatic commands
         self.telnet_output.append(response)
         self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
@@ -1184,23 +1199,52 @@ class CommanderWindow(QMainWindow):
             # Only write to log for manual commands when explicitly requested
             if self.current_token and response.strip():
                 try:
+                    logging.debug(f"Processing manual command for token {self.current_token.token_id}")
                     node = self.node_manager.get_node_by_token(self.current_token)
                     if node:
                         node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
                         log_path = self.log_writer.log_paths.get(self.current_token.token_id)
                         if not log_path:
+                            logging.debug(f"Opening new log for token {self.current_token.token_id}")
                             log_path = self.log_writer.open_log(node.name, node_ip, self.current_token)
                             
                         self.log_writer.append_to_log(self.current_token.token_id, response, protocol=self.current_token.token_type)
+                        logging.info(f"Successfully appended to log: {os.path.basename(log_path)}")
                         self.status_message_signal.emit(f"Command output appended to {os.path.basename(log_path)}", 3000)
                     else:
+                        logging.warning(f"Node not found for token {self.current_token.token_id}")
                         self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
+                except Exception as e:
+                    logging.error(f"Failed to write to log: {str(e)}", exc_info=True)
+                    self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
+        else:   # automatic commands
+            if response.strip() and self.current_token:
+                try:
+                    # Check if token has a direct log path (from context menu)
+                    log_path = getattr(self.current_token, 'log_path', None)
+                    if log_path:
+                        # Write directly to the specified log file
+                        with open(log_path, 'a') as f:
+                            f.write(response + "\n")
+                        self.status_message_signal.emit(
+                            f"Command output appended to {os.path.basename(log_path)}",
+                            3000
+                        )
+                    else:
+                        # Fall back to standard log writer
+                        self.log_writer.append_to_log(
+                            self.current_token.token_id,
+                            response,
+                            protocol=self.current_token.token_type
+                        )
+                        self.status_message_signal.emit(
+                            "Command output logged",
+                            3000
+                        )
                 except Exception as e:
                     logging.error(f"Log write error: {str(e)}")
                     self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
-        else:
-            # For automatic commands: just show status message
-            if response.strip():
+            elif response.strip():
                 self.status_message_signal.emit("Command executed successfully", 3000)
             else:
                 self.status_message_signal.emit("Empty response received", 3000)
