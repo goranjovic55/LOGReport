@@ -1,28 +1,33 @@
 # Changelog
 
-## [Unreleased] - 2025-07-18
+## [Unreleased] - 2025-07-19
 ### Added
-- Size-based log rotation in LogWriter:
-  - Implemented 10MB max file size with 5 backup files
-  - Uses Python's RotatingFileHandler for reliable rotation
-  - Preserves existing LSR header writing functionality
-  - Improved logger cleanup in close methods
-- Enhanced commander window display:
-  - Improved context menu handling and logging
-  - Added detailed debug logging for command execution
-  - Streamlined token processing workflow
+- Memory consolidation analysis for src/commander/ directory
+- Architectural documentation for core components:
+  - NodeToken and Node entity relationships
+  - CommanderWindow orchestration patterns
+  - Command service interfaces
+- New development guidelines:
+  - Explicit interface definitions
+  - Modular architecture principles
+  - Pre-development planning requirements
+- QueuedCommand dataclass for type-safe queue items in command_queue.py
+
+### Changed
+- Unified token handling across command services
+- Improved abstraction layers for features and services
+- Memory graph updated with merged duplicates and grouped clusters
+- SessionManager decoupled from CommandQueue by passing it directly via constructor
+- Streamlined automatic command logging logic by centralizing path resolution in LogWriter
 
 ### Fixed
-- Debugging session for multiple context menu and log file errors:
-  - `QMenu` not defined in commander_window.py
-  - `CommanderWindow` missing `node_tree` reference
-  - `open_log_file()` missing `column` parameter
-- Fixed SyntaxError in commander_window.py:
-  - Removed unnecessary `try` block at line 1190
-  - Corrected indentation of subsequent code
-  - Fixed typo (`Q极TextCursor` to `QTextCursor`) at line 1193
-- Fixed AttributeError in log_writer.py for token handling
-- Reverted changes via `git reset --hard` to previous stable commit
+- Duplicate code in token handling resolved
+- Missing abstraction layers identified and addressed
+- Naming inconsistencies cleaned up in memory graph
+- CommandWorker.run() now properly executes commands via TelnetSession
+- _handle_queued_command_result now correctly logs command results
+- TelnetSession is properly passed to CommandWorker during creation
+- Verified consistent logging behavior for both manual and automatic commands
 
 ## [1.1.0] - 2025-07-14
 ### Added

@@ -30,6 +30,10 @@ class LogWriter:
         
     def _generate_filename(self, node_name: str, node_ip: str, token_id: str, log_type: str) -> str:
         """Generates log file path using convention: test_logs/FBC/node_name/node_ip_token.fbc"""
+        # Validate log type
+        if log_type not in {'FBC', 'RPC', 'LOG', 'LIS'}:
+            log_type = 'LOG'
+            
         log_dir = os.path.join(self.node_manager.log_root, log_type, node_name)
         os.makedirs(log_dir, exist_ok=True)
         # Normalize IP address format to hyphens
@@ -38,6 +42,15 @@ class LogWriter:
         safe_token_id = "unknown-token" if not token_id else str(token_id).strip()
         filename = f"{node_name}_{normalized_ip}_{safe_token_id}.{log_type.lower()}"
         return os.path.join(log_dir, filename)
+
+    def get_log_path(self, node_name: str, node_ip: str, token: NodeToken) -> str:
+        """Returns the full path to a token's log file, creating directories if needed"""
+        return self._generate_filename(
+            node_name,
+            node_ip.replace('.', '-'),
+            token.token_id,
+            token.token_type
+        )
         
     def open_log(self, node_name: str, node_ip: str, token: NodeToken, log_path: str) -> str:
         """Opens a log file for writing. Creates LSR header if new file."""
@@ -114,7 +127,8 @@ class LogWriter:
                 
             # Handle empty/null content
             safe_content = content.strip() if content else "<empty response>"
-            logging.debug(f"Sanitizing content for log: {self.log_paths[token_id]}")
+            log_path = self.log_paths[token_id]
+            logging.debug(f"Sanitizing content for log: {log_path}")
             
             # Add source prefix if provided
             prefix = f"[{protocol.upper()}] " if protocol else ""
@@ -127,15 +141,17 @@ class LogWriter:
                 # Use logger to write formatted message
                 self.loggers[token_id].info(f"{timestamp} >> {formatted}")
                 logging.info(f"Successfully appended to log for token {token_id}")
-                logging.debug(f"DEBUG: Wrote to log: {self.log_paths[token_id]}")
+                logging.debug(f"Wrote to log: {log_path}")
                 
             except IOError as e:
-                logging.error(f"Failed to write to log file {self.log_paths[token_id]}: {str(e)}")
-                raise
+                error_msg = f"Failed to write to log file {log_path}: {str(e)}"
+                logging.error(error_msg, exc_info=True)
+                raise IOError(error_msg)
                 
         except Exception as e:
-            logging.error(f"Error in append_to_log for token {token_id}: {str(e)}", exc_info=True)
-            raise
+            error_msg = f"Error in append_to_log for token {token_id}: {str(e)}"
+            logging.error(error_msg, exc_info=True)
+            raise type(e)(error_msg) from e
         
     def close_log(self, token_id: str):
         """Closes log file for a specific token ID"""

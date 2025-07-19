@@ -39,6 +39,12 @@
 - [ ] Create commit message guidelines
 - [ ] Set up branch protection rules
 
+## Architectural Improvements
+- [ ] Define explicit interfaces for services using Python ABCs
+- [ ] Group related entities into dedicated modules
+- [ ] Implement pre-development architectural planning phase
+- [ ] Add comprehensive automated testing for interfaces
+
 ## Code Optimization Opportunities
 - [ ] Consolidate Log Writing Logic in commander_window.py
 - [ ] Improve `current_token` Handling in commander_window.py
@@ -46,3 +52,8 @@
 - [ ] Add Error Handling for Missing Node Definitions in commander_window.py
 - [ ] Convert Path Operations to use `pathlib` in commander_window.py
 - [ ] Add Type Hinting and Docstrings in commander_window.py
+
+## Memory Consolidation Tasks
+- [ ] Verify all entity relationships in memory graph
+- [ ] Document cross-entity relationships
+- [ ] Review naming consistency across modules

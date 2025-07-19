@@ -285,19 +285,8 @@ class CommanderWindow(QMainWindow):
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
         try:
-            # Get log path from current tree item if available
-            current_item = self.node_tree.currentItem()
-            log_path = None
-            if current_item:
-                item_data = current_item.data(0, Qt.ItemDataRole.UserRole)
-                if item_data and "log_path" in item_data:
-                    log_path = item_data["log_path"]
-            
-            # Pass log path to command queue via token
+            # Get token and let LogWriter handle path resolution
             token = self.fbc_service.get_token(node_name, token_id)
-            if log_path and hasattr(token, 'log_path'):
-                token.log_path = log_path
-            
             self.fbc_service.queue_fieldbus_command(node_name, token_id)
         except (ConnectionRefusedError, TimeoutError) as e:
             self._report_error(f"{type(e).__name__} processing command", e)
@@ -359,7 +348,8 @@ class CommanderWindow(QMainWindow):
 
         # Core components needed for services
         self.node_manager = NodeManager()
-        self.command_queue = CommandQueue()
+        self.session_manager = SessionManager()
+        self.command_queue = CommandQueue(self.session_manager)
         self.command_queue.command_completed.connect(self._handle_queued_command_result)
 
         # Initialize RPC Command Service
@@ -465,18 +455,9 @@ class CommanderWindow(QMainWindow):
         """)
         
         # Core components
-        self.session_manager = SessionManager()
         self.log_writer = LogWriter(self.node_manager)
         self.command_resolver = CommandResolver()
         self.command_history = CommandHistory()
-        
-        # FBC Command Service
-        self.fbc_service = FbcCommandService(self.node_manager, self.command_queue, self)
-        self.fbc_service.set_command_text.connect(self.set_cmd_input_text_signal)
-        self.fbc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
-        self.fbc_service.focus_command_input.connect(self.set_cmd_focus_signal)
-        self.fbc_service.status_message.connect(self.status_message_signal)
-        self.fbc_service.report_error.connect(lambda msg: self._report_error("FBC Service Error", Exception(msg)))
         
         # State tracking
         self.current_token = None
@@ -1159,10 +1140,25 @@ class CommanderWindow(QMainWindow):
             self.status_message_signal.emit(f"Error processing FBC commands: {str(e)}", self.STATUS_MSG_MEDIUM)
 
     def _handle_queued_command_result(self, command: str, result: str, success: bool):
-        """Handle completed commands from the queue"""
+        """Handle completed commands from the queue and log results"""
         if success:
             self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
             logging.info(f"Command completed successfully: {command}\nResult: {result}")
+            
+            # Find the token associated with this command
+            for item in self.command_queue.queue:
+                if item['command'] == command:
+                    token = item['token']
+                    if token and hasattr(token, 'token_id'):
+                        try:
+                            self.log_writer.append_to_log(
+                                token.token_id,
+                                f"{command}\n{result}",
+                                protocol=token.token_type
+                            )
+                        except Exception as e:
+                            logging.error(f"Failed to log command result: {str(e)}")
+                    break
         else:
             self.status_message_signal.emit(f"Command failed: {command} - {result}", 5000)
             logging.error(f"Command failed: {command}\nError: {result}")
