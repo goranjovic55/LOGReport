@@ -46,12 +46,22 @@
 - [ ] Add comprehensive automated testing for interfaces
 
 ## Code Optimization Opportunities
+- [x] Standardize NodeToken attribute names (node_name → name, node_ip → ip_address)
+- [x] Improve empty response handling in command_queue.py (log warnings instead of raising ValueErrors)
+- [ ] Implement static analysis for data model validation
+- [ ] Add comprehensive type hinting for NodeToken class
+- [ ] Create automated unit tests for NodeToken attribute changes
+- [ ] Enhance code review guidelines for data model changes
+- [ ] Enforce API contracts and type hinting across all modules
+- [ ] Strengthen testing practices for network operations
+- [ ] Implement robust input validation and error handling
+- [ ] Enhance connection stability and logging for Telnet operations
 - [ ] Consolidate Log Writing Logic in commander_window.py
 - [ ] Improve `current_token` Handling in commander_window.py
 - [ ] Centralize Status Message Emitting in commander_window.py
 - [ ] Add Error Handling for Missing Node Definitions in commander_window.py
 - [ ] Convert Path Operations to use `pathlib` in commander_window.py
-- [ ] Add Type Hinting and Docstrings in commander_window.py
+- [x] Add Type Hinting and Docstrings in commander_window.py
 
 ## Memory Consolidation Tasks
 - [ ] Verify all entity relationships in memory graph

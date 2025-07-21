@@ -1,8 +1,27 @@
+## [Unreleased]
+### Fixed
+- Fixed ConnectionAbortedError (WinError 10053) in Telnet socket tests by:
+  - Removing problematic socket test byte sending in command_queue.py
+  - Adding explicit ConnectionAbortedError handling in telnet_client.py
+  - Confirming proper CTRL+x and CTRL+z sequence handling in TelnetClient
+- Fixed AttributeError in TelnetSession by adding prompt_pattern initialization ([#123](https://github.com/your/repo/issues/123))
 # Changelog
 
-## [Unreleased] - 2025-07-19
+## [Unreleased] - 2025-07-20
 ### Added
 - Memory consolidation analysis for src/commander/ directory
+- Comprehensive type hinting for NodeToken attributes
+- get_or_create_session method implementation in SessionManager
+- Enhanced error handling for Telnet writes in telnet_client.py
+- Type hinting for `item` parameter in `_handle_queued_command_result` method
+
+### Fixed
+- AttributeError in command_queue.py by standardizing NodeToken attribute names (node_name → name, node_ip → ip_address)
+- Improved empty response handling in command_queue.py to log warnings instead of raising ValueErrors
+- 'SessionManager' object has no attribute 'get_or_create_session' error
+- ConnectionError in TelnetSession.send_command with improved error handling
+- Corrected NodeToken attribute usage in command_queue.py
+- TypeError in commander_window.py by changing dictionary-style access to attribute access for QueuedCommand objects
 - Architectural documentation for core components:
   - NodeToken and Node entity relationships
   - CommanderWindow orchestration patterns
@@ -63,3 +82,7 @@
 - Updated outdated configuration examples
 - Fixed SyntaxError in commander_window.py (line 1185) - corrected incomplete ternary operator to valid Python syntax
 - Fixed Telnet command output redirection - responses now correctly display in terminal when executing via right-click on .fbc/.rpc files while maintaining manual log writing capability
+## [Fixed]
+- Telnet connection failures caused by type mismatch in prompt pattern matching
+- Added missing logging imports in telnet_client.py and session_manager.py
+- Improved debug logging for Telnet connection sequence

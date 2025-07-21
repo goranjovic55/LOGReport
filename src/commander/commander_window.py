@@ -284,10 +284,13 @@ class CommanderWindow(QMainWindow):
 
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
+        logging.debug(f"Processing Fieldbus command: token_id={token_id}, node_name={node_name}")
         try:
             # Get token and let LogWriter handle path resolution
             token = self.fbc_service.get_token(node_name, token_id)
-            self.fbc_service.queue_fieldbus_command(node_name, token_id)
+            # Pass active telnet client for reuse
+            telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
+            self.fbc_service.queue_fieldbus_command(node_name, token_id, telnet_client)
         except (ConnectionRefusedError, TimeoutError) as e:
             self._report_error(f"{type(e).__name__} processing command", e)
         except Exception as e:
@@ -321,6 +324,24 @@ class CommanderWindow(QMainWindow):
             self.telnet_output.append(f"> {command_text}")
             self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
             
+            # Prioritize reusing active manual connection
+            if hasattr(self, 'active_telnet_client') and self.active_telnet_client and self.active_telnet_client.is_connected:
+                logging.debug("Reusing active telnet connection for context command")
+                self.telnet_session = self.active_telnet_client
+            # Fallback to existing session or manual connection
+            elif not self.telnet_session or not self.telnet_session.is_connected:
+                try:
+                    # Get current manual connection settings
+                    ip, port_text = self.telnet_connection_bar.get_address()
+                    port = int(port_text) if port_text else 23
+                    if not self.connect_telnet(ip, port):
+                        raise ConnectionError(f"Failed to connect to manual telnet at {ip}:{port}")
+                    # Update active client reference
+                    self.active_telnet_client = self.telnet_session
+                except Exception as e:
+                    self._report_error("Connection error", e)
+                    return
+            
             # Execute command immediately
             self.execute_telnet_command(automatic=True)
             
@@ -345,11 +366,14 @@ class CommanderWindow(QMainWindow):
         
         # Load application settings
         self.settings = QSettings("CommanderLogCreator", "Settings")
+        
+        # Reference to active telnet client (manual connection)
+        self.active_telnet_client = None
 
         # Core components needed for services
         self.node_manager = NodeManager()
         self.session_manager = SessionManager()
-        self.command_queue = CommandQueue(self.session_manager)
+        self.command_queue = CommandQueue(self.session_manager, parent=self)
         self.command_queue.command_completed.connect(self._handle_queued_command_result)
 
         # Initialize RPC Command Service
@@ -990,8 +1014,11 @@ class CommanderWindow(QMainWindow):
             self.settings.setValue("telnet_ip", ip_address)
             self.settings.setValue("telnet_port", port_text)
             self.connect_telnet(ip_address, port)
+            # Store active client for reuse in context commands
+            self.active_telnet_client = self.telnet_session
         else:
             self.disconnect_telnet()
+            self.active_telnet_client = None
 
     def connect_telnet(self, ip_address: str, port: int):
         """Connects to specified telnet server using provided IP and port"""
@@ -1050,14 +1077,21 @@ class CommanderWindow(QMainWindow):
             
     def execute_telnet_command(self, automatic=False):
         """Executes command in Telnet session using background thread"""
+        # Prioritize active manual connection if available
+        if hasattr(self, 'active_telnet_client') and self.active_telnet_client and self.active_telnet_client.is_connected:
+            self.telnet_session = self.active_telnet_client
+            
         if not self.telnet_session:
             if not automatic:
                 self.statusBar().showMessage("Create a Telnet session first!")
+            logging.debug("Telnet session not available for command execution")
             return ""
         
         command = self.cmd_input.toPlainText().strip()
         if not command:
+            logging.debug("Empty command received in execute_telnet_command")
             return ""
+        logging.debug(f"Executing telnet command: {command} (automatic={automatic})")
             
         logging.debug(f"Executing telnet command: {command}")
         logging.debug(f"DEBUG: Automatic={automatic}, Current token: {self.current_token.token_id if self.current_token else 'None'}")
@@ -1094,6 +1128,7 @@ class CommanderWindow(QMainWindow):
                 response = f"ERROR: {type(e).__name__} - {str(e)}"
                 logging.error(f"Telnet command failed: {command}", exc_info=True)
             
+            logging.debug(f"Emitting command_finished signal for command: {command}")
             self.command_finished.emit(response, automatic)
             
     def _handle_connection_error(self, error):
@@ -1141,24 +1176,27 @@ class CommanderWindow(QMainWindow):
 
     def _handle_queued_command_result(self, command: str, result: str, success: bool):
         """Handle completed commands from the queue and log results"""
+        logging.debug(f"_handle_queued_command_result: command={command}, success={success}, result_length={len(result)}")
         if success:
             self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
             logging.info(f"Command completed successfully: {command}\nResult: {result}")
             
-            # Find the token associated with this command
-            for item in self.command_queue.queue:
-                if item['command'] == command:
-                    token = item['token']
-                    if token and hasattr(token, 'token_id'):
-                        try:
-                            self.log_writer.append_to_log(
-                                token.token_id,
-                                f"{command}\n{result}",
-                                protocol=token.token_type
-                            )
-                        except Exception as e:
-                            logging.error(f"Failed to log command result: {str(e)}")
+            # Find the token associated with this command by searching the queue
+            token = None
+            for queued_command in self.command_queue.queue:
+                if queued_command.command == command:
+                    token = queued_command.token
                     break
+            
+            if token and hasattr(token, 'token_id'):
+                try:
+                    self.log_writer.append_to_log(
+                        token.token_id,
+                        f"{command}\n{result}",
+                        protocol=token.token_type
+                    )
+                except Exception as e:
+                    logging.error(f"Failed to log command result: {str(e)}")
         else:
             self.status_message_signal.emit(f"Command failed: {command} - {result}", 5000)
             logging.error(f"Command failed: {command}\nError: {result}")
@@ -1188,6 +1226,9 @@ class CommanderWindow(QMainWindow):
         :param automatic: True if the command was triggered automatically (e.g., from context menu).
         """
         logging.info(f"Telnet command finished (automatic={automatic}), response length: {len(response)}")
+        logging.debug(f"Command response first 100 chars: {response[:100]}")
+        if len(response) > 100:
+            logging.debug(f"Command response last 100 chars: {response[-100:]}")
         
         # For automatic commands, show command + response
         if automatic:

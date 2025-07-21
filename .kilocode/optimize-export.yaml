@@ -12,14 +12,14 @@ customModes:
 
       • Suggest 2-4 actionable improvements for future runs of this mode.
 
-      • If relevant, update global rules or config with one example via `edit`.
-
       • Return both a summary and structured details so Orchestrator can ingest
       them.
 
       • Tailor suggestions to this mode type (Coder-mode tweaks, Debug-mode
       enhancements, Architect-mode evolution, Ask-mode evolution, Analyze-mode
-      evolution).
+      evolution, Optimize-mode evolution).
+
+      • Always use external data sources for alternatives and best practices
     groups:
       - read
       - edit

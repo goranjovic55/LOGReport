@@ -60,7 +60,6 @@ class TelnetSession(BaseSession):
     def __init__(self, config: SessionConfig):
         super().__init__(config)
         self.buffer = b""
-        self.prompt_pattern = re.compile(r'\d+[a-z]\%\s*$')
         
     def connect(self) -> bool:
         try:
@@ -268,26 +267,13 @@ class SessionManager:
         return True
     
     def __init__(self):
-        self.active_sessions = {}  # session_key -> session
+        self.active_sessions = {}
         self.session_counter = 0
-        self.session_cache = {}  # (host, port, session_type) -> session
         
         
     def create_session(self, config: SessionConfig, auto_connect=True) -> Optional[BaseSession]:
         """Creates a new session, optionally connecting immediately"""
         logging.debug(f"SessionManager.create_session: Creating session for {config.session_type.name} to {config.host}:{config.port}")
-
-        # Check cache for existing session
-        cache_key = (config.host, config.port, config.session_type)
-        if cache_key in self.session_cache:
-            existing = self.session_cache[cache_key]
-            if existing.is_connected:
-                logging.debug(f"Reusing existing session for {cache_key}")
-                return existing
-            else:
-                # Remove stale session
-                del self.session_cache[cache_key]
-        
         session_class = self.session_types.get(config.session_type)
         if not session_class:
             raise ValueError(f"Unsupported session type: {config.session_type}")
@@ -299,7 +285,6 @@ class SessionManager:
         if auto_connect:
             if session.connect():
                 self.active_sessions[session_key] = session
-                self.session_cache[cache_key] = session
                 logging.debug(f"SessionManager.create_session: Session created and connected: {session_key}")
                 return session
             logging.error(f"SessionManager.create_session: Failed to connect session: {session_key}")

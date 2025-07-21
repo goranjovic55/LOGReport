@@ -6,6 +6,8 @@ import os
 import logging
 
 class FbcCommandService(QObject):
+    logger = logging.getLogger(__name__)
+
     # Define signals for communication
     set_command_text = pyqtSignal(str)
     switch_to_telnet_tab = pyqtSignal()
@@ -17,6 +19,7 @@ class FbcCommandService(QObject):
         super().__init__(parent)
         self.node_manager = node_manager
         self.command_queue = command_queue
+        self.logger = logging.getLogger(__name__)
         
     def generate_fieldbus_command(self, token_id: str) -> str:
         """Generate FBC command text for a token ID"""
@@ -47,19 +50,31 @@ class FbcCommandService(QObject):
             ip_address="0.0.0.0"
         )
     
-    def queue_fieldbus_command(self, node_name: str, token_id: str):
-        """Queue FBC command for execution"""
+    def queue_fieldbus_command(self, node_name: str, token_id: str, telnet_client=None):
+        """Queue FBC command for execution with optional telnet client"""
+        self.logger.info(f"FbcCommandService.queue_fieldbus_command: Starting command queue for node '{node_name}' token '{token_id}'")
         try:
             token = self.get_token(node_name, token_id)
+            self.logger.debug(f"FbcCommandService.queue_fieldbus_command: Retrieved token - ID: {token.token_id}, Type: {token.token_type}, Node: {token.name}, IP: {token.ip_address}")
+            
             command = self.generate_fieldbus_command(token_id)
+            self.logger.debug(f"FbcCommandService.queue_fieldbus_command: Generated command: {command}")
+            self.logger.debug(f"FbcCommandService.queue_fieldbus_command: Full token details: {vars(token)}")
             
             # Emit signals to update UI
+            self.logger.debug("FbcCommandService.queue_fieldbus_command: Emitting UI update signals")
             self.set_command_text.emit(command)
             self.switch_to_telnet_tab.emit()
             self.focus_command_input.emit()
             self.status_message.emit(f"Queued FBC command for token {token_id}", 3000)
             
-            self.command_queue.add_command(command, token)
+            self.logger.info(f"FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: '{command}', Token: {token.token_id}")
+            self.command_queue.add_command(command, token, telnet_client)
+            
+            self.logger.debug("FbcCommandService.queue_fieldbus_command: Starting queue processing")
+            self.command_queue.start_processing()
+            self.logger.info("FbcCommandService.queue_fieldbus_command: Successfully queued and started processing command")
         except Exception as e:
-            self.report_error.emit(str(e))
+            self.logger.error(f"Error queuing FBC command: {str(e)}", exc_info=True)
+            self.report_error.emit(f"Error queuing command: {str(e)}")
             self.status_message.emit(f"Error queuing command: {str(e)}", 5000)
