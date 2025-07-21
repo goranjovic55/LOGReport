@@ -6168,3 +6168,1441 @@ Token: 164 (LOG)
 ERROR DETAILS: Command failed: Command returned error response: Error: Command timed out - timed out
 Result: Command failed: Command returned error response: Error: Command timed out - timed out
 2025-07-21 09:52:12,219 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 3/4: print from fbc io structure 1640000 -> failed
+2025-07-21 09:53:27,302 - root - DEBUG - Node tree event filter installed
+2025-07-21 09:53:27,307 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 09:53:27,355 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 09:53:27,355 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 09:53:27,355 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 09:53:27,356 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 09:53:27,356 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 09:53:27,356 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 09:53:27,357 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 09:53:27,357 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 09:53:29,154 - root - DEBUG - SessionManager.create_session: Creating session for TELNET to 192.168.137.42:1234
+2025-07-21 09:53:29,154 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-07-21 09:53:29,163 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1432, family=2, type=1, proto=0, laddr=('192.168.137.54', 61011), raddr=('192.168.137.42', 1234)>
+2025-07-21 09:53:29,163 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-07-21 09:53:30,164 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-07-21 09:53:30,164 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-07-21 09:53:30,165 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-07-21 09:53:30,165 - root - INFO - TelnetSession: Connection established successfully
+2025-07-21 09:53:30,165 - root - DEBUG - SessionManager.create_session: Session created and connected: TELNET_0
+2025-07-21 09:53:31,727 - root - DEBUG - Item expanded: AP01m (192.168.0.11)
+2025-07-21 09:53:31,727 - root - DEBUG - Removed placeholder for node: AP01m (192.168.0.11)
+2025-07-21 09:53:31,728 - root - DEBUG - _load_node_children: Loading children for node: AP01m
+2025-07-21 09:53:31,728 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.fbc
+2025-07-21 09:53:31,728 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 09:53:31,729 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.fbc | Extracted token: 162
+2025-07-21 09:53:31,729 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_162.fbc
+2025-07-21 09:53:31,729 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.fbc | Extracted token: 163
+2025-07-21 09:53:31,729 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_163.fbc
+2025-07-21 09:53:31,729 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.fbc | Extracted token: 164
+2025-07-21 09:53:31,729 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_164.fbc
+2025-07-21 09:53:31,729 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.log
+2025-07-21 09:53:31,729 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:53:31,729 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.txt
+2025-07-21 09:53:31,730 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:53:31,730 - root - DEBUG - Total FBC files found: 3
+2025-07-21 09:53:31,730 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.rpc
+2025-07-21 09:53:31,730 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 09:53:31,730 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.rpc | Extracted token: 192-168-0-11_162
+2025-07-21 09:53:31,731 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_162.rpc
+2025-07-21 09:53:31,731 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.rpc | Extracted token: 192-168-0-11_163
+2025-07-21 09:53:31,731 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_163.rpc
+2025-07-21 09:53:31,731 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.rpc | Extracted token: 192-168-0-11_164
+2025-07-21 09:53:31,731 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_164.rpc
+2025-07-21 09:53:31,731 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.log
+2025-07-21 09:53:31,731 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:53:31,731 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.txt
+2025-07-21 09:53:31,732 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:53:31,732 - root - DEBUG - Total RPC files found: 3
+2025-07-21 09:53:31,732 - root - DEBUG - LOG SECTION DEBUG: Scanning directory: C:/Users/gorjovicgo/_DIA\LOG
+2025-07-21 09:53:31,733 - root - DEBUG - LOG SECTION DEBUG: Using pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 09:53:31,733 - root - DEBUG - Scanning for LOG files with pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 09:53:31,733 - root - DEBUG - Found 1 files matching pattern
+2025-07-21 09:53:31,733 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11.log | Extracted token: AP01m_192-168-0-11
+2025-07-21 09:53:31,734 - root - DEBUG - Found LOG file: AP01m_192-168-0-11.log
+2025-07-21 09:53:31,734 - root - DEBUG - Total LOG files found: 1
+2025-07-21 09:53:31,734 - root - DEBUG - Directory not found: C:/Users/gorjovicgo/_DIA\LIS\AP01m
+2025-07-21 09:53:31,734 - root - DEBUG - _load_node_children: Processing sections for node: AP01m
+2025-07-21 09:53:31,734 - root - DEBUG - _load_node_children: Processing FBC section
+2025-07-21 09:53:31,734 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 09:53:31,735 - root - DEBUG - _load_node_children: Adding 3 files to FBC section
+2025-07-21 09:53:31,735 - root - DEBUG - _load_node_children: Added FBC section with 3 items
+2025-07-21 09:53:31,735 - root - DEBUG - _load_node_children: Added FBC subsection to node tree
+2025-07-21 09:53:31,735 - root - DEBUG - _load_node_children: Processing RPC section
+2025-07-21 09:53:31,735 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 09:53:31,736 - root - DEBUG - _load_node_children: Adding 3 files to RPC section
+2025-07-21 09:53:31,736 - root - DEBUG - _load_node_children: Added RPC section with 3 items
+2025-07-21 09:53:31,736 - root - DEBUG - _load_node_children: Added RPC subsection to node tree
+2025-07-21 09:53:31,736 - root - DEBUG - _load_node_children: Processing LOG section
+2025-07-21 09:53:31,736 - root - DEBUG - _load_node_children: Section data: items=1
+2025-07-21 09:53:31,737 - root - DEBUG - _load_node_children: Adding 1 files to LOG section
+2025-07-21 09:53:31,737 - root - DEBUG - _load_node_children: Added LOG section with 1 items
+2025-07-21 09:53:31,737 - root - DEBUG - _load_node_children: Added LOG subsection to node tree
+2025-07-21 09:53:31,737 - root - DEBUG - _load_node_children: Processing LIS section
+2025-07-21 09:53:31,737 - root - DEBUG - _load_node_children: Section data: items=0
+2025-07-21 09:53:31,737 - root - DEBUG - _load_node_children: No items found for LIS section
+2025-07-21 09:53:31,738 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
+2025-07-21 09:53:32,513 - root - DEBUG - Item expanded: RPC
+2025-07-21 09:53:32,513 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 09:53:33,345 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 09:53:33,349 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc | Type: RPC
+2025-07-21 09:53:33,350 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.rpc
+2025-07-21 09:53:33,946 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 09:53:33,947 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(225, 117)
+2025-07-21 09:53:33,949 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 09:53:33,949 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-11_162, Node: AP01m
+2025-07-21 09:53:33,949 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-11_162
+2025-07-21 09:53:33,949 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 09:53:35,182 - root - DEBUG - Context menu command: print for token 192-168-0-11_162
+2025-07-21 09:53:35,185 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 09:53:35,185 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1620000 (automatic=True)
+2025-07-21 09:53:35,185 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1620000
+2025-07-21 09:53:35,185 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-11_162
+2025-07-21 09:53:35,186 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc rupi counters 1620000
+2025-07-21 09:53:35,186 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 09:53:35,186 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 09:53:35,388 - root - DEBUG - TelnetSession.send_command: Cleared 1058 bytes from buffer
+2025-07-21 09:53:35,389 - root - DEBUG - TelnetSession.send_command: Sending 38 bytes: b'print from fbc rupi counters 1620000\r\n'
+2025-07-21 09:53:35,389 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 09:53:35,389 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 09:53:35,424 - root - DEBUG - TelnetSession._read_response: Received 119 bytes, total 119
+2025-07-21 09:53:37,987 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 09:53:37,987 - root - DEBUG - TelnetSession._read_response: Returning 119 chars
+2025-07-21 09:53:37,987 - root - DEBUG - TelnetSession.send_command: Received 119 chars of raw response
+2025-07-21 09:53:37,987 - root - DEBUG - TelnetSession.send_command: Processed response length: 117
+2025-07-21 09:53:37,988 - root - DEBUG - Emitting command_finished signal for command: print from fbc rupi counters 1620000
+2025-07-21 09:53:37,989 - root - INFO - Telnet command finished (automatic=True), response length: 117
+2025-07-21 09:53:37,989 - root - DEBUG - Command response first 100 chars: int from fbc rupi counters 1620000
+
+        Getting FIELD BUS error counters from RUPI(8344) from 
+2025-07-21 09:53:37,989 - root - DEBUG - Command response last 100 chars:  counters 1620000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1620000
+2025-07-21 09:53:37,991 - root - INFO - Attempting to append to log for token 192-168-0-11_162
+2025-07-21 09:53:37,991 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc
+2025-07-21 09:53:37,991 - commander.192-168-0-11_162 - INFO - 09:53:37 >> [RPC] int from fbc rupi counters 1620000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1620000
+2025-07-21 09:53:37,992 - root - INFO - Successfully appended to log for token 192-168-0-11_162
+2025-07-21 09:53:37,992 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc
+2025-07-21 09:53:40,441 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 09:53:40,443 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc | Type: RPC
+2025-07-21 09:53:40,443 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.rpc
+2025-07-21 09:53:40,598 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 09:53:40,600 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc | Type: RPC
+2025-07-21 09:53:40,600 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.rpc
+2025-07-21 09:53:46,659 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'node': 'AP01m', 'token': '192-168-0-11_163', 'token_type': 'RPC'}
+2025-07-21 09:53:46,662 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc | Type: RPC
+2025-07-21 09:53:46,662 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.rpc
+2025-07-21 09:53:46,959 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 09:53:46,959 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(229, 147)
+2025-07-21 09:53:46,960 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'node': 'AP01m', 'token': '192-168-0-11_163', 'token_type': 'RPC'}
+2025-07-21 09:53:46,960 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-11_163, Node: AP01m
+2025-07-21 09:53:46,961 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-11_163
+2025-07-21 09:53:46,961 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 09:53:47,697 - root - DEBUG - Context menu command: print for token 192-168-0-11_163
+2025-07-21 09:53:47,698 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 09:53:47,699 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1630000 (automatic=True)
+2025-07-21 09:53:47,699 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1630000
+2025-07-21 09:53:47,699 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-11_163
+2025-07-21 09:53:47,699 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc rupi counters 1630000
+2025-07-21 09:53:47,699 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 09:53:47,700 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 09:53:47,901 - root - DEBUG - TelnetSession.send_command: Cleared 1058 bytes from buffer
+2025-07-21 09:53:47,901 - root - DEBUG - TelnetSession.send_command: Sending 38 bytes: b'print from fbc rupi counters 1630000\r\n'
+2025-07-21 09:53:47,901 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 09:53:47,902 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 09:53:47,936 - root - DEBUG - TelnetSession._read_response: Received 119 bytes, total 119
+2025-07-21 09:53:50,446 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 09:53:50,446 - root - DEBUG - TelnetSession._read_response: Returning 119 chars
+2025-07-21 09:53:50,446 - root - DEBUG - TelnetSession.send_command: Received 119 chars of raw response
+2025-07-21 09:53:50,446 - root - DEBUG - TelnetSession.send_command: Processed response length: 117
+2025-07-21 09:53:50,447 - root - DEBUG - Emitting command_finished signal for command: print from fbc rupi counters 1630000
+2025-07-21 09:53:50,447 - root - INFO - Telnet command finished (automatic=True), response length: 117
+2025-07-21 09:53:50,447 - root - DEBUG - Command response first 100 chars: int from fbc rupi counters 1630000
+
+        Getting FIELD BUS error counters from RUPI(8344) from 
+2025-07-21 09:53:50,447 - root - DEBUG - Command response last 100 chars:  counters 1630000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1630000
+2025-07-21 09:53:50,448 - root - INFO - Attempting to append to log for token 192-168-0-11_163
+2025-07-21 09:53:50,448 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc
+2025-07-21 09:53:50,448 - commander.192-168-0-11_163 - INFO - 09:53:50 >> [RPC] int from fbc rupi counters 1630000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1630000
+2025-07-21 09:53:50,449 - root - INFO - Successfully appended to log for token 192-168-0-11_163
+2025-07-21 09:53:50,449 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc
+2025-07-21 09:53:51,977 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'node': 'AP01m', 'token': '192-168-0-11_163', 'token_type': 'RPC'}
+2025-07-21 09:53:51,979 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc | Type: RPC
+2025-07-21 09:53:51,980 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.rpc
+2025-07-21 09:53:55,643 - root - DEBUG - Item expanded: FBC
+2025-07-21 09:53:55,643 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 09:53:56,296 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 09:53:56,298 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 09:53:56,298 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 09:53:56,844 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 09:53:56,846 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 09:53:56,846 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 09:53:57,281 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 09:53:57,281 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(194, 107)
+2025-07-21 09:53:57,282 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 09:53:57,282 - root - DEBUG - Context menu token type: 'FBC', Token ID: 163, Node: AP01m
+2025-07-21 09:53:57,282 - root - DEBUG - Context menu processing token item: type=FBC, id=163
+2025-07-21 09:53:57,282 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 09:53:57,282 - root - DEBUG - Creating FBC action: Token=163, Node=AP01m
+2025-07-21 09:53:57,283 - root - DEBUG - Context menu created for FBC item | Token: 163 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 09:53:57,935 - root - DEBUG - FBC action triggered for token: 163, node: AP01m
+2025-07-21 09:53:57,935 - root - DEBUG - Processing Fieldbus command: token_id=163, node_name=AP01m
+2025-07-21 09:53:57,936 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '163'
+2025-07-21 09:53:57,936 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 163, Type: RPC, Node: AP01m 163, IP: 192.168.0.11
+2025-07-21 09:53:57,936 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1630000
+2025-07-21 09:53:57,936 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '163', 'token_type': 'RPC', 'name': 'AP01m 163', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'protocol': 'telnet'}
+2025-07-21 09:53:57,936 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 09:53:57,938 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1630000', Token: 163
+2025-07-21 09:53:57,938 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1630000' for token 163
+2025-07-21 09:53:57,938 - root - DEBUG - CommandQueue.add_command: Token details - type: RPC, node: AP01m 163 (192.168.0.11)
+2025-07-21 09:53:57,938 - root - DEBUG - CommandQueue.add_command: Current queue size: 1
+2025-07-21 09:53:57,938 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1630000', token=NodeToken(token_id='163', token_type='RPC', name='AP01m 163', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x0000020244C27510>)
+2025-07-21 09:53:57,938 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Starting queue processing
+2025-07-21 09:53:57,939 - root - INFO - CommandQueue.start_processing: Starting processing of 1 commands
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Queue contents: ['print from fbc io structure 1630000']
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Thread pool status - active threads: 0, max threads: 18
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Marked command 1/1 as processing: print from fbc io structure 1630000
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 1: print from fbc io structure 1630000 (connected: True)
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Created worker for command 1/1: print from fbc io structure 1630000 (token 163)
+2025-07-21 09:53:57,939 - root - DEBUG - CommandQueue.start_processing: Started worker for command 1/1
+2025-07-21 09:53:57,939 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Successfully queued and started processing command
+2025-07-21 09:53:57,939 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 09:53:57,941 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1630000
+2025-07-21 09:53:57,941 - root - DEBUG - CommandWorker.run: Node: AP01m 163 (192.168.0.11)
+2025-07-21 09:53:57,941 - root - DEBUG - CommandWorker.run: Token: 163 (RPC)
+2025-07-21 09:53:57,941 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 09:53:57,941 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1630000
+2025-07-21 09:53:57,941 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1630000
+2025-07-21 09:53:57,941 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 09:53:58,142 - root - DEBUG - TelnetSession.send_command: Cleared 1058 bytes from buffer
+2025-07-21 09:53:58,142 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1630000\r\n'
+2025-07-21 09:53:58,143 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 09:53:58,143 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 09:53:58,178 - root - DEBUG - TelnetSession._read_response: Received 98 bytes, total 98
+2025-07-21 09:54:00,737 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 09:54:00,737 - root - DEBUG - TelnetSession._read_response: Returning 98 chars
+2025-07-21 09:54:00,738 - root - DEBUG - TelnetSession.send_command: Received 98 chars of raw response
+2025-07-21 09:54:00,738 - root - DEBUG - TelnetSession.send_command: Processed response length: 96
+2025-07-21 09:54:00,738 - root - DEBUG - CommandWorker.run: Raw response received (length=96): int from fbc io structure 1630000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+2025-07-21 09:54:00,738 - root - INFO - CommandWorker.run: Command executed successfully: print from fbc io structure 1630000
+2025-07-21 09:54:00,739 - root - DEBUG - CommandWorker.run: Final processed response length: 96
+2025-07-21 09:54:00,739 - root - DEBUG - CommandWorker.run: Finished command: print from fbc io structure 1630000, success=True
+2025-07-21 09:54:00,739 - root - INFO - Command completed: print from fbc io structure 1630000
+Node: AP01m 163 (192.168.0.11)
+Token: 163 (RPC)
+Result: int from fbc io structure 1630000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+2025-07-21 09:54:00,739 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 1/1: print from fbc io structure 1630000 -> completed
+2025-07-21 09:54:00,740 - root - DEBUG - CommandQueue._handle_worker_finished: Progress: 1/1 completed, 0 remaining
+2025-07-21 09:54:00,740 - root - DEBUG - _handle_queued_command_result: command=print from fbc io structure 1630000, success=True, result_length=96
+2025-07-21 09:54:00,740 - root - INFO - Command completed successfully: print from fbc io structure 1630000
+Result: int from fbc io structure 1630000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+2025-07-21 09:54:00,740 - root - INFO - Attempting to append to log for token 163
+2025-07-21 09:54:00,740 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 09:54:00,740 - commander.163 - INFO - 09:54:00 >> [RPC] print from fbc io structure 1630000
+int from fbc io structure 1630000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+2025-07-21 09:54:00,741 - root - INFO - Successfully appended to log for token 163
+2025-07-21 09:54:00,741 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 09:54:00,741 - root - DEBUG - CommandQueue._handle_worker_finished: Emitted completion signal for command: print from fbc io structure 1630000 (success=True)
+2025-07-21 09:54:00,741 - root - INFO - CommandQueue._handle_worker_finished: All commands processed
+2025-07-21 09:54:03,234 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_164.fbc', 'node': 'AP01m', 'token': '164', 'token_type': 'FBC'}
+2025-07-21 09:54:03,236 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_164.fbc | Type: FBC
+2025-07-21 09:54:03,237 - root - DEBUG - Displaying log: AP01m_192-168-0-11_164.fbc
+2025-07-21 09:54:03,572 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 09:54:03,574 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 09:54:03,575 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 09:54:04,029 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 09:54:04,031 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 09:54:04,031 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 09:56:30,978 - root - DEBUG - Node tree event filter installed
+2025-07-21 09:56:30,984 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 09:56:31,027 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 09:56:31,027 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 09:56:31,028 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 09:56:31,028 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 09:56:31,028 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 09:56:31,029 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 09:56:31,029 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 09:56:31,029 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 09:56:33,550 - root - DEBUG - SessionManager.create_session: Creating session for TELNET to 192.168.137.42:1234
+2025-07-21 09:56:33,550 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-07-21 09:56:33,574 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1448, family=2, type=1, proto=0, laddr=('192.168.137.54', 61240), raddr=('192.168.137.42', 1234)>
+2025-07-21 09:56:33,574 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-07-21 09:56:34,575 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-07-21 09:56:34,576 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-07-21 09:56:34,576 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-07-21 09:56:34,576 - root - INFO - TelnetSession: Connection established successfully
+2025-07-21 09:56:34,576 - root - DEBUG - SessionManager.create_session: Session created and connected: TELNET_0
+2025-07-21 09:56:34,720 - root - DEBUG - Item expanded: AP02m (192.168.0.12)
+2025-07-21 09:56:34,721 - root - DEBUG - Removed placeholder for node: AP02m (192.168.0.12)
+2025-07-21 09:56:34,721 - root - DEBUG - _load_node_children: Loading children for node: AP02m
+2025-07-21 09:56:34,721 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP02m\AP02m_*.fbc
+2025-07-21 09:56:34,721 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 09:56:34,722 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12_182.fbc | Extracted token: 182
+2025-07-21 09:56:34,722 - root - DEBUG - Found FBC file: AP02m_192-168-0-12_182.fbc
+2025-07-21 09:56:34,722 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12_183.fbc | Extracted token: 183
+2025-07-21 09:56:34,722 - root - DEBUG - Found FBC file: AP02m_192-168-0-12_183.fbc
+2025-07-21 09:56:34,722 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12_184.fbc | Extracted token: 184
+2025-07-21 09:56:34,722 - root - DEBUG - Found FBC file: AP02m_192-168-0-12_184.fbc
+2025-07-21 09:56:34,723 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP02m\AP02m_*.log
+2025-07-21 09:56:34,723 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:56:34,723 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP02m\AP02m_*.txt
+2025-07-21 09:56:34,723 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:56:34,723 - root - DEBUG - Total FBC files found: 3
+2025-07-21 09:56:34,724 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_*.rpc
+2025-07-21 09:56:34,724 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 09:56:34,724 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12_182.rpc | Extracted token: 192-168-0-12_182
+2025-07-21 09:56:34,724 - root - DEBUG - Found RPC file: AP02m_192-168-0-12_182.rpc
+2025-07-21 09:56:34,724 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12_183.rpc | Extracted token: 192-168-0-12_183
+2025-07-21 09:56:34,724 - root - DEBUG - Found RPC file: AP02m_192-168-0-12_183.rpc
+2025-07-21 09:56:34,724 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12_184.rpc | Extracted token: 192-168-0-12_184
+2025-07-21 09:56:34,724 - root - DEBUG - Found RPC file: AP02m_192-168-0-12_184.rpc
+2025-07-21 09:56:34,725 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_*.log
+2025-07-21 09:56:34,725 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:56:34,725 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_*.txt
+2025-07-21 09:56:34,725 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 09:56:34,725 - root - DEBUG - Total RPC files found: 3
+2025-07-21 09:56:34,725 - root - DEBUG - LOG SECTION DEBUG: Scanning directory: C:/Users/gorjovicgo/_DIA\LOG
+2025-07-21 09:56:34,725 - root - DEBUG - LOG SECTION DEBUG: Using pattern: C:/Users/gorjovicgo/_DIA\LOG\AP02m_*.log
+2025-07-21 09:56:34,726 - root - DEBUG - Scanning for LOG files with pattern: C:/Users/gorjovicgo/_DIA\LOG\AP02m_*.log
+2025-07-21 09:56:34,726 - root - DEBUG - Found 1 files matching pattern
+2025-07-21 09:56:34,726 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP02m_192-168-0-12.log | Extracted token: AP02m_192-168-0-12
+2025-07-21 09:56:34,726 - root - DEBUG - Found LOG file: AP02m_192-168-0-12.log
+2025-07-21 09:56:34,726 - root - DEBUG - Total LOG files found: 1
+2025-07-21 09:56:34,726 - root - DEBUG - Directory not found: C:/Users/gorjovicgo/_DIA\LIS\AP02m
+2025-07-21 09:56:34,726 - root - DEBUG - _load_node_children: Processing sections for node: AP02m
+2025-07-21 09:56:34,726 - root - DEBUG - _load_node_children: Processing FBC section
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Adding 3 files to FBC section
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Added FBC section with 3 items
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Added FBC subsection to node tree
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Processing RPC section
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Adding 3 files to RPC section
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Added RPC section with 3 items
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Added RPC subsection to node tree
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Processing LOG section
+2025-07-21 09:56:34,728 - root - DEBUG - _load_node_children: Section data: items=1
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: Adding 1 files to LOG section
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: Added LOG section with 1 items
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: Added LOG subsection to node tree
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: Processing LIS section
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: Section data: items=0
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: No items found for LIS section
+2025-07-21 09:56:34,729 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
+2025-07-21 09:56:35,388 - root - DEBUG - Item expanded: RPC
+2025-07-21 09:56:35,388 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 09:56:36,242 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_183.rpc', 'node': 'AP02m', 'token': '192-168-0-12_183', 'token_type': 'RPC'}
+2025-07-21 09:56:36,245 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_183.rpc | Type: RPC
+2025-07-21 09:56:36,245 - root - DEBUG - Displaying log: AP02m_192-168-0-12_183.rpc
+2025-07-21 09:56:36,774 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 09:56:36,774 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(169, 202)
+2025-07-21 09:56:36,776 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_183.rpc', 'node': 'AP02m', 'token': '192-168-0-12_183', 'token_type': 'RPC'}
+2025-07-21 09:56:36,776 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-12_183, Node: AP02m
+2025-07-21 09:56:36,776 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-12_183
+2025-07-21 09:56:36,776 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 09:56:37,530 - root - DEBUG - Context menu command: print for token 192-168-0-12_183
+2025-07-21 09:56:37,533 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 09:56:37,533 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1830000 (automatic=True)
+2025-07-21 09:56:37,533 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1830000
+2025-07-21 09:56:37,534 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-12_183
+2025-07-21 09:56:37,534 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc rupi counters 1830000
+2025-07-21 09:56:37,534 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 09:56:37,534 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 09:56:37,736 - root - DEBUG - TelnetSession.send_command: Cleared 1058 bytes from buffer
+2025-07-21 09:56:37,737 - root - DEBUG - TelnetSession.send_command: Sending 38 bytes: b'print from fbc rupi counters 1830000\r\n'
+2025-07-21 09:56:37,737 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 09:56:37,737 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 09:56:37,775 - root - DEBUG - TelnetSession._read_response: Received 119 bytes, total 119
+2025-07-21 09:56:40,331 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 09:56:40,331 - root - DEBUG - TelnetSession._read_response: Returning 119 chars
+2025-07-21 09:56:40,331 - root - DEBUG - TelnetSession.send_command: Received 119 chars of raw response
+2025-07-21 09:56:40,331 - root - DEBUG - TelnetSession.send_command: Processed response length: 117
+2025-07-21 09:56:40,332 - root - DEBUG - Emitting command_finished signal for command: print from fbc rupi counters 1830000
+2025-07-21 09:56:40,333 - root - INFO - Telnet command finished (automatic=True), response length: 117
+2025-07-21 09:56:40,333 - root - DEBUG - Command response first 100 chars: int from fbc rupi counters 1830000
+
+        Getting FIELD BUS error counters from RUPI(8344) from 
+2025-07-21 09:56:40,333 - root - DEBUG - Command response last 100 chars:  counters 1830000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1830000
+2025-07-21 09:56:40,334 - root - INFO - Attempting to append to log for token 192-168-0-12_183
+2025-07-21 09:56:40,334 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_183.rpc
+2025-07-21 09:56:40,334 - commander.192-168-0-12_183 - INFO - 09:56:40 >> [RPC] int from fbc rupi counters 1830000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1830000
+2025-07-21 09:56:40,335 - root - INFO - Successfully appended to log for token 192-168-0-12_183
+2025-07-21 09:56:40,335 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_183.rpc
+2025-07-21 09:56:42,265 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_184.rpc', 'node': 'AP02m', 'token': '192-168-0-12_184', 'token_type': 'RPC'}
+2025-07-21 09:56:42,268 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_184.rpc | Type: RPC
+2025-07-21 09:56:42,269 - root - DEBUG - Displaying log: AP02m_192-168-0-12_184.rpc
+2025-07-21 09:56:42,632 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 09:56:42,632 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(188, 233)
+2025-07-21 09:56:42,633 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_184.rpc', 'node': 'AP02m', 'token': '192-168-0-12_184', 'token_type': 'RPC'}
+2025-07-21 09:56:42,633 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-12_184, Node: AP02m
+2025-07-21 09:56:42,634 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-12_184
+2025-07-21 09:56:42,634 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 09:56:43,432 - root - DEBUG - Context menu command: clear for token 192-168-0-12_184
+2025-07-21 09:56:43,434 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 09:56:43,434 - root - DEBUG - Executing telnet command: clear fbc rupi counters 1840000 (automatic=True)
+2025-07-21 09:56:43,434 - root - DEBUG - Executing telnet command: clear fbc rupi counters 1840000
+2025-07-21 09:56:43,434 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-12_184
+2025-07-21 09:56:43,436 - root - DEBUG - TelnetSession.send_command: Sending command: clear fbc rupi counters 1840000
+2025-07-21 09:56:43,436 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 09:56:43,436 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 09:56:43,638 - root - DEBUG - TelnetSession.send_command: Cleared 0 bytes from buffer
+2025-07-21 09:56:43,638 - root - DEBUG - TelnetSession.send_command: Sending 33 bytes: b'clear fbc rupi counters 1840000\r\n'
+2025-07-21 09:56:43,638 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 09:56:43,638 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 09:56:46,142 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 09:56:46,142 - root - DEBUG - TelnetSession._read_response: Returning 0 chars
+2025-07-21 09:56:46,142 - root - DEBUG - TelnetSession.send_command: Received 0 chars of raw response
+2025-07-21 09:56:46,142 - root - DEBUG - TelnetSession.send_command: Processed response length: 0
+2025-07-21 09:56:46,143 - root - DEBUG - Emitting command_finished signal for command: clear fbc rupi counters 1840000
+2025-07-21 09:56:46,144 - root - INFO - Telnet command finished (automatic=True), response length: 0
+2025-07-21 09:56:46,144 - root - DEBUG - Command response first 100 chars: 
+2025-07-21 09:56:50,725 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_184.rpc', 'node': 'AP02m', 'token': '192-168-0-12_184', 'token_type': 'RPC'}
+2025-07-21 09:56:50,728 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_184.rpc | Type: RPC
+2025-07-21 09:56:50,729 - root - DEBUG - Displaying log: AP02m_192-168-0-12_184.rpc
+2025-07-21 09:56:50,882 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_184.rpc', 'node': 'AP02m', 'token': '192-168-0-12_184', 'token_type': 'RPC'}
+2025-07-21 09:56:50,885 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_184.rpc | Type: RPC
+2025-07-21 09:56:50,886 - root - DEBUG - Displaying log: AP02m_192-168-0-12_184.rpc
+2025-07-21 09:56:55,278 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_183.rpc', 'node': 'AP02m', 'token': '192-168-0-12_183', 'token_type': 'RPC'}
+2025-07-21 09:56:55,280 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_183.rpc | Type: RPC
+2025-07-21 09:56:55,280 - root - DEBUG - Displaying log: AP02m_192-168-0-12_183.rpc
+2025-07-21 09:56:55,907 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.12', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP02m\\AP02m_192-168-0-12_183.rpc', 'node': 'AP02m', 'token': '192-168-0-12_183', 'token_type': 'RPC'}
+2025-07-21 09:56:55,909 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP02m\AP02m_192-168-0-12_183.rpc | Type: RPC
+2025-07-21 09:56:55,909 - root - DEBUG - Displaying log: AP02m_192-168-0-12_183.rpc
+2025-07-21 09:56:59,904 - root - DEBUG - Item expanded: LOG
+2025-07-21 09:56:59,904 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 09:57:00,700 - root - DEBUG - Item expanded: LIS
+2025-07-21 09:57:00,700 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:01:31,720 - root - DEBUG - Node tree event filter installed
+2025-07-21 10:01:31,727 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 10:01:31,806 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 10:01:31,807 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 10:01:31,807 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 10:01:31,808 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 10:01:31,808 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 10:01:31,809 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 10:01:31,809 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 10:01:31,810 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 10:01:34,330 - root - DEBUG - SessionManager.create_session: Creating session for TELNET to 192.168.137.42:1234
+2025-07-21 10:01:34,331 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-07-21 10:01:34,339 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1496, family=2, type=1, proto=0, laddr=('192.168.137.54', 61655), raddr=('192.168.137.42', 1234)>
+2025-07-21 10:01:34,339 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-07-21 10:01:35,340 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-07-21 10:01:35,341 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-07-21 10:01:35,341 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-07-21 10:01:35,341 - root - INFO - TelnetSession: Connection established successfully
+2025-07-21 10:01:35,341 - root - DEBUG - SessionManager.create_session: Session created and connected: TELNET_0
+2025-07-21 10:01:35,380 - root - DEBUG - Item expanded: AP01m (192.168.0.11)
+2025-07-21 10:01:35,381 - root - DEBUG - Removed placeholder for node: AP01m (192.168.0.11)
+2025-07-21 10:01:35,381 - root - DEBUG - _load_node_children: Loading children for node: AP01m
+2025-07-21 10:01:35,381 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.fbc
+2025-07-21 10:01:35,381 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:01:35,382 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.fbc | Extracted token: 162
+2025-07-21 10:01:35,382 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:01:35,382 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.fbc | Extracted token: 163
+2025-07-21 10:01:35,382 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:01:35,382 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.fbc | Extracted token: 164
+2025-07-21 10:01:35,382 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:01:35,382 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.log
+2025-07-21 10:01:35,383 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:01:35,383 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.txt
+2025-07-21 10:01:35,383 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:01:35,383 - root - DEBUG - Total FBC files found: 3
+2025-07-21 10:01:35,384 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.rpc
+2025-07-21 10:01:35,384 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:01:35,384 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.rpc | Extracted token: 192-168-0-11_162
+2025-07-21 10:01:35,384 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_162.rpc
+2025-07-21 10:01:35,385 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.rpc | Extracted token: 192-168-0-11_163
+2025-07-21 10:01:35,385 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_163.rpc
+2025-07-21 10:01:35,385 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.rpc | Extracted token: 192-168-0-11_164
+2025-07-21 10:01:35,385 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_164.rpc
+2025-07-21 10:01:35,385 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.log
+2025-07-21 10:01:35,385 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:01:35,386 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.txt
+2025-07-21 10:01:35,386 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:01:35,386 - root - DEBUG - Total RPC files found: 3
+2025-07-21 10:01:35,386 - root - DEBUG - LOG SECTION DEBUG: Scanning directory: C:/Users/gorjovicgo/_DIA\LOG
+2025-07-21 10:01:35,386 - root - DEBUG - LOG SECTION DEBUG: Using pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:01:35,386 - root - DEBUG - Scanning for LOG files with pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:01:35,386 - root - DEBUG - Found 1 files matching pattern
+2025-07-21 10:01:35,386 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11.log | Extracted token: AP01m_192-168-0-11
+2025-07-21 10:01:35,387 - root - DEBUG - Found LOG file: AP01m_192-168-0-11.log
+2025-07-21 10:01:35,387 - root - DEBUG - Total LOG files found: 1
+2025-07-21 10:01:35,387 - root - DEBUG - Directory not found: C:/Users/gorjovicgo/_DIA\LIS\AP01m
+2025-07-21 10:01:35,387 - root - DEBUG - _load_node_children: Processing sections for node: AP01m
+2025-07-21 10:01:35,387 - root - DEBUG - _load_node_children: Processing FBC section
+2025-07-21 10:01:35,387 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:01:35,387 - root - DEBUG - _load_node_children: Adding 3 files to FBC section
+2025-07-21 10:01:35,387 - root - DEBUG - _load_node_children: Added FBC section with 3 items
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Added FBC subsection to node tree
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Processing RPC section
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Adding 3 files to RPC section
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Added RPC section with 3 items
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Added RPC subsection to node tree
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Processing LOG section
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Section data: items=1
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Adding 1 files to LOG section
+2025-07-21 10:01:35,388 - root - DEBUG - _load_node_children: Added LOG section with 1 items
+2025-07-21 10:01:35,389 - root - DEBUG - _load_node_children: Added LOG subsection to node tree
+2025-07-21 10:01:35,389 - root - DEBUG - _load_node_children: Processing LIS section
+2025-07-21 10:01:35,389 - root - DEBUG - _load_node_children: Section data: items=0
+2025-07-21 10:01:35,389 - root - DEBUG - _load_node_children: No items found for LIS section
+2025-07-21 10:01:35,389 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
+2025-07-21 10:01:36,189 - root - DEBUG - Item expanded: FBC
+2025-07-21 10:01:36,189 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:01:37,030 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:01:37,032 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:01:37,033 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:01:37,352 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:01:37,353 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(161, 77)
+2025-07-21 10:01:37,354 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:01:37,354 - root - DEBUG - Context menu token type: 'FBC', Token ID: 162, Node: AP01m
+2025-07-21 10:01:37,354 - root - DEBUG - Context menu processing token item: type=FBC, id=162
+2025-07-21 10:01:37,355 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:01:37,355 - root - DEBUG - Creating FBC action: Token=162, Node=AP01m
+2025-07-21 10:01:37,355 - root - DEBUG - Context menu created for FBC item | Token: 162 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:01:38,495 - root - DEBUG - FBC action triggered for token: 162, node: AP01m
+2025-07-21 10:01:38,495 - root - DEBUG - Processing Fieldbus command: token_id=162, node_name=AP01m
+2025-07-21 10:01:38,496 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '162'
+2025-07-21 10:01:38,496 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 162, Type: FBC, Node: AP01m 162, IP: 192.168.0.11
+2025-07-21 10:01:38,496 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1620000
+2025-07-21 10:01:38,496 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '162', 'token_type': 'FBC', 'name': 'AP01m 162', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'protocol': 'telnet'}
+2025-07-21 10:01:38,496 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:01:38,498 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1620000', Token: 162
+2025-07-21 10:01:38,498 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1620000' for token 162
+2025-07-21 10:01:38,498 - root - DEBUG - CommandQueue.add_command: Token details - type: FBC, node: AP01m 162 (192.168.0.11)
+2025-07-21 10:01:38,498 - root - DEBUG - CommandQueue.add_command: Current queue size: 1
+2025-07-21 10:01:38,498 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1620000', token=NodeToken(token_id='162', token_type='FBC', name='AP01m 162', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x000001EC2B657610>)
+2025-07-21 10:01:38,498 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:01:38,499 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:01:47,740 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:01:47,742 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:01:47,742 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:01:48,092 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:01:48,093 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(220, 112)
+2025-07-21 10:01:48,094 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:01:48,094 - root - DEBUG - Context menu token type: 'FBC', Token ID: 163, Node: AP01m
+2025-07-21 10:01:48,094 - root - DEBUG - Context menu processing token item: type=FBC, id=163
+2025-07-21 10:01:48,094 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:01:48,095 - root - DEBUG - Creating FBC action: Token=163, Node=AP01m
+2025-07-21 10:01:48,095 - root - DEBUG - Context menu created for FBC item | Token: 163 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 10:01:48,875 - root - DEBUG - FBC action triggered for token: 163, node: AP01m
+2025-07-21 10:01:48,875 - root - DEBUG - Processing Fieldbus command: token_id=163, node_name=AP01m
+2025-07-21 10:01:48,875 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '163'
+2025-07-21 10:01:48,876 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 163, Type: RPC, Node: AP01m 163, IP: 192.168.0.11
+2025-07-21 10:01:48,876 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1630000
+2025-07-21 10:01:48,876 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '163', 'token_type': 'RPC', 'name': 'AP01m 163', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'protocol': 'telnet'}
+2025-07-21 10:01:48,876 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:01:48,877 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1630000', Token: 163
+2025-07-21 10:01:48,877 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1630000' for token 163
+2025-07-21 10:01:48,877 - root - DEBUG - CommandQueue.add_command: Token details - type: RPC, node: AP01m 163 (192.168.0.11)
+2025-07-21 10:01:48,877 - root - DEBUG - CommandQueue.add_command: Current queue size: 2
+2025-07-21 10:01:48,878 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1630000', token=NodeToken(token_id='163', token_type='RPC', name='AP01m 163', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x000001EC2B657610>)
+2025-07-21 10:01:48,878 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:01:48,878 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:01:54,880 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:01:54,881 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:01:54,882 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:01:55,338 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:01:55,339 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:01:55,340 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:01:55,509 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:01:55,511 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:01:55,511 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:01:59,829 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:01:59,831 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:01:59,831 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:02:01,614 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:02:01,617 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:02:01,617 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:02:02,305 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:02:02,307 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:02:02,307 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:02:05,822 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:02:05,823 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(214, 82)
+2025-07-21 10:02:05,825 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:02:05,825 - root - DEBUG - Context menu token type: 'FBC', Token ID: 162, Node: AP01m
+2025-07-21 10:02:05,825 - root - DEBUG - Context menu processing token item: type=FBC, id=162
+2025-07-21 10:02:05,825 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:02:05,825 - root - DEBUG - Creating FBC action: Token=162, Node=AP01m
+2025-07-21 10:02:05,825 - root - DEBUG - Context menu created for FBC item | Token: 162 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:02:06,593 - root - DEBUG - FBC action triggered for token: 162, node: AP01m
+2025-07-21 10:02:06,593 - root - DEBUG - Processing Fieldbus command: token_id=162, node_name=AP01m
+2025-07-21 10:02:06,593 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '162'
+2025-07-21 10:02:06,594 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 162, Type: FBC, Node: AP01m 162, IP: 192.168.0.11
+2025-07-21 10:02:06,594 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1620000
+2025-07-21 10:02:06,594 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '162', 'token_type': 'FBC', 'name': 'AP01m 162', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'protocol': 'telnet'}
+2025-07-21 10:02:06,594 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:02:06,595 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1620000', Token: 162
+2025-07-21 10:02:06,595 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1620000' for token 162
+2025-07-21 10:02:06,595 - root - DEBUG - CommandQueue.add_command: Token details - type: FBC, node: AP01m 162 (192.168.0.11)
+2025-07-21 10:02:06,595 - root - DEBUG - CommandQueue.add_command: Current queue size: 3
+2025-07-21 10:02:06,595 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1620000', token=NodeToken(token_id='162', token_type='FBC', name='AP01m 162', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x000001EC2B657610>)
+2025-07-21 10:02:06,595 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:02:06,596 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:02:12,484 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:02:12,486 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:02:12,487 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:02:21,437 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:02:21,439 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:02:21,440 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:02:34,570 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:02:34,572 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:02:34,572 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:02:34,790 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:02:34,790 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(199, 111)
+2025-07-21 10:02:34,791 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:02:34,791 - root - DEBUG - Context menu token type: 'FBC', Token ID: 163, Node: AP01m
+2025-07-21 10:02:34,791 - root - DEBUG - Context menu processing token item: type=FBC, id=163
+2025-07-21 10:02:34,792 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:02:34,792 - root - DEBUG - Creating FBC action: Token=163, Node=AP01m
+2025-07-21 10:02:34,792 - root - DEBUG - Context menu created for FBC item | Token: 163 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 10:02:35,534 - root - DEBUG - FBC action triggered for token: 163, node: AP01m
+2025-07-21 10:02:35,534 - root - DEBUG - Processing Fieldbus command: token_id=163, node_name=AP01m
+2025-07-21 10:02:35,534 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '163'
+2025-07-21 10:02:35,534 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 163, Type: RPC, Node: AP01m 163, IP: 192.168.0.11
+2025-07-21 10:02:35,535 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1630000
+2025-07-21 10:02:35,535 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '163', 'token_type': 'RPC', 'name': 'AP01m 163', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'protocol': 'telnet'}
+2025-07-21 10:02:35,535 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:02:35,537 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1630000', Token: 163
+2025-07-21 10:02:35,538 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1630000' for token 163
+2025-07-21 10:02:35,538 - root - DEBUG - CommandQueue.add_command: Token details - type: RPC, node: AP01m 163 (192.168.0.11)
+2025-07-21 10:02:35,538 - root - DEBUG - CommandQueue.add_command: Current queue size: 4
+2025-07-21 10:02:35,538 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1630000', token=NodeToken(token_id='163', token_type='RPC', name='AP01m 163', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x000001EC2B657610>)
+2025-07-21 10:02:35,538 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:02:35,539 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:02:42,040 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:02:42,042 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:02:42,043 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:02:44,691 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:02:44,695 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:02:44,696 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:03:32,808 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:03:32,809 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:03:32,810 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:03:58,505 - root - DEBUG - Item expanded: RPC
+2025-07-21 10:03:58,505 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:03:59,224 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'node': 'AP01m', 'token': '192-168-0-11_163', 'token_type': 'RPC'}
+2025-07-21 10:03:59,225 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc | Type: RPC
+2025-07-21 10:03:59,226 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.rpc
+2025-07-21 10:03:59,531 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:03:59,532 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(190, 233)
+2025-07-21 10:03:59,534 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'node': 'AP01m', 'token': '192-168-0-11_163', 'token_type': 'RPC'}
+2025-07-21 10:03:59,534 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-11_163, Node: AP01m
+2025-07-21 10:03:59,534 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-11_163
+2025-07-21 10:03:59,534 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 10:04:00,294 - root - DEBUG - Context menu command: print for token 192-168-0-11_163
+2025-07-21 10:04:00,296 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 10:04:00,296 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1630000 (automatic=True)
+2025-07-21 10:04:00,296 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1630000
+2025-07-21 10:04:00,297 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-11_163
+2025-07-21 10:04:00,297 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc rupi counters 1630000
+2025-07-21 10:04:00,297 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 10:04:00,297 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:04:00,498 - root - DEBUG - TelnetSession.send_command: Cleared 291 bytes from buffer
+2025-07-21 10:04:00,499 - root - DEBUG - TelnetSession.send_command: Sending 38 bytes: b'print from fbc rupi counters 1630000\r\n'
+2025-07-21 10:04:00,499 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:04:00,499 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 10:04:00,534 - root - DEBUG - TelnetSession._read_response: Received 119 bytes, total 119
+2025-07-21 10:04:03,094 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:04:03,094 - root - DEBUG - TelnetSession._read_response: Returning 119 chars
+2025-07-21 10:04:03,094 - root - DEBUG - TelnetSession.send_command: Received 119 chars of raw response
+2025-07-21 10:04:03,095 - root - DEBUG - TelnetSession.send_command: Processed response length: 117
+2025-07-21 10:04:03,095 - root - DEBUG - Emitting command_finished signal for command: print from fbc rupi counters 1630000
+2025-07-21 10:04:03,096 - root - INFO - Telnet command finished (automatic=True), response length: 117
+2025-07-21 10:04:03,096 - root - DEBUG - Command response first 100 chars: int from fbc rupi counters 1630000
+
+        Getting FIELD BUS error counters from RUPI(8344) from 
+2025-07-21 10:04:03,097 - root - DEBUG - Command response last 100 chars:  counters 1630000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1630000
+2025-07-21 10:04:03,097 - root - INFO - Attempting to append to log for token 192-168-0-11_163
+2025-07-21 10:04:03,098 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc
+2025-07-21 10:04:03,098 - commander.192-168-0-11_163 - INFO - 10:04:03 >> [RPC] int from fbc rupi counters 1630000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1630000
+2025-07-21 10:04:03,098 - root - INFO - Successfully appended to log for token 192-168-0-11_163
+2025-07-21 10:04:03,098 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc
+2025-07-21 10:04:20,966 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'node': 'AP01m', 'token': '192-168-0-11_163', 'token_type': 'RPC'}
+2025-07-21 10:04:20,968 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_163.rpc | Type: RPC
+2025-07-21 10:04:20,968 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.rpc
+2025-07-21 10:17:37,445 - root - DEBUG - Node tree event filter installed
+2025-07-21 10:17:37,450 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 10:17:37,502 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 10:17:37,502 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 10:17:37,503 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 10:17:37,503 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 10:17:37,503 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 10:17:37,503 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 10:17:37,504 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 10:17:37,504 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 10:17:40,094 - root - DEBUG - SessionManager.create_session: Creating session for TELNET to 192.168.137.42:1234
+2025-07-21 10:17:40,094 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-07-21 10:17:40,102 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1432, family=2, type=1, proto=0, laddr=('192.168.137.54', 62959), raddr=('192.168.137.42', 1234)>
+2025-07-21 10:17:40,102 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-07-21 10:17:41,103 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-07-21 10:17:41,103 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-07-21 10:17:41,104 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-07-21 10:17:41,104 - root - INFO - TelnetSession: Connection established successfully
+2025-07-21 10:17:41,104 - root - DEBUG - SessionManager.create_session: Session created and connected: TELNET_0
+2025-07-21 10:17:42,538 - root - DEBUG - Item expanded: AP01m (192.168.0.11)
+2025-07-21 10:17:42,538 - root - DEBUG - Removed placeholder for node: AP01m (192.168.0.11)
+2025-07-21 10:17:42,539 - root - DEBUG - _load_node_children: Loading children for node: AP01m
+2025-07-21 10:17:42,539 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.fbc
+2025-07-21 10:17:42,539 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:17:42,539 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.fbc | Extracted token: 162
+2025-07-21 10:17:42,539 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:17:42,540 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.fbc | Extracted token: 163
+2025-07-21 10:17:42,540 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:17:42,540 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.fbc | Extracted token: 164
+2025-07-21 10:17:42,540 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:17:42,540 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.log
+2025-07-21 10:17:42,540 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:17:42,541 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.txt
+2025-07-21 10:17:42,541 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:17:42,541 - root - DEBUG - Total FBC files found: 3
+2025-07-21 10:17:42,541 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.rpc
+2025-07-21 10:17:42,541 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:17:42,541 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.rpc | Extracted token: 192-168-0-11_162
+2025-07-21 10:17:42,542 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_162.rpc
+2025-07-21 10:17:42,542 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.rpc | Extracted token: 192-168-0-11_163
+2025-07-21 10:17:42,542 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_163.rpc
+2025-07-21 10:17:42,542 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.rpc | Extracted token: 192-168-0-11_164
+2025-07-21 10:17:42,543 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_164.rpc
+2025-07-21 10:17:42,543 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.log
+2025-07-21 10:17:42,543 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:17:42,543 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.txt
+2025-07-21 10:17:42,543 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:17:42,543 - root - DEBUG - Total RPC files found: 3
+2025-07-21 10:17:42,543 - root - DEBUG - LOG SECTION DEBUG: Scanning directory: C:/Users/gorjovicgo/_DIA\LOG
+2025-07-21 10:17:42,543 - root - DEBUG - LOG SECTION DEBUG: Using pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:17:42,543 - root - DEBUG - Scanning for LOG files with pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:17:42,543 - root - DEBUG - Found 1 files matching pattern
+2025-07-21 10:17:42,543 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11.log | Extracted token: AP01m_192-168-0-11
+2025-07-21 10:17:42,544 - root - DEBUG - Found LOG file: AP01m_192-168-0-11.log
+2025-07-21 10:17:42,544 - root - DEBUG - Total LOG files found: 1
+2025-07-21 10:17:42,544 - root - DEBUG - Directory not found: C:/Users/gorjovicgo/_DIA\LIS\AP01m
+2025-07-21 10:17:42,544 - root - DEBUG - _load_node_children: Processing sections for node: AP01m
+2025-07-21 10:17:42,544 - root - DEBUG - _load_node_children: Processing FBC section
+2025-07-21 10:17:42,544 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:17:42,544 - root - DEBUG - _load_node_children: Adding 3 files to FBC section
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Added FBC section with 3 items
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Added FBC subsection to node tree
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Processing RPC section
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Adding 3 files to RPC section
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Added RPC section with 3 items
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Added RPC subsection to node tree
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Processing LOG section
+2025-07-21 10:17:42,545 - root - DEBUG - _load_node_children: Section data: items=1
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: Adding 1 files to LOG section
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: Added LOG section with 1 items
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: Added LOG subsection to node tree
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: Processing LIS section
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: Section data: items=0
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: No items found for LIS section
+2025-07-21 10:17:42,546 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
+2025-07-21 10:17:43,152 - root - DEBUG - Item expanded: FBC
+2025-07-21 10:17:43,152 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:17:44,045 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:17:44,084 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:17:44,085 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:17:44,353 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:17:44,353 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(211, 84)
+2025-07-21 10:17:44,355 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:17:44,355 - root - DEBUG - Context menu token type: 'FBC', Token ID: 162, Node: AP01m
+2025-07-21 10:17:44,355 - root - DEBUG - Context menu processing token item: type=FBC, id=162
+2025-07-21 10:17:44,355 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:17:44,355 - root - DEBUG - Creating FBC action: Token=162, Node=AP01m
+2025-07-21 10:17:44,355 - root - DEBUG - Context menu created for FBC item | Token: 162 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:17:45,203 - root - DEBUG - FBC action triggered for token: 162, node: AP01m
+2025-07-21 10:17:45,203 - root - DEBUG - Processing Fieldbus command: token_id=162, node_name=AP01m
+2025-07-21 10:17:45,203 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '162'
+2025-07-21 10:17:45,203 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 162, Type: FBC, Node: AP01m 162, IP: 192.168.0.11
+2025-07-21 10:17:45,203 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1620000
+2025-07-21 10:17:45,203 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '162', 'token_type': 'FBC', 'name': 'AP01m 162', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'protocol': 'telnet'}
+2025-07-21 10:17:45,204 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:17:45,205 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1620000', Token: 162
+2025-07-21 10:17:45,205 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1620000' for token 162
+2025-07-21 10:17:45,205 - root - DEBUG - CommandQueue.add_command: Token details - type: FBC, node: AP01m 162 (192.168.0.11)
+2025-07-21 10:17:45,206 - root - DEBUG - CommandQueue.add_command: Current queue size: 1
+2025-07-21 10:17:45,206 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1620000', token=NodeToken(token_id='162', token_type='FBC', name='AP01m 162', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', protocol='telnet'), status='pending', telnet_client=None)
+2025-07-21 10:17:45,206 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:17:45,206 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:17:55,356 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:17:55,358 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:17:55,359 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:17:55,521 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:17:55,523 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:17:55,523 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:17:59,744 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:17:59,745 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:17:59,746 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:17:59,991 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:17:59,992 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(174, 114)
+2025-07-21 10:17:59,994 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:17:59,994 - root - DEBUG - Context menu token type: 'FBC', Token ID: 163, Node: AP01m
+2025-07-21 10:17:59,994 - root - DEBUG - Context menu processing token item: type=FBC, id=163
+2025-07-21 10:17:59,994 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:17:59,994 - root - DEBUG - Creating FBC action: Token=163, Node=AP01m
+2025-07-21 10:17:59,994 - root - DEBUG - Context menu created for FBC item | Token: 163 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 10:18:00,662 - root - DEBUG - FBC action triggered for token: 163, node: AP01m
+2025-07-21 10:18:00,663 - root - DEBUG - Processing Fieldbus command: token_id=163, node_name=AP01m
+2025-07-21 10:18:00,663 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '163'
+2025-07-21 10:18:00,663 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 163, Type: RPC, Node: AP01m 163, IP: 192.168.0.11
+2025-07-21 10:18:00,663 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1630000
+2025-07-21 10:18:00,663 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '163', 'token_type': 'RPC', 'name': 'AP01m 163', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'protocol': 'telnet'}
+2025-07-21 10:18:00,663 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:18:00,665 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1630000', Token: 163
+2025-07-21 10:18:00,665 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1630000' for token 163
+2025-07-21 10:18:00,665 - root - DEBUG - CommandQueue.add_command: Token details - type: RPC, node: AP01m 163 (192.168.0.11)
+2025-07-21 10:18:00,665 - root - DEBUG - CommandQueue.add_command: Current queue size: 2
+2025-07-21 10:18:00,665 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1630000', token=NodeToken(token_id='163', token_type='RPC', name='AP01m 163', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', protocol='telnet'), status='pending', telnet_client=None)
+2025-07-21 10:18:00,665 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:18:00,665 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:18:06,350 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_164.fbc', 'node': 'AP01m', 'token': '164', 'token_type': 'FBC'}
+2025-07-21 10:18:06,352 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_164.fbc | Type: FBC
+2025-07-21 10:18:06,353 - root - DEBUG - Displaying log: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:18:06,718 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:18:06,719 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(190, 141)
+2025-07-21 10:18:06,721 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_164.fbc', 'node': 'AP01m', 'token': '164', 'token_type': 'FBC'}
+2025-07-21 10:18:06,721 - root - DEBUG - Context menu token type: 'FBC', Token ID: 164, Node: AP01m
+2025-07-21 10:18:06,721 - root - DEBUG - Context menu processing token item: type=FBC, id=164
+2025-07-21 10:18:06,721 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:18:06,721 - root - DEBUG - Creating FBC action: Token=164, Node=AP01m
+2025-07-21 10:18:06,722 - root - DEBUG - Context menu created for FBC item | Token: 164 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_164.fbc
+2025-07-21 10:18:07,373 - root - DEBUG - FBC action triggered for token: 164, node: AP01m
+2025-07-21 10:18:07,374 - root - DEBUG - Processing Fieldbus command: token_id=164, node_name=AP01m
+2025-07-21 10:18:07,374 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '164'
+2025-07-21 10:18:07,374 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 164, Type: LOG, Node: AP01m 164, IP: 192.168.0.11
+2025-07-21 10:18:07,374 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1640000
+2025-07-21 10:18:07,374 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '164', 'token_type': 'LOG', 'name': 'AP01m 164', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_164.rpc', 'protocol': 'telnet'}
+2025-07-21 10:18:07,374 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:18:07,375 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1640000', Token: 164
+2025-07-21 10:18:07,376 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1640000' for token 164
+2025-07-21 10:18:07,376 - root - DEBUG - CommandQueue.add_command: Token details - type: LOG, node: AP01m 164 (192.168.0.11)
+2025-07-21 10:18:07,376 - root - DEBUG - CommandQueue.add_command: Current queue size: 3
+2025-07-21 10:18:07,376 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1640000', token=NodeToken(token_id='164', token_type='LOG', name='AP01m 164', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_164.rpc', protocol='telnet'), status='pending', telnet_client=None)
+2025-07-21 10:18:07,376 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:18:07,376 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:18:09,103 - root - DEBUG - Item expanded: RPC
+2025-07-21 10:18:09,104 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:18:09,771 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 10:18:09,773 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc | Type: RPC
+2025-07-21 10:18:09,774 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.rpc
+2025-07-21 10:18:10,123 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:18:10,124 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(160, 201)
+2025-07-21 10:18:10,126 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 10:18:10,126 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-11_162, Node: AP01m
+2025-07-21 10:18:10,126 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-11_162
+2025-07-21 10:18:10,126 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 10:18:11,222 - root - DEBUG - Context menu command: print for token 192-168-0-11_162
+2025-07-21 10:18:11,225 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 10:18:11,225 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1620000 (automatic=True)
+2025-07-21 10:18:11,225 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1620000
+2025-07-21 10:18:11,225 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-11_162
+2025-07-21 10:18:11,226 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc rupi counters 1620000
+2025-07-21 10:18:11,226 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 10:18:11,226 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:18:11,428 - root - DEBUG - TelnetSession.send_command: Cleared 1058 bytes from buffer
+2025-07-21 10:18:11,428 - root - DEBUG - TelnetSession.send_command: Sending 38 bytes: b'print from fbc rupi counters 1620000\r\n'
+2025-07-21 10:18:11,428 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:18:11,428 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 10:18:11,464 - root - DEBUG - TelnetSession._read_response: Received 119 bytes, total 119
+2025-07-21 10:18:14,008 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:18:14,008 - root - DEBUG - TelnetSession._read_response: Returning 119 chars
+2025-07-21 10:18:14,008 - root - DEBUG - TelnetSession.send_command: Received 119 chars of raw response
+2025-07-21 10:18:14,008 - root - DEBUG - TelnetSession.send_command: Processed response length: 117
+2025-07-21 10:18:14,009 - root - DEBUG - Emitting command_finished signal for command: print from fbc rupi counters 1620000
+2025-07-21 10:18:14,010 - root - INFO - Telnet command finished (automatic=True), response length: 117
+2025-07-21 10:18:14,010 - root - DEBUG - Command response first 100 chars: int from fbc rupi counters 1620000
+
+        Getting FIELD BUS error counters from RUPI(8344) from 
+2025-07-21 10:18:14,010 - root - DEBUG - Command response last 100 chars:  counters 1620000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1620000
+2025-07-21 10:18:14,010 - root - INFO - Attempting to append to log for token 192-168-0-11_162
+2025-07-21 10:18:14,010 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc
+2025-07-21 10:18:14,011 - commander.192-168-0-11_162 - INFO - 10:18:14 >> [RPC] int from fbc rupi counters 1620000
+
+        Getting FIELD BUS error counters from RUPI(8344) from FBC agent 1620000
+2025-07-21 10:18:14,011 - root - INFO - Successfully appended to log for token 192-168-0-11_162
+2025-07-21 10:18:14,011 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc
+2025-07-21 10:39:13,381 - root - DEBUG - Node tree event filter installed
+2025-07-21 10:39:13,386 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 10:39:13,445 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 10:39:13,446 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 10:39:13,446 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 10:39:13,447 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 10:39:13,447 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 10:39:13,447 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 10:39:13,447 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 10:39:13,448 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 10:39:15,964 - root - DEBUG - SessionManager.create_session: Creating session for TELNET to 192.168.137.42:1234
+2025-07-21 10:39:15,965 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-07-21 10:39:15,974 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1504, family=2, type=1, proto=0, laddr=('192.168.137.54', 64692), raddr=('192.168.137.42', 1234)>
+2025-07-21 10:39:15,974 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-07-21 10:39:16,975 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-07-21 10:39:16,975 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-07-21 10:39:16,975 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-07-21 10:39:16,975 - root - INFO - TelnetSession: Connection established successfully
+2025-07-21 10:39:16,975 - root - DEBUG - SessionManager.create_session: Session created and connected: TELNET_0
+2025-07-21 10:39:18,328 - root - DEBUG - Item expanded: AP01m (192.168.0.11)
+2025-07-21 10:39:18,329 - root - DEBUG - Removed placeholder for node: AP01m (192.168.0.11)
+2025-07-21 10:39:18,329 - root - DEBUG - _load_node_children: Loading children for node: AP01m
+2025-07-21 10:39:18,329 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.fbc
+2025-07-21 10:39:18,329 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:39:18,330 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.fbc | Extracted token: 162
+2025-07-21 10:39:18,330 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:39:18,330 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.fbc | Extracted token: 163
+2025-07-21 10:39:18,330 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:39:18,330 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.fbc | Extracted token: 164
+2025-07-21 10:39:18,330 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:39:18,330 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.log
+2025-07-21 10:39:18,331 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:39:18,331 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.txt
+2025-07-21 10:39:18,331 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:39:18,331 - root - DEBUG - Total FBC files found: 3
+2025-07-21 10:39:18,331 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.rpc
+2025-07-21 10:39:18,332 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:39:18,332 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.rpc | Extracted token: 192-168-0-11_162
+2025-07-21 10:39:18,332 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_162.rpc
+2025-07-21 10:39:18,332 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.rpc | Extracted token: 192-168-0-11_163
+2025-07-21 10:39:18,332 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_163.rpc
+2025-07-21 10:39:18,332 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.rpc | Extracted token: 192-168-0-11_164
+2025-07-21 10:39:18,333 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_164.rpc
+2025-07-21 10:39:18,333 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.log
+2025-07-21 10:39:18,333 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:39:18,333 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.txt
+2025-07-21 10:39:18,333 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:39:18,333 - root - DEBUG - Total RPC files found: 3
+2025-07-21 10:39:18,333 - root - DEBUG - LOG SECTION DEBUG: Scanning directory: C:/Users/gorjovicgo/_DIA\LOG
+2025-07-21 10:39:18,334 - root - DEBUG - LOG SECTION DEBUG: Using pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:39:18,334 - root - DEBUG - Scanning for LOG files with pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:39:18,334 - root - DEBUG - Found 1 files matching pattern
+2025-07-21 10:39:18,334 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11.log | Extracted token: AP01m_192-168-0-11
+2025-07-21 10:39:18,334 - root - DEBUG - Found LOG file: AP01m_192-168-0-11.log
+2025-07-21 10:39:18,334 - root - DEBUG - Total LOG files found: 1
+2025-07-21 10:39:18,334 - root - DEBUG - Directory not found: C:/Users/gorjovicgo/_DIA\LIS\AP01m
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Processing sections for node: AP01m
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Processing FBC section
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Adding 3 files to FBC section
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Added FBC section with 3 items
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Added FBC subsection to node tree
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Processing RPC section
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:39:18,335 - root - DEBUG - _load_node_children: Adding 3 files to RPC section
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Added RPC section with 3 items
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Added RPC subsection to node tree
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Processing LOG section
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Section data: items=1
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Adding 1 files to LOG section
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Added LOG section with 1 items
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Added LOG subsection to node tree
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Processing LIS section
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Section data: items=0
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: No items found for LIS section
+2025-07-21 10:39:18,336 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
+2025-07-21 10:39:19,046 - root - DEBUG - Item expanded: FBC
+2025-07-21 10:39:19,047 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:39:19,948 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:39:19,974 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:39:19,975 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:39:20,308 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:39:20,308 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(171, 80)
+2025-07-21 10:39:20,310 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:39:20,310 - root - DEBUG - Context menu token type: 'FBC', Token ID: 162, Node: AP01m
+2025-07-21 10:39:20,310 - root - DEBUG - Context menu processing token item: type=FBC, id=162
+2025-07-21 10:39:20,310 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:39:20,311 - root - DEBUG - Creating FBC action: Token=162, Node=AP01m
+2025-07-21 10:39:20,311 - root - DEBUG - Context menu created for FBC item | Token: 162 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:39:20,999 - root - DEBUG - FBC action triggered for token: 162, node: AP01m
+2025-07-21 10:39:20,999 - root - DEBUG - Processing Fieldbus command: token_id=162, node_name=AP01m
+2025-07-21 10:39:20,999 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '162'
+2025-07-21 10:39:20,999 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 162, Type: FBC, Node: AP01m 162, IP: 192.168.0.11
+2025-07-21 10:39:21,000 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1620000
+2025-07-21 10:39:21,000 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '162', 'token_type': 'FBC', 'name': 'AP01m 162', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'protocol': 'telnet'}
+2025-07-21 10:39:21,000 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:39:21,001 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1620000', Token: 162
+2025-07-21 10:39:21,001 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1620000' for token 162
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.add_command: Token details - type: FBC, node: AP01m 162 (192.168.0.11)
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.add_command: Current queue size: 1
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1620000', token=NodeToken(token_id='162', token_type='FBC', name='AP01m 162', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x0000020E689B7FD0>)
+2025-07-21 10:39:21,002 - root - INFO - CommandQueue.start_processing: Starting processing of 1 commands
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.start_processing: Queue contents: ['print from fbc io structure 1620000']
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.start_processing: Thread pool status - active threads: 0, max threads: 18
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.start_processing: Marked command 1/1 as processing: print from fbc io structure 1620000
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 1: print from fbc io structure 1620000 (connected: True)
+2025-07-21 10:39:21,002 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 10:39:21,003 - root - DEBUG - CommandQueue.start_processing: Created worker for command 1/1: print from fbc io structure 1620000 (token 162)
+2025-07-21 10:39:21,003 - root - DEBUG - CommandQueue.start_processing: Started worker for command 1/1
+2025-07-21 10:39:21,003 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:39:21,003 - root - INFO - CommandQueue.start_processing: Starting processing of 1 commands
+2025-07-21 10:39:21,003 - root - DEBUG - CommandQueue.start_processing: Queue contents: ['print from fbc io structure 1620000']
+2025-07-21 10:39:21,003 - root - DEBUG - CommandQueue.start_processing: Thread pool status - active threads: 1, max threads: 18
+2025-07-21 10:39:21,003 - root - DEBUG - CommandQueue.start_processing: Marked command 1/1 as processing: print from fbc io structure 1620000
+2025-07-21 10:39:21,003 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 1: print from fbc io structure 1620000 (connected: True)
+2025-07-21 10:39:21,003 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1620000
+2025-07-21 10:39:21,004 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 10:39:21,004 - root - DEBUG - CommandWorker.run: Node: AP01m 162 (192.168.0.11)
+2025-07-21 10:39:21,004 - root - DEBUG - CommandQueue.start_processing: Created worker for command 1/1: print from fbc io structure 1620000 (token 162)
+2025-07-21 10:39:21,004 - root - DEBUG - CommandWorker.run: Token: 162 (FBC)
+2025-07-21 10:39:21,004 - root - DEBUG - CommandQueue.start_processing: Started worker for command 1/1
+2025-07-21 10:39:21,004 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 10:39:21,005 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1620000
+2025-07-21 10:39:21,006 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:39:21,006 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1620000
+2025-07-21 10:39:21,006 - root - DEBUG - CommandWorker.run: Node: AP01m 162 (192.168.0.11)
+2025-07-21 10:39:21,006 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1620000
+2025-07-21 10:39:21,006 - root - DEBUG - CommandWorker.run: Token: 162 (FBC)
+2025-07-21 10:39:21,006 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:39:21,006 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 10:39:21,007 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1620000
+2025-07-21 10:39:21,007 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1620000
+2025-07-21 10:39:21,007 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:39:21,209 - root - DEBUG - TelnetSession.send_command: Cleared 2116 bytes from buffer
+2025-07-21 10:39:21,209 - root - DEBUG - TelnetSession.send_command: Cleared 0 bytes from buffer
+2025-07-21 10:39:21,209 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1620000\r\n'
+2025-07-21 10:39:21,209 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1620000\r\n'
+2025-07-21 10:39:21,210 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:39:21,210 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:39:21,210 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 10:39:21,210 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 10:39:21,217 - root - DEBUG - TelnetSession._read_response: Received 21 bytes, total 21
+2025-07-21 10:39:21,253 - root - DEBUG - TelnetSession._read_response: Received 75 bytes, total 96
+2025-07-21 10:39:21,305 - root - ERROR - TelnetSession.send_command: Error: Command timed out - timed out
+2025-07-21 10:39:21,305 - root - DEBUG - CommandWorker.run: Raw response received (length=36): Error: Command timed out - timed out
+2025-07-21 10:39:21,307 - root - ERROR - CommandWorker.run: Command failed: print from fbc io structure 1620000
+Token: 162 (FBC)
+Node: AP01m 162 (192.168.0.11)
+Error: Command returned error response: Error: Command timed out - timed out
+Traceback:
+Traceback (most recent call last):
+  File "D:\_APP\LOGReport\src\commander\command_queue.py", line 116, in run
+    raise ValueError(f"Command returned error response: {self.result[:200]}")
+ValueError: Command returned error response: Error: Command timed out - timed out
+
+2025-07-21 10:39:21,307 - root - DEBUG - CommandWorker.run: Finished command: print from fbc io structure 1620000, success=False
+2025-07-21 10:39:21,307 - root - INFO - Command failed: print from fbc io structure 1620000
+Node: AP01m 162 (192.168.0.11)
+Token: 162 (FBC)
+ERROR DETAILS: Command failed: Command returned error response: Error: Command timed out - timed out
+Result: Command failed: Command returned error response: Error: Command timed out - timed out
+2025-07-21 10:39:21,308 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 1/1: print from fbc io structure 1620000 -> failed
+2025-07-21 10:49:23,475 - root - DEBUG - Node tree event filter installed
+2025-07-21 10:49:23,480 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 10:49:23,534 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 10:49:23,534 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 10:49:23,535 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 10:49:23,535 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 10:49:23,535 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 10:49:23,535 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 10:49:23,536 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 10:49:23,536 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 10:49:38,507 - root - DEBUG - SessionManager.create_session: Creating session for TELNET to 192.168.137.42:1234
+2025-07-21 10:49:38,507 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-07-21 10:49:38,537 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1472, family=2, type=1, proto=0, laddr=('192.168.137.54', 49153), raddr=('192.168.137.42', 1234)>
+2025-07-21 10:49:38,537 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-07-21 10:49:39,538 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-07-21 10:49:39,538 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-07-21 10:49:39,538 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-07-21 10:49:39,538 - root - INFO - TelnetSession: Connection established successfully
+2025-07-21 10:49:39,538 - root - DEBUG - SessionManager.create_session: Session created and connected: TELNET_0
+2025-07-21 10:49:40,562 - root - DEBUG - Item expanded: AP01m (192.168.0.11)
+2025-07-21 10:49:40,563 - root - DEBUG - Removed placeholder for node: AP01m (192.168.0.11)
+2025-07-21 10:49:40,563 - root - DEBUG - _load_node_children: Loading children for node: AP01m
+2025-07-21 10:49:40,563 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.fbc
+2025-07-21 10:49:40,564 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:49:40,564 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.fbc | Extracted token: 162
+2025-07-21 10:49:40,564 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:40,565 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.fbc | Extracted token: 163
+2025-07-21 10:49:40,565 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:49:40,565 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.fbc | Extracted token: 164
+2025-07-21 10:49:40,565 - root - DEBUG - Found FBC file: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:49:40,565 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.log
+2025-07-21 10:49:40,566 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:49:40,566 - root - DEBUG - Scanning for FBC files with pattern: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_*.txt
+2025-07-21 10:49:40,566 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:49:40,566 - root - DEBUG - Total FBC files found: 3
+2025-07-21 10:49:40,566 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.rpc
+2025-07-21 10:49:40,567 - root - DEBUG - Found 3 files matching pattern
+2025-07-21 10:49:40,567 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_162.rpc | Extracted token: 192-168-0-11_162
+2025-07-21 10:49:40,567 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_162.rpc
+2025-07-21 10:49:40,567 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_163.rpc | Extracted token: 192-168-0-11_163
+2025-07-21 10:49:40,568 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_163.rpc
+2025-07-21 10:49:40,568 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11_164.rpc | Extracted token: 192-168-0-11_164
+2025-07-21 10:49:40,568 - root - DEBUG - Found RPC file: AP01m_192-168-0-11_164.rpc
+2025-07-21 10:49:40,568 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.log
+2025-07-21 10:49:40,568 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:49:40,568 - root - DEBUG - Scanning for RPC files with pattern: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_*.txt
+2025-07-21 10:49:40,569 - root - DEBUG - Found 0 files matching pattern
+2025-07-21 10:49:40,569 - root - DEBUG - Total RPC files found: 3
+2025-07-21 10:49:40,569 - root - DEBUG - LOG SECTION DEBUG: Scanning directory: C:/Users/gorjovicgo/_DIA\LOG
+2025-07-21 10:49:40,569 - root - DEBUG - LOG SECTION DEBUG: Using pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:49:40,569 - root - DEBUG - Scanning for LOG files with pattern: C:/Users/gorjovicgo/_DIA\LOG\AP01m_*.log
+2025-07-21 10:49:40,569 - root - DEBUG - Found 1 files matching pattern
+2025-07-21 10:49:40,569 - root - DEBUG - LOG SECTION DEBUG: Processing file: AP01m_192-168-0-11.log | Extracted token: AP01m_192-168-0-11
+2025-07-21 10:49:40,569 - root - DEBUG - Found LOG file: AP01m_192-168-0-11.log
+2025-07-21 10:49:40,570 - root - DEBUG - Total LOG files found: 1
+2025-07-21 10:49:40,570 - root - DEBUG - Directory not found: C:/Users/gorjovicgo/_DIA\LIS\AP01m
+2025-07-21 10:49:40,570 - root - DEBUG - _load_node_children: Processing sections for node: AP01m
+2025-07-21 10:49:40,570 - root - DEBUG - _load_node_children: Processing FBC section
+2025-07-21 10:49:40,570 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:49:40,570 - root - DEBUG - _load_node_children: Adding 3 files to FBC section
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Added FBC section with 3 items
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Added FBC subsection to node tree
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Processing RPC section
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Section data: items=3
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Adding 3 files to RPC section
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Added RPC section with 3 items
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Added RPC subsection to node tree
+2025-07-21 10:49:40,571 - root - DEBUG - _load_node_children: Processing LOG section
+2025-07-21 10:49:40,572 - root - DEBUG - _load_node_children: Section data: items=1
+2025-07-21 10:49:40,572 - root - DEBUG - _load_node_children: Adding 1 files to LOG section
+2025-07-21 10:49:40,572 - root - DEBUG - _load_node_children: Added LOG section with 1 items
+2025-07-21 10:49:40,572 - root - DEBUG - _load_node_children: Added LOG subsection to node tree
+2025-07-21 10:49:40,572 - root - DEBUG - _load_node_children: Processing LIS section
+2025-07-21 10:49:40,572 - root - DEBUG - _load_node_children: Section data: items=0
+2025-07-21 10:49:40,573 - root - DEBUG - _load_node_children: No items found for LIS section
+2025-07-21 10:49:40,573 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
+2025-07-21 10:49:41,108 - root - DEBUG - Item expanded: FBC
+2025-07-21 10:49:41,109 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:49:41,813 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:49:41,861 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:49:41,861 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:42,143 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:49:42,144 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(164, 82)
+2025-07-21 10:49:42,145 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:49:42,145 - root - DEBUG - Context menu token type: 'FBC', Token ID: 162, Node: AP01m
+2025-07-21 10:49:42,146 - root - DEBUG - Context menu processing token item: type=FBC, id=162
+2025-07-21 10:49:42,146 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:49:42,146 - root - DEBUG - Creating FBC action: Token=162, Node=AP01m
+2025-07-21 10:49:42,146 - root - DEBUG - Context menu created for FBC item | Token: 162 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:43,136 - root - DEBUG - FBC action triggered for token: 162, node: AP01m
+2025-07-21 10:49:43,136 - root - DEBUG - Processing Fieldbus command: token_id=162, node_name=AP01m
+2025-07-21 10:49:43,136 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '162'
+2025-07-21 10:49:43,136 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 162, Type: FBC, Node: AP01m 162, IP: 192.168.0.11
+2025-07-21 10:49:43,136 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1620000
+2025-07-21 10:49:43,136 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '162', 'token_type': 'FBC', 'name': 'AP01m 162', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'protocol': 'telnet'}
+2025-07-21 10:49:43,137 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:49:43,138 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1620000', Token: 162
+2025-07-21 10:49:43,138 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1620000' for token 162
+2025-07-21 10:49:43,138 - root - DEBUG - CommandQueue.add_command: Token details - type: FBC, node: AP01m 162 (192.168.0.11)
+2025-07-21 10:49:43,138 - root - DEBUG - CommandQueue.add_command: Current queue size: 1
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1620000', token=NodeToken(token_id='162', token_type='FBC', name='AP01m 162', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x00000125C66B7590>)
+2025-07-21 10:49:43,139 - root - INFO - CommandQueue.start_processing: Starting processing of 1 commands
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Queue contents: ['print from fbc io structure 1620000']
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Thread pool status - active threads: 0, max threads: 18
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Marked command 1/1 as processing: print from fbc io structure 1620000
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 1: print from fbc io structure 1620000 (connected: True)
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Created worker for command 1/1: print from fbc io structure 1620000 (token 162)
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Started worker for command 1/1
+2025-07-21 10:49:43,139 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:49:43,139 - root - INFO - CommandQueue.start_processing: Starting processing of 1 commands
+2025-07-21 10:49:43,139 - root - DEBUG - CommandQueue.start_processing: Queue contents: ['print from fbc io structure 1620000']
+2025-07-21 10:49:43,140 - root - DEBUG - CommandQueue.start_processing: Thread pool status - active threads: 1, max threads: 18
+2025-07-21 10:49:43,140 - root - DEBUG - CommandQueue.start_processing: Marked command 1/1 as processing: print from fbc io structure 1620000
+2025-07-21 10:49:43,140 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1620000
+2025-07-21 10:49:43,140 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 1: print from fbc io structure 1620000 (connected: True)
+2025-07-21 10:49:43,140 - root - DEBUG - CommandWorker.run: Node: AP01m 162 (192.168.0.11)
+2025-07-21 10:49:43,140 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 10:49:43,140 - root - DEBUG - CommandWorker.run: Token: 162 (FBC)
+2025-07-21 10:49:43,140 - root - DEBUG - CommandQueue.start_processing: Created worker for command 1/1: print from fbc io structure 1620000 (token 162)
+2025-07-21 10:49:43,140 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 10:49:43,141 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1620000
+2025-07-21 10:49:43,141 - root - DEBUG - CommandQueue.start_processing: Started worker for command 1/1
+2025-07-21 10:49:43,141 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1620000
+2025-07-21 10:49:43,142 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1620000
+2025-07-21 10:49:43,142 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:49:43,142 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:49:43,142 - root - DEBUG - CommandWorker.run: Node: AP01m 162 (192.168.0.11)
+2025-07-21 10:49:43,143 - root - DEBUG - CommandWorker.run: Token: 162 (FBC)
+2025-07-21 10:49:43,143 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 10:49:43,143 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1620000
+2025-07-21 10:49:43,143 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1620000
+2025-07-21 10:49:43,143 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:49:43,346 - root - DEBUG - TelnetSession.send_command: Cleared 2100 bytes from buffer
+2025-07-21 10:49:43,346 - root - DEBUG - TelnetSession.send_command: Cleared 16 bytes from buffer
+2025-07-21 10:49:43,346 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1620000\r\n'
+2025-07-21 10:49:43,346 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1620000\r\n'
+2025-07-21 10:49:43,346 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:49:43,346 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:49:43,347 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 10:49:43,347 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 10:49:43,353 - root - DEBUG - TelnetSession._read_response: Received 20 bytes, total 20
+2025-07-21 10:49:43,388 - root - DEBUG - TelnetSession._read_response: Received 75 bytes, total 75
+2025-07-21 10:49:45,876 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:49:45,876 - root - DEBUG - TelnetSession._read_response: Returning 20 chars
+2025-07-21 10:49:45,876 - root - DEBUG - TelnetSession.send_command: Received 20 chars of raw response
+2025-07-21 10:49:45,876 - root - DEBUG - TelnetSession.send_command: Processed response length: 20
+2025-07-21 10:49:45,877 - root - DEBUG - CommandWorker.run: Raw response received (length=20): nt from fbc io struc
+2025-07-21 10:49:45,877 - root - INFO - CommandWorker.run: Command executed successfully: print from fbc io structure 1620000
+2025-07-21 10:49:45,877 - root - DEBUG - CommandWorker.run: Final processed response length: 20
+2025-07-21 10:49:45,877 - root - DEBUG - CommandWorker.run: Finished command: print from fbc io structure 1620000, success=True
+2025-07-21 10:49:45,877 - root - INFO - Command completed: print from fbc io structure 1620000
+Node: AP01m 162 (192.168.0.11)
+Token: 162 (FBC)
+Result: nt from fbc io struc
+2025-07-21 10:49:45,877 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 1/1: print from fbc io structure 1620000 -> completed
+2025-07-21 10:49:45,877 - root - DEBUG - CommandQueue._handle_worker_finished: Progress: 1/1 completed, 0 remaining
+2025-07-21 10:49:45,878 - root - DEBUG - _handle_queued_command_result: command=print from fbc io structure 1620000, success=True, result_length=20
+2025-07-21 10:49:45,878 - root - INFO - Command completed successfully: print from fbc io structure 1620000
+Result: nt from fbc io struc
+2025-07-21 10:49:45,878 - root - INFO - Attempting to append to log for token 162
+2025-07-21 10:49:45,878 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:45,878 - commander.162 - INFO - 10:49:45 >> [FBC] print from fbc io structure 1620000
+nt from fbc io struc
+2025-07-21 10:49:45,879 - root - INFO - Successfully appended to log for token 162
+2025-07-21 10:49:45,879 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:45,879 - root - DEBUG - CommandQueue._handle_worker_finished: Emitted completion signal for command: print from fbc io structure 1620000 (success=True)
+2025-07-21 10:49:45,879 - root - INFO - CommandQueue._handle_worker_finished: All commands processed
+2025-07-21 10:49:45,939 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:49:45,939 - root - DEBUG - TelnetSession._read_response: Returning 75 chars
+2025-07-21 10:49:45,939 - root - DEBUG - TelnetSession.send_command: Received 75 chars of raw response
+2025-07-21 10:49:45,939 - root - DEBUG - TelnetSession.send_command: Processed response length: 73
+2025-07-21 10:49:45,940 - root - DEBUG - CommandWorker.run: Raw response received (length=73): re 1620000
+
+        Getting FBC Utilization Rate from FBC agent 1620000
+2025-07-21 10:49:45,940 - root - INFO - CommandWorker.run: Command executed successfully: print from fbc io structure 1620000
+2025-07-21 10:49:45,940 - root - DEBUG - CommandWorker.run: Final processed response length: 73
+2025-07-21 10:49:45,940 - root - DEBUG - CommandWorker.run: Finished command: print from fbc io structure 1620000, success=True
+2025-07-21 10:49:45,940 - root - INFO - Command completed: print from fbc io structure 1620000
+Node: AP01m 162 (192.168.0.11)
+Token: 162 (FBC)
+Result: re 1620000
+
+        Getting FBC Utilization Rate from FBC agent 1620000
+2025-07-21 10:49:45,942 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 1/1: print from fbc io structure 1620000 -> completed
+2025-07-21 10:49:45,942 - root - DEBUG - CommandQueue._handle_worker_finished: Progress: 2/1 completed, -1 remaining
+2025-07-21 10:49:45,942 - root - DEBUG - _handle_queued_command_result: command=print from fbc io structure 1620000, success=True, result_length=73
+2025-07-21 10:49:45,942 - root - INFO - Command completed successfully: print from fbc io structure 1620000
+Result: re 1620000
+
+        Getting FBC Utilization Rate from FBC agent 1620000
+2025-07-21 10:49:45,942 - root - INFO - Attempting to append to log for token 162
+2025-07-21 10:49:45,942 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:45,942 - commander.162 - INFO - 10:49:45 >> [FBC] print from fbc io structure 1620000
+re 1620000
+
+        Getting FBC Utilization Rate from FBC agent 1620000
+2025-07-21 10:49:45,943 - root - INFO - Successfully appended to log for token 162
+2025-07-21 10:49:45,943 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:45,943 - root - DEBUG - CommandQueue._handle_worker_finished: Emitted completion signal for command: print from fbc io structure 1620000 (success=True)
+2025-07-21 10:49:45,943 - root - INFO - CommandQueue._handle_worker_finished: All commands processed
+2025-07-21 10:49:51,827 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:49:51,829 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:49:51,830 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:49:52,172 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:49:52,172 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(227, 113)
+2025-07-21 10:49:52,174 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:49:52,175 - root - DEBUG - Context menu token type: 'FBC', Token ID: 163, Node: AP01m
+2025-07-21 10:49:52,175 - root - DEBUG - Context menu processing token item: type=FBC, id=163
+2025-07-21 10:49:52,175 - root - DEBUG - Context menu creating context menu for FBC item
+2025-07-21 10:49:52,175 - root - DEBUG - Creating FBC action: Token=163, Node=AP01m
+2025-07-21 10:49:52,175 - root - DEBUG - Context menu created for FBC item | Token: 163 | Path: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 10:49:52,745 - root - DEBUG - FBC action triggered for token: 163, node: AP01m
+2025-07-21 10:49:52,745 - root - DEBUG - Processing Fieldbus command: token_id=163, node_name=AP01m
+2025-07-21 10:49:52,745 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Starting command queue for node 'AP01m' token '163'
+2025-07-21 10:49:52,745 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Retrieved token - ID: 163, Type: RPC, Node: AP01m 163, IP: 192.168.0.11
+2025-07-21 10:49:52,745 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Generated command: print from fbc io structure 1630000
+2025-07-21 10:49:52,745 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Full token details: {'token_id': '163', 'token_type': 'RPC', 'name': 'AP01m 163', 'ip_address': '192.168.0.11', 'port': 23, 'log_path': 'C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', 'protocol': 'telnet'}
+2025-07-21 10:49:52,746 - commander.services.fbc_command_service - DEBUG - FbcCommandService.queue_fieldbus_command: Emitting UI update signals
+2025-07-21 10:49:52,747 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: 'print from fbc io structure 1630000', Token: 163
+2025-07-21 10:49:52,747 - root - DEBUG - CommandQueue.add_command: Added command 'print from fbc io structure 1630000' for token 163
+2025-07-21 10:49:52,747 - root - DEBUG - CommandQueue.add_command: Token details - type: RPC, node: AP01m 163 (192.168.0.11)
+2025-07-21 10:49:52,747 - root - DEBUG - CommandQueue.add_command: Current queue size: 2
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.add_command: QueuedCommand object created: QueuedCommand(command='print from fbc io structure 1630000', token=NodeToken(token_id='163', token_type='RPC', name='AP01m 163', ip_address='192.168.0.11', port=23, log_path='C:\\Users\\gorjovicgo\\_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_163.rpc', protocol='telnet'), status='pending', telnet_client=<commander.session_manager.TelnetSession object at 0x00000125C66B7590>)
+2025-07-21 10:49:52,748 - commander.services.fbc_command_service - INFO - FbcCommandService.queue_fieldbus_command: Command added to queue
+2025-07-21 10:49:52,748 - root - INFO - CommandQueue.start_processing: Starting processing of 2 commands
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Queue contents: ['print from fbc io structure 1620000', 'print from fbc io structure 1630000']
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Thread pool status - active threads: 0, max threads: 18
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Marked command 1/2 as processing: print from fbc io structure 1620000
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Marked command 2/2 as processing: print from fbc io structure 1630000
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 1: print from fbc io structure 1620000 (connected: True)
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 10:49:52,748 - root - DEBUG - CommandQueue.start_processing: Created worker for command 1/2: print from fbc io structure 1620000 (token 162)
+2025-07-21 10:49:52,749 - root - DEBUG - CommandQueue.start_processing: Started worker for command 1/2
+2025-07-21 10:49:52,749 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1620000
+2025-07-21 10:49:52,749 - root - DEBUG - CommandQueue.start_processing: Using provided telnet client for command 2: print from fbc io structure 1630000 (connected: True)
+2025-07-21 10:49:52,749 - root - DEBUG - CommandWorker.run: Node: AP01m 162 (192.168.0.11)
+2025-07-21 10:49:52,749 - root - DEBUG - CommandQueue.start_processing: Reusing active manual Telnet connection
+2025-07-21 10:49:52,749 - root - DEBUG - CommandWorker.run: Token: 162 (FBC)
+2025-07-21 10:49:52,749 - root - DEBUG - CommandQueue.start_processing: Created worker for command 2/2: print from fbc io structure 1630000 (token 163)
+2025-07-21 10:49:52,749 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 10:49:52,749 - root - DEBUG - CommandQueue.start_processing: Started worker for command 2/2
+2025-07-21 10:49:52,749 - root - DEBUG - CommandWorker.run: Starting execution of command: print from fbc io structure 1630000
+2025-07-21 10:49:52,749 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1620000
+2025-07-21 10:49:52,750 - root - DEBUG - Context menu displayed with 1 actions
+2025-07-21 10:49:52,750 - root - DEBUG - CommandWorker.run: Node: AP01m 163 (192.168.0.11)
+2025-07-21 10:49:52,750 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1620000
+2025-07-21 10:49:52,750 - root - DEBUG - CommandWorker.run: Token: 163 (RPC)
+2025-07-21 10:49:52,750 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:49:52,750 - root - DEBUG - CommandWorker.run: Skipping socket test to prevent connection issues
+2025-07-21 10:49:52,750 - root - DEBUG - CommandWorker.run: Sending command to telnet session: print from fbc io structure 1630000
+2025-07-21 10:49:52,750 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1630000
+2025-07-21 10:49:52,752 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:49:52,952 - root - DEBUG - TelnetSession.send_command: Cleared 0 bytes from buffer
+2025-07-21 10:49:52,953 - root - DEBUG - TelnetSession.send_command: Cleared 0 bytes from buffer
+2025-07-21 10:49:52,953 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1620000\r\n'
+2025-07-21 10:49:52,953 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1630000\r\n'
+2025-07-21 10:49:52,953 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:49:52,954 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:49:52,954 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 10:49:52,954 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5.0s
+2025-07-21 10:49:55,504 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:49:55,504 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:49:55,504 - root - DEBUG - TelnetSession._read_response: Returning 0 chars
+2025-07-21 10:49:55,504 - root - DEBUG - TelnetSession._read_response: Returning 0 chars
+2025-07-21 10:49:55,505 - root - DEBUG - TelnetSession.send_command: Received 0 chars of raw response
+2025-07-21 10:49:55,505 - root - DEBUG - TelnetSession.send_command: Received 0 chars of raw response
+2025-07-21 10:49:55,505 - root - DEBUG - TelnetSession.send_command: Processed response length: 0
+2025-07-21 10:49:55,505 - root - DEBUG - TelnetSession.send_command: Processed response length: 0
+2025-07-21 10:49:55,505 - root - DEBUG - CommandWorker.run: Raw response received (length=0): 
+2025-07-21 10:49:55,506 - root - DEBUG - CommandWorker.run: Raw response received (length=0): 
+2025-07-21 10:49:55,506 - root - WARNING - Empty response received from command execution
+2025-07-21 10:49:55,506 - root - WARNING - Empty response received from command execution
+2025-07-21 10:49:55,506 - root - INFO - CommandWorker.run: Command executed successfully: print from fbc io structure 1630000
+2025-07-21 10:49:55,506 - root - INFO - CommandWorker.run: Command executed successfully: print from fbc io structure 1620000
+2025-07-21 10:49:55,506 - root - DEBUG - CommandWorker.run: Final processed response length: 0
+2025-07-21 10:49:55,506 - root - DEBUG - CommandWorker.run: Final processed response length: 0
+2025-07-21 10:49:55,506 - root - DEBUG - CommandWorker.run: Finished command: print from fbc io structure 1630000, success=True
+2025-07-21 10:49:55,507 - root - DEBUG - CommandWorker.run: Finished command: print from fbc io structure 1620000, success=True
+2025-07-21 10:49:55,507 - root - INFO - Command completed: print from fbc io structure 1630000
+Node: AP01m 163 (192.168.0.11)
+Token: 163 (RPC)
+Result: 
+2025-07-21 10:49:55,507 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 2/2: print from fbc io structure 1630000 -> completed
+2025-07-21 10:49:55,507 - root - DEBUG - CommandQueue._handle_worker_finished: Progress: 1/2 completed, 1 remaining
+2025-07-21 10:49:55,507 - root - DEBUG - _handle_queued_command_result: command=print from fbc io structure 1630000, success=True, result_length=0
+2025-07-21 10:49:55,507 - root - INFO - Command completed successfully: print from fbc io structure 1630000
+Result: 
+2025-07-21 10:49:55,507 - root - INFO - Attempting to append to log for token 163
+2025-07-21 10:49:55,508 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 10:49:55,508 - commander.163 - INFO - 10:49:55 >> [RPC] print from fbc io structure 1630000
+2025-07-21 10:49:55,508 - root - INFO - Successfully appended to log for token 163
+2025-07-21 10:49:55,508 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc
+2025-07-21 10:49:55,508 - root - DEBUG - CommandQueue._handle_worker_finished: Emitted completion signal for command: print from fbc io structure 1630000 (success=True)
+2025-07-21 10:49:55,508 - root - INFO - Command completed: print from fbc io structure 1620000
+Node: AP01m 162 (192.168.0.11)
+Token: 162 (FBC)
+Result: 
+2025-07-21 10:49:55,508 - root - DEBUG - CommandQueue._handle_worker_finished: Updated status for command 1/2: print from fbc io structure 1620000 -> completed
+2025-07-21 10:49:55,509 - root - DEBUG - CommandQueue._handle_worker_finished: Progress: 2/2 completed, 0 remaining
+2025-07-21 10:49:55,509 - root - DEBUG - _handle_queued_command_result: command=print from fbc io structure 1620000, success=True, result_length=0
+2025-07-21 10:49:55,509 - root - INFO - Command completed successfully: print from fbc io structure 1620000
+Result: 
+2025-07-21 10:49:55,509 - root - INFO - Attempting to append to log for token 162
+2025-07-21 10:49:55,509 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:55,509 - commander.162 - INFO - 10:49:55 >> [FBC] print from fbc io structure 1620000
+2025-07-21 10:49:55,509 - root - INFO - Successfully appended to log for token 162
+2025-07-21 10:49:55,509 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc
+2025-07-21 10:49:55,509 - root - DEBUG - CommandQueue._handle_worker_finished: Emitted completion signal for command: print from fbc io structure 1620000 (success=True)
+2025-07-21 10:49:55,509 - root - INFO - CommandQueue._handle_worker_finished: All commands processed
+2025-07-21 10:49:58,103 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:49:58,106 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:49:58,107 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:49:58,269 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:49:58,271 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:49:58,271 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:50:01,832 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:50:01,834 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:50:01,834 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:50:03,280 - root - DEBUG - Executing telnet command: print from fbc io structure 1630000 (automatic=False)
+2025-07-21 10:50:03,280 - root - DEBUG - Executing telnet command: print from fbc io structure 1630000
+2025-07-21 10:50:03,280 - root - DEBUG - DEBUG: Automatic=False, Current token: 162
+2025-07-21 10:50:03,282 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc io structure 1630000
+2025-07-21 10:50:03,282 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:50:03,485 - root - DEBUG - TelnetSession.send_command: Cleared 0 bytes from buffer
+2025-07-21 10:50:03,485 - root - DEBUG - TelnetSession.send_command: Sending 37 bytes: b'print from fbc io structure 1630000\r\n'
+2025-07-21 10:50:03,485 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:50:03,486 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 10:50:05,987 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:50:05,987 - root - DEBUG - TelnetSession._read_response: Returning 0 chars
+2025-07-21 10:50:05,987 - root - DEBUG - TelnetSession.send_command: Received 0 chars of raw response
+2025-07-21 10:50:05,988 - root - DEBUG - TelnetSession.send_command: Processed response length: 0
+2025-07-21 10:50:05,988 - root - DEBUG - Emitting command_finished signal for command: print from fbc io structure 1630000
+2025-07-21 10:50:05,989 - root - INFO - Telnet command finished (automatic=False), response length: 0
+2025-07-21 10:50:05,989 - root - DEBUG - Command response first 100 chars: 
+2025-07-21 10:50:07,884 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_164.fbc', 'node': 'AP01m', 'token': '164', 'token_type': 'FBC'}
+2025-07-21 10:50:07,886 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_164.fbc | Type: FBC
+2025-07-21 10:50:07,887 - root - DEBUG - Displaying log: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:50:10,561 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_162.fbc', 'node': 'AP01m', 'token': '162', 'token_type': 'FBC'}
+2025-07-21 10:50:10,562 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_162.fbc | Type: FBC
+2025-07-21 10:50:10,563 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.fbc
+2025-07-21 10:50:12,076 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_163.fbc', 'node': 'AP01m', 'token': '163', 'token_type': 'FBC'}
+2025-07-21 10:50:12,077 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_163.fbc | Type: FBC
+2025-07-21 10:50:12,078 - root - DEBUG - Displaying log: AP01m_192-168-0-11_163.fbc
+2025-07-21 10:50:13,516 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\FBC\\AP01m\\AP01m_192-168-0-11_164.fbc', 'node': 'AP01m', 'token': '164', 'token_type': 'FBC'}
+2025-07-21 10:50:13,517 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\FBC\AP01m\AP01m_192-168-0-11_164.fbc | Type: FBC
+2025-07-21 10:50:13,518 - root - DEBUG - Displaying log: AP01m_192-168-0-11_164.fbc
+2025-07-21 10:50:17,341 - root - DEBUG - Item expanded: RPC
+2025-07-21 10:50:17,341 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-07-21 10:50:17,926 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 10:50:17,928 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc | Type: RPC
+2025-07-21 10:50:17,928 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.rpc
+2025-07-21 10:50:18,453 - root - DEBUG - Context menu received show_context_menu request
+2025-07-21 10:50:18,453 - root - DEBUG - Context menu shown at position: PyQt6.QtCore.QPoint(220, 119)
+2025-07-21 10:50:18,455 - root - DEBUG - DEBUG: Context menu item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 10:50:18,455 - root - DEBUG - Context menu token type: 'RPC', Token ID: 192-168-0-11_162, Node: AP01m
+2025-07-21 10:50:18,455 - root - DEBUG - Context menu processing token item: type=RPC, id=192-168-0-11_162
+2025-07-21 10:50:18,455 - root - DEBUG - Context menu creating context menu for RPC item
+2025-07-21 10:50:19,400 - root - DEBUG - Context menu command: print for token 192-168-0-11_162
+2025-07-21 10:50:19,401 - root - DEBUG - Reusing active telnet connection for context command
+2025-07-21 10:50:19,402 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1620000 (automatic=True)
+2025-07-21 10:50:19,402 - root - DEBUG - Executing telnet command: print from fbc rupi counters 1620000
+2025-07-21 10:50:19,402 - root - DEBUG - DEBUG: Automatic=True, Current token: 192-168-0-11_162
+2025-07-21 10:50:19,402 - root - DEBUG - TelnetSession.send_command: Sending command: print from fbc rupi counters 1620000
+2025-07-21 10:50:19,403 - root - DEBUG - Context menu displayed with 2 actions
+2025-07-21 10:50:19,403 - root - DEBUG - TelnetSession.send_command: Clearing input buffer
+2025-07-21 10:50:19,605 - root - DEBUG - TelnetSession.send_command: Cleared 1098 bytes from buffer
+2025-07-21 10:50:19,605 - root - DEBUG - TelnetSession.send_command: Sending 38 bytes: b'print from fbc rupi counters 1620000\r\n'
+2025-07-21 10:50:19,605 - root - DEBUG - TelnetSession.send_command: Command sent successfully
+2025-07-21 10:50:19,605 - root - DEBUG - TelnetSession._read_response: Starting read with timeout=5s
+2025-07-21 10:50:19,608 - root - DEBUG - TelnetSession._read_response: Received 26 bytes, total 26
+2025-07-21 10:50:19,608 - root - DEBUG - TelnetSession._read_response: Received 18 bytes, total 44
+2025-07-21 10:50:19,611 - root - DEBUG - TelnetSession._read_response: Received 67 bytes, total 111
+2025-07-21 10:50:22,160 - root - WARNING - TelnetSession._read_response: No data received for half of timeout period
+2025-07-21 10:50:22,160 - root - DEBUG - TelnetSession._read_response: Returning 111 chars
+2025-07-21 10:50:22,160 - root - DEBUG - TelnetSession.send_command: Received 111 chars of raw response
+2025-07-21 10:50:22,160 - root - DEBUG - TelnetSession.send_command: Processed response length: 105
+2025-07-21 10:50:22,160 - root - DEBUG - Emitting command_finished signal for command: print from fbc rupi counters 1620000
+2025-07-21 10:50:22,161 - root - INFO - Telnet command finished (automatic=True), response length: 105
+2025-07-21 10:50:22,162 - root - DEBUG - Command response first 100 chars: 99s% ? print from fb io structure 163000
+
+        Getting FBC Utilization Rate from FBC agent 16
+2025-07-21 10:50:22,162 - root - DEBUG - Command response last 100 chars: ? print from fb io structure 163000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+2025-07-21 10:50:23,032 - root - INFO - Attempting to append to log for token 192-168-0-11_162
+2025-07-21 10:50:23,032 - root - DEBUG - Sanitizing content for log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc
+2025-07-21 10:50:23,032 - commander.192-168-0-11_162 - INFO - 10:50:23 >> [RPC] 99s% ? print from fb io structure 163000
+
+        Getting FBC Utilization Rate from FBC agent 1630000
+2025-07-21 10:50:23,033 - root - INFO - Successfully appended to log for token 192-168-0-11_162
+2025-07-21 10:50:23,033 - root - DEBUG - Wrote to log: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc
+2025-07-21 10:50:24,354 - root - DEBUG - Selected item data: {'ip_address': '192.168.0.11', 'log_path': 'C:/Users/gorjovicgo/_DIA\\RPC\\AP01m\\AP01m_192-168-0-11_162.rpc', 'node': 'AP01m', 'token': '192-168-0-11_162', 'token_type': 'RPC'}
+2025-07-21 10:50:24,356 - root - DEBUG - Creating token from file: C:/Users/gorjovicgo/_DIA\RPC\AP01m\AP01m_192-168-0-11_162.rpc | Type: RPC
+2025-07-21 10:50:24,356 - root - DEBUG - Displaying log: AP01m_192-168-0-11_162.rpc

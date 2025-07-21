@@ -167,6 +167,10 @@ class CommandQueue(QObject):
         logging.debug(f"CommandQueue.add_command: Current queue size: {len(self.queue)}")
         logging.debug(f"CommandQueue.add_command: QueuedCommand object created: {qc}")
         
+        # Automatically start processing when adding first command
+        if len(self.queue) == 1:
+            self.start_processing()
+        
     def start_processing(self):
         """Start processing all commands in the queue"""
         if not self.session_manager:

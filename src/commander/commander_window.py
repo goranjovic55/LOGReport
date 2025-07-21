@@ -291,6 +291,12 @@ class CommanderWindow(QMainWindow):
             # Pass active telnet client for reuse
             telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
             self.fbc_service.queue_fieldbus_command(node_name, token_id, telnet_client)
+            self.command_queue.start_processing()
+            
+            # Show command in terminal like RPC does
+            command = self.fbc_service.generate_fieldbus_command(token_id)
+            self.telnet_output.append(f"> {command}")
+            self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
         except (ConnectionRefusedError, TimeoutError) as e:
             self._report_error(f"{type(e).__name__} processing command", e)
         except Exception as e:
@@ -360,6 +366,13 @@ class CommanderWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Commander LogCreator v1.0")
         self.setMinimumSize(1200, 800)
+        
+        # Configure logging to handle Unicode characters
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            encoding='utf-8'
+        )
         
         # Thread lock for telnet operations
         self.telnet_lock = threading.Lock()

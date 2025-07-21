@@ -70,10 +70,7 @@ class FbcCommandService(QObject):
             
             self.logger.info(f"FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: '{command}', Token: {token.token_id}")
             self.command_queue.add_command(command, token, telnet_client)
-            
-            self.logger.debug("FbcCommandService.queue_fieldbus_command: Starting queue processing")
-            self.command_queue.start_processing()
-            self.logger.info("FbcCommandService.queue_fieldbus_command: Successfully queued and started processing command")
+            self.logger.info("FbcCommandService.queue_fieldbus_command: Command added to queue")
         except Exception as e:
             self.logger.error(f"Error queuing FBC command: {str(e)}", exc_info=True)
             self.report_error.emit(f"Error queuing command: {str(e)}")
