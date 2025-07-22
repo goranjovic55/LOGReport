@@ -1,10 +1,16 @@
 # Command Services Documentation
 
-## Core Implementation
+## Service Architecture
+
+### CommandService (Base Class)
+- Abstract base class for all command services
+- Defines common interface for command queuing and execution
+- Standardizes error handling and response processing
+- Provides dependency injection for command queue and log writer
 
 ### FBC Command Service
 ```python
-class FbcCommandService:
+class FbcCommandService(CommandService):
     def queue_fieldbus_command(self, node_name, token_id):
         """Queues FBC command for execution"""
         command = f"print from fbc io structure {token_id}0000"
@@ -18,9 +24,9 @@ class FbcCommandService:
             self.log_writer.append_to_log(response)
 ```
 
-### RPC Command Service  
+### RPC Command Service
 ```python
-class RpcCommandService:
+class RpcCommandService(CommandService):
     def queue_rpc_command(self, node_name, token_id, action):
         """Queues RPC print/clear command"""
         if action == "print":
@@ -63,16 +69,24 @@ def on_command_complete(response):
 3. Add response handling
 4. Register with CommanderWindow
 
-### Error Handling Flow
+### Standardized Error Handling
 ```python
-try:
-    response = telnet_session.send_command(cmd)
-    if "ERROR" in response:
-        raise CommandError(response)
-    return response
-except SocketError as e:
-    self.reconnect()
-    raise
+# Base CommandService error handling
+def execute_command(self, command, node_name, token_id):
+    try:
+        response = self.telnet_session.send_command(command)
+        if "ERROR" in response:
+            self.handle_error(response, node_name, token_id)
+            return None
+        return response
+    except ConnectionError as e:
+        self.logger.error(f"Connection failed for {node_name}: {e}")
+        self.reconnect()
+        raise
+    except TimeoutError as e:
+        self.logger.error(f"Command timeout for {node_name}: {e}")
+        self.handle_timeout(command, node_name)
+        raise
 ```
 
 ## Integration Points

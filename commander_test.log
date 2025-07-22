@@ -1,0 +1,16 @@
+2025-07-21 19:50:16,625 - root - DEBUG - Node tree event filter installed
+2025-07-21 19:50:16,635 - root - DEBUG - Node tree context menu handling installed
+2025-07-21 19:50:16,691 - root - DEBUG - Added node with placeholder: AP01m
+2025-07-21 19:50:16,692 - root - DEBUG - Added node with placeholder: AP01r
+2025-07-21 19:50:16,692 - root - DEBUG - Added node with placeholder: AP02m
+2025-07-21 19:50:16,692 - root - DEBUG - Added node with placeholder: AP02r
+2025-07-21 19:50:16,692 - root - DEBUG - Added node with placeholder: AP03m
+2025-07-21 19:50:16,692 - root - DEBUG - Added node with placeholder: AL01
+2025-07-21 19:50:16,693 - root - DEBUG - Added node with placeholder: AL02
+2025-07-21 19:50:16,693 - root - DEBUG - Added node with placeholder: AP03r
+2025-07-21 19:50:17,836 - root - DEBUG - === TESTING NODE TREE ===
+2025-07-21 19:50:17,858 - root - DEBUG - Loaded test configuration
+2025-07-21 19:50:17,858 - root - DEBUG - Top-level items in node tree: 0
+2025-07-21 19:50:17,859 - root - ERROR - Node tree population: FAILED
+2025-07-21 19:50:17,859 - root - DEBUG - === TESTING CONTEXT MENUS ===
+2025-07-21 19:50:17,859 - root - WARNING - No FBC/RPC subsections found for context menu test

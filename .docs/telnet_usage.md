@@ -1,5 +1,19 @@
 # Telnet Client Usage Guide
 
+## NetworkSession Pattern
+- Base class for all network operations
+- Provides standardized interface for command execution
+- Implements robust connection management with retry logic
+- Centralized error handling for all network operations
+- Enforces consistent logging and monitoring
+
+## TelnetOperations
+- Consolidated module for all Telnet functionality
+- Implements connection health checks and automatic recovery
+- Standardized prompt pattern matching across all sessions
+- Unified response parsing and filtering
+- Centralized configuration for timeouts and retries
+
 ## Recent Fixes
 - Fixed SyntaxError in command processing
 - Corrected output redirection (responses now go to terminal instead of files)

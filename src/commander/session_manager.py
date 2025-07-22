@@ -336,3 +336,7 @@ class SessionManager:
     def get_all_sessions(self) -> dict:
         """Returns all active sessions"""
         return self.active_sessions.copy()
+        
+    def get_active_sessions(self) -> list:
+        """Returns all currently connected sessions"""
+        return [session for session in self.active_sessions.values() if session.is_connected]

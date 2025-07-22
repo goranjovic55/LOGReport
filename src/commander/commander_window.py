@@ -86,71 +86,94 @@ class CommanderWindow(QMainWindow):
             added_actions = False
             logging.debug(f"DEBUG: Context menu item data: {data}")
 
-            # Handle token items
-            if data and isinstance(data, dict):
-                token_type = data.get("token_type", "UNKNOWN").upper()  # Handle all file types
-                token_id = data.get("token", None)
+            # Handle section items (FBC/RPC subgroups)
+            if data and isinstance(data, dict) and 'section_type' in data:
+                section_type = data.get("section_type")
+                node_name = data.get("node")
+                
+                if section_type in ["FBC", "RPC"] and node_name:
+                    logging.debug(f"Context menu processing {section_type} subgroup for node {node_name}")
+                    
+                    # Create main action for printing all tokens
+                    action_text = f"Print All {section_type} Tokens for {node_name}"
+                    action = QAction(action_text, self)
+                    if section_type == "FBC":
+                        action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
+                    else:
+                        action.triggered.connect(lambda: self.process_all_rpc_subgroup_commands(item))
+                    menu.addAction(action)
+                    
+                    # Add submenu for individual tokens
+                    tokens_submenu = QMenu(f"Print {section_type} Tokens", self)
+                    added_tokens = False
+                    
+                    node = self.node_manager.get_node(node_name)
+                    if node:
+                        for token in node.tokens.values():
+                            if token.token_type == section_type:
+                                token_id = token.token_id
+                                token_action = QAction(f"Token {token_id}", self)
+                                token_action.triggered.connect(
+                                    lambda checked, t=token_id, n=node_name, tt=section_type:
+                                        self._print_tokens_sequentially(t, n, tt)
+                                )
+                                tokens_submenu.addAction(token_action)
+                                added_tokens = True
+                    
+                    if added_tokens:
+                        menu.addMenu(tokens_submenu)
+                        added_actions = True
+            
+            # Handle token items (individual token files)
+            elif data and isinstance(data, dict) and 'token' in data:
+                token_type = data.get("token_type", "UNKNOWN").upper()
+                token_id = data.get("token")
                 node_name = data.get("node", "Unknown")
                 
-                logging.debug(f"Context menu token type: '{token_type}', Token ID: {token_id}, Node: {node_name}")
-                
                 if token_id:
-                    logging.debug(f"Context menu processing token item: type={token_type}, id={token_id}")
+                    logging.debug(f"Context menu processing token item: type={token_type}, id={token_id}, node={node_name}")
                     
                     if token_type == "FBC":
-                        logging.debug("Context menu creating context menu for FBC item")
-                        # Ensure token is string to prevent normalization issues
                         token_str = str(token_id)
-                        action_text = f"Print FieldBus Structure (Token {token_str})"
-                        action = QAction(action_text, self)
-                        action.setProperty("context_item", item)  # Store context menu item reference
-                        logging.debug(f"Creating FBC action: Token={token_str}, Node={node_name}")
-                        # Capture token explicitly to avoid closure issues
+                        action = QAction(f"Print FieldBus Structure (Token {token_str})", self)
+                        action.setProperty("context_item", item)
                         action.triggered.connect(
-                            lambda checked, t=token_str, n=node_name:
-                                (logging.debug(f"FBC action triggered for token: {t}, node: {n}"),
-                                 self.process_fieldbus_command(t, n))
+                            lambda checked, t=token_str, n=node_name: self.process_fieldbus_command(t, n)
                         )
-                        logging.debug(f"Context menu created for FBC item | Token: {token_str} | Path: {data.get('log_path', '')}")
                         menu.addAction(action)
                         added_actions = True
                         
                     elif token_type == "RPC":
-                        logging.debug("Context menu creating context menu for RPC item")
-                        
-                        # Extract numerical token part (last segment after underscore)
                         display_token = token_id.split('_')[-1] if '_' in token_id else token_id
-                        
-                        # Print Rupi Counters action
                         print_action = QAction(f"Print Rupi counters Token '{display_token}'", self)
                         print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
-                        menu.addAction(print_action)
-                        
-                        # Clear Rupi Counters action
                         clear_action = QAction(f"Clear Rupi counters '{display_token}'", self)
                         clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
+                        menu.addAction(print_action)
                         menu.addAction(clear_action)
                         added_actions = True
             
             # Handle FBC/RPC subgroup selection
             elif item.text(0) in ["FBC", "RPC"]:
                 logging.debug(f"Context menu processing {item.text(0)} subgroup")
-                # Get parent items with validation
-                node_name = None  # Initialize at function scope
-        
                 try:
-                    # The subgroup item's direct parent is the node item
-                    node_item = item.parent()
-                    if not node_item:
-                        raise ValueError(f"{item.text(0)} subgroup has no parent node")
-                    
-                    # Extract node name safely
-                    node_name = node_item.text(0).split(' ', 1)[0].strip()
-                    if not node_name:
-                        raise ValueError("Node item text is empty")
+                    # First try to get node name from item data (most reliable)
+                    data = item.data(0, Qt.ItemDataRole.UserRole)
+                    node_name = None
+                    if data and "node" in data:
+                        node_name = data["node"]
+                    else:
+                        # Fallback to parent hierarchy if user data not available
+                        node_item = item.parent()
+                        if not node_item:
+                            raise ValueError(f"{item.text(0)} subgroup has no parent node")
+                        # Extract node name from node item text (before space and IP)
+                        node_name = node_item.text(0).split(' ', 1)[0].strip()
+                        if not node_name:
+                            raise ValueError("Node item text is empty")
                     
                     logging.debug(f"Context menu valid structure detected:")
-                    logging.debug(f"  Node: {node_name} ({node_item.text(0)})")
+                    logging.debug(f"  Node: {node_name}")
                     logging.debug(f"  Subgroup: {item.text(0)}")
 
                     # Create context menu action after validation
@@ -182,9 +205,8 @@ class CommanderWindow(QMainWindow):
                     
                     if added_tokens:
                         menu.addMenu(tokens_submenu)
-                    
-                    added_actions = True
-                    
+                        added_actions = True
+
                 except Exception as e:
                     logging.error(f"Context menu structure validation failed: {str(e)}")
                     return
@@ -231,16 +253,50 @@ class CommanderWindow(QMainWindow):
     def _print_tokens_sequentially(self, token_id, node_name, token_type):
         """Print token values sequentially for the given token"""
         try:
+            # Get node IP from node manager to ensure session reuse
+            node = self.node_manager.get_node(node_name)
+            if not node:
+                raise ValueError(f"Node {node_name} not found")
+                
+            # Get existing active session if available
+            session = None
+            for active_session in self.session_manager.get_active_sessions():
+                if active_session.config.host == node.ip_address and \
+                   active_session.config.session_type == SessionType.TELNET:
+                    session = active_session
+                    logging.debug(f"Reusing existing telnet session to {node.ip_address}")
+                    break
+            
+            # If no active session found, create a new one
+            if not session:
+                logging.debug(f"Creating new telnet session to {node.ip_address}")
+                session = self.session_manager.create_session(
+                    SessionConfig(
+                        session_type=SessionType.TELNET,
+                        host=node.ip_address,
+                        port=23  # Default telnet port
+                    ),
+                    auto_connect=True
+                )
+                
+                # If session creation failed, return early
+                if not session or not session.is_connected:
+                    raise ConnectionError(f"Failed to connect to {node.ip_address}")
+            
             if token_type == "FBC":
-                self.fbc_service.queue_fieldbus_command(node_name, token_id)
+                self.fbc_service.queue_fieldbus_command(node_name, token_id, session)
             else:
-                self.rpc_service.queue_rpc_command(node_name, token_id, "print")
+                self.rpc_service.queue_rpc_command(node_name, token_id, "print", session)
+                
+            self.command_queue.start_processing()
         except Exception as e:
             self._report_error(f"Error processing {token_type} command", e)
         except ConnectionRefusedError as e:
             self._report_error("Connection refused", e)
         except TimeoutError as e:
             self._report_error("Connection timed out", e)
+        except ConnectionError as e:
+            self._report_error(str(e), e)
 
     def _handle_fbc_error(self, error_msg: str):
         """Handle FBC service errors by reporting them"""
@@ -797,6 +853,12 @@ class CommanderWindow(QMainWindow):
             section = QTreeWidgetItem([section_type])
             section.setIcon(0, get_token_icon() if section_type in ("FBC", "RPC")
                            else QIcon(":/icons/page.png"))
+            # Store node name in section item's user data for reliable access
+            section.setData(0, Qt.ItemDataRole.UserRole, {
+                "node": node.name,
+                "type": "section",
+                "section_type": section_type
+            })
             
             if section_data["items"]:
                 logging.debug(f"_load_node_children: Adding {len(section_data['items'])} files to {section_type} section")
@@ -1154,14 +1216,20 @@ class CommanderWindow(QMainWindow):
     def process_all_fbc_subgroup_commands(self, item):
         """Process all FBC commands using command queue"""
         try:
-            # Get node name from item hierarchy
-            section_item = item.parent()
-            if not section_item:
-                raise ValueError("FBC subgroup has no parent section")
-            node_item = section_item.parent()
-            if not node_item:
-                raise ValueError(f"Section {section_item.text(0)} has no parent node")
-            node_name = node_item.text(0).split(' ', 1)[0].strip()
+            # First try to get node name from item's user data (most reliable)
+            data = item.data(0, Qt.ItemDataRole.UserRole)
+            if data and "node" in data:
+                node_name = data["node"]
+            else:
+                # Fallback to parent hierarchy if user data not available
+                section_item = item.parent()
+                if not section_item:
+                    raise ValueError("FBC subgroup has no parent section")
+                node_item = section_item.parent()
+                if not node_item:
+                    raise ValueError(f"Section {section_item.text(0)} has no parent node")
+                # Extract node name from node item text (before space and IP)
+                node_name = node_item.text(0).split(' ', 1)[0].strip()
             
             node = self.node_manager.get_node(node_name)
             if not node:
@@ -1183,6 +1251,7 @@ class CommanderWindow(QMainWindow):
                 
             self.status_message_signal.emit(f"Queued {len(fbc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
             self.command_queue.start_processing()
+            self.status_message_signal.emit(f"Started processing {len(fbc_tokens)} FBC commands", self.STATUS_MSG_SHORT)
             
         except Exception as e:
             self.status_message_signal.emit(f"Error processing FBC commands: {str(e)}", self.STATUS_MSG_MEDIUM)

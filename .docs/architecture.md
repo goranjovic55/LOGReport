@@ -2,6 +2,12 @@
 
 ## Core Components
 
+### NetworkSession (Base Class)
+- Abstract base class for all session types
+- Defines common interface for command execution and connection management
+- Enforces standardized error handling across all protocols
+- Provides connection health monitoring and retry mechanisms
+
 ### NodeToken
 - Represents tokens and their attributes
 - Handles token validation and processing
@@ -21,20 +27,32 @@
   - Status updates
 
 ### Command Services
-#### FbcCommandService
-- Handles FBC protocol commands
-- Implements specific FBC command logic
-- Manages FBC session state
+- Consolidated service layer for all command processing
+- Unified interface for FBC and RPC commands
+- Standardized error handling and response processing
+- Centralized command queuing and execution
 
-#### RpcCommandService  
-- Handles RPC protocol commands
-- Implements RPC command execution
-- Manages RPC session state
+#### FbcCommandService
+- Implements FBC-specific command logic
+- Inherits from base CommandService
+- Manages FBC session state through NetworkSession
+
+#### RpcCommandService
+- Implements RPC-specific command execution
+- Inherits from base CommandService
+- Manages RPC session state through NetworkSession
 
 ### Command Queue
 - Centralized command processing
 - Ensures thread-safe command execution
 - Manages command prioritization
+
+### TelnetOperations
+- Consolidated Telnet functionality across the application
+- Implements robust connection handling with retry logic
+- Standardized prompt pattern matching and response parsing
+- Centralized error handling for Telnet operations
+- Manages connection timeouts and session recovery
 
 ### Log Writer
 - Handles all log file operations
@@ -44,6 +62,14 @@
   - Thread-safe operations
 
 ## Architectural Principles
+
+### Hierarchical Service Taxonomy
+- Services organized in a hierarchical structure:
+  - Base CommandService for common functionality
+  - Protocol-specific services (FbcCommandService, RpcCommandService) for specialized logic
+  - NetworkSession as the foundation for all network operations
+- Clear inheritance and composition relationships
+- Reduced code duplication through shared base classes
 
 ### Modular Design
 - Clear separation between:
