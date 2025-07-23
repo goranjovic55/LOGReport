@@ -63,6 +63,7 @@
 {"type":"entity","name":"context_menu_issue","entityType":"bug_report","observations":["Issue: Right-clicking on FBC/RPC subgroups in commander window doesn't show context menu","Debugging steps taken:","1. Modified node_name extraction to use UserRole data instead of text splitting","2. Added detailed logging to context menu handler to track execution flow and token data","3. Verified node tree structure and item hierarchy","Potential unresolved causes:","- Token type mismatch between node.tokens and subgroup type","- Missing or malformed UserRole data in node items","- Empty token list for the selected node/subgroup","Next steps:","- Analyze debug logs from context menu handler","- Verify node.tokens contains FBC/RPC tokens","- Check UserRole data consistency in node tree items"]}
 {"type":"entity","name":"TelnetOperations","entityType":"ConsolidatedComponent","observations":["Merged entity containing all Telnet-related functionality","Includes stability improvements, error handling, and prompt pattern fixes","Defined across src/commander/telnet_client.py and related files"]}
 {"type":"entity","name":"CommandServices","entityType":"ServiceGroup","observations":["Parent entity for all command processing services","Includes FbcCommandService and RpcCommandService implementations"]}
+{"type":"entity","name":"CommandQueue Processing State","entityType":"Feature","observations":["Added thread-safe processing flag to CommandQueue to track command execution state","Implemented _is_processing boolean flag with threading.Lock for thread safety","Added is_processing property to allow external components to check processing state","Flag is set to True in start_processing() and reset to False in _handle_worker_finished() when queue is empty","Changes made in src/commander/command_queue.py"]}
 {"type":"relation","from":"CommandExecution","to":"Core System Components","relationType":"RELATES_TO"}
 {"type":"relation","from":"CommanderWindow","to":"Core System Components","relationType":"IS_PART_OF"}
 {"type":"relation","from":"TelnetSession","to":"Core System Components","relationType":"IS_PART_OF"}
@@ -183,3 +184,5 @@
 {"type":"relation","from":"FbcCommandService","to":"CommandServices","relationType":"IS_A"}
 {"type":"relation","from":"RpcCommandService","to":"CommandServices","relationType":"IS_A"}
 {"type":"relation","from":"CommandServices","to":"Core System Components","relationType":"IS_PART_OF"}
+{"type":"relation","from":"CommandQueue Processing State","to":"CommandQueue","relationType":"IMPLEMENTS"}
+{"type":"relation","from":"CommandQueue Processing State","to":"src/commander/command_queue.py","relationType":"MODIFIES"}

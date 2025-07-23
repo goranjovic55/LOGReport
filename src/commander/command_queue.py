@@ -6,6 +6,7 @@ from .session_manager import SessionConfig, SessionType
 import logging
 import socket
 import time
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -146,13 +147,26 @@ class CommandQueue(QObject):
     command_completed = pyqtSignal(str, str, bool)  # command, result, success
     progress_updated = pyqtSignal(int, int)    # current, total
     
+    @property
+    def is_processing(self) -> bool:
+        """Check if the command queue is currently processing commands.
+        
+        Returns:
+            bool: True if commands are being processed, False otherwise
+        """
+        with self._processing_lock:
+            return self._is_processing
+    
     def __init__(self, session_manager=None, parent=None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.queue: List[QueuedCommand] = []
-        self.thread_pool = QThreadPool.globalInstance()
+        self.thread_pool = QThreadPool()
+        self.thread_pool.setMaxThreadCount(1)
         self.completed_count = 0
         self.session_manager = session_manager
+        self._is_processing = False
+        self._processing_lock = threading.Lock()
         
     def add_command(self, command: str, token: NodeToken, telnet_client=None):
         """Add a command to the queue with associated token"""
@@ -167,17 +181,23 @@ class CommandQueue(QObject):
         logging.debug(f"CommandQueue.add_command: Current queue size: {len(self.queue)}")
         logging.debug(f"CommandQueue.add_command: QueuedCommand object created: {qc}")
         
-        # Automatically start processing when adding first command
-        if len(self.queue) == 1:
+        # Start processing if not already running and queue has commands
+        if not self.is_processing and len(self.queue) > 0:
             self.start_processing()
         
     def start_processing(self):
         """Start processing all commands in the queue"""
-        if not self.session_manager:
-            logging.error("CommandQueue.start_processing: No session_manager available - cannot process commands")
-            return
-
-        logging.info(f"CommandQueue.start_processing: Starting processing of {len(self.queue)} commands")
+        with self._processing_lock:
+            if self._is_processing:
+                logging.debug("CommandQueue.start_processing: Already processing commands, ignoring request")
+                return
+                
+            if not self.session_manager:
+                logging.error("CommandQueue.start_processing: No session_manager available - cannot process commands")
+                return
+                
+            self._is_processing = True
+            logging.info(f"CommandQueue.start_processing: Starting processing of {len(self.queue)} commands (state locked)")
         logging.debug(f"CommandQueue.start_processing: Queue contents: {[qc.command for qc in self.queue]}")
         logging.debug(f"CommandQueue.start_processing: Thread pool status - active threads: {self.thread_pool.activeThreadCount()}, max threads: {self.thread_pool.maxThreadCount()}")
         
@@ -283,6 +303,17 @@ class CommandQueue(QObject):
         # If this was the last command, emit final completion signal
         if self.completed_count >= len(self.queue):
             logging.info("CommandQueue._handle_worker_finished: All commands processed")
+            # Reset processing state
+            with self._processing_lock:
+                self._is_processing = False
+                logging.debug("CommandQueue._handle_worker_finished: Reset processing state to idle (state locked)")
+        
+        # Auto-continue processing if pending commands remain - atomic check with state lock
+        with self._processing_lock:
+            pending_commands = [cmd for cmd in self.queue if cmd.status == 'pending']
+            if pending_commands and not self._is_processing:
+                logging.debug(f"CommandQueue._handle_worker_finished: Found {len(pending_commands)} pending commands, triggering processing")
+                self.start_processing()
         
     def validate_token(self, token: NodeToken) -> bool:
         """Validate token has required fields"""

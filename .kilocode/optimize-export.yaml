@@ -8,6 +8,9 @@ customModes:
       completes; also can be called manually.
     description: Optimization of passed context or session
     customInstructions: >-
+      • Remember using global_memory and project_memory if we have solved
+      similar problem, and load whole knowledge from it
+
       • Examine the recent subtask output and diff results.
 
       • Suggest 2-4 actionable improvements for future runs of this mode.
@@ -20,6 +23,7 @@ customModes:
       evolution, Optimize-mode evolution).
 
       • Always use external data sources for alternatives and best practices
+      using firecrawl_mcp server tool.
     groups:
       - read
       - edit

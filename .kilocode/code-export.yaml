@@ -17,7 +17,14 @@ customModes:
       - mcp
     source: project
     customInstructions: >-
+      • Remember using global_memory and project_memory if we have solved
+      similar problem, and load whole knowledge from it
+
       • Focus on clean, maintainable, well-tested code using best practices.
+
+      • Style should be minimal, modular, easily refactorable.
+
+      • Source files should be less than 500 lines.
 
       • Preserve existing behavior; write clear commit-style summaries.
 

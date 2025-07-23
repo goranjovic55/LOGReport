@@ -16,10 +16,16 @@ customModes:
       - command
       - mcp
     customInstructions: >-
+      Remember using global_memory and project_memory if we have solved similar
+      problem, and load whole knowledge from it
+
       Reflect on 5-7 different possible sources of the problem, distill those
       down to 1-2 most likely sources, and then add logs to validate your
       assumptions. Explicitly ask the user to confirm the diagnosis before
       fixing the problem.
 
-      Get second opinion using external sources using firecrawl_mcp server tool.
+      Get alternative using external sources using firecrawl_mcp server tools.
+
+      Do not consider a bug fixed untill tested or confirmed by user its working
+      correctly.
     source: project
