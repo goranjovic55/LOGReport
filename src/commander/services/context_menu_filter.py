@@ -43,11 +43,19 @@ class ContextMenuFilterService:
         default_config = {
             "rules": [
                 {
-                    "description": "Hide AP01m FBC commands",
+                    "description": "Hide AP01m FBC token commands",
                     "node_name": "AP01m",
                     "section_type": "FBC",
-                    "action": "hide",
-                    "command_type": "all"
+                    "action": "allow",
+                    "command_type": "all",
+                    "command_category": "token"
+                },
+                {
+                    "description": "Show FBC/RPC subgroup menus",
+                    "section_type": ["FBC", "RPC"],
+                    "action": "show",
+                    "command_type": "all",
+                    "command_category": "subgroup"
                 }
             ],
             "metadata": {
@@ -68,10 +76,11 @@ class ContextMenuFilterService:
         except Exception as e:
             logging.error(f"Failed to create default filter configuration: {e}")
     
-    def should_show_command(self, 
-                          node_name: str, 
-                          section_type: str, 
-                          command_type: str = "all") -> bool:
+    def should_show_command(self,
+                          node_name: str,
+                          section_type: str,
+                          command_type: str = "all",
+                          command_category: str = "all") -> bool:
         """
         Determine if a command should be shown in the context menu.
         
@@ -79,6 +88,7 @@ class ContextMenuFilterService:
             node_name: Name of the node
             section_type: Type of section (FBC, RPC, etc.)
             command_type: Type of command
+            command_category: Category of command (token, subgroup, all)
             
         Returns:
             True if command should be shown, False otherwise
@@ -89,7 +99,7 @@ class ContextMenuFilterService:
         for rule in self.rules:
             try:
                 # Check if rule applies to this context
-                if self._rule_matches(rule, node_name, section_type, command_type):
+                if self._rule_matches(rule, node_name, section_type, command_type, command_category):
                     action = rule.get('action', 'show').lower()
                     if action == 'hide':
                         show = False
@@ -102,12 +112,31 @@ class ContextMenuFilterService:
                 continue
                 
         return show
+
+    def is_visible(self, section_type: str, node_name: str) -> bool:
+        """
+        Determine if a menu section should be visible.
+        
+        Args:
+            section_type: Type of section (FBC, RPC, etc.)
+            node_name: Name of the node
+            
+        Returns:
+            True if section should be visible, False otherwise
+        """
+        return self.should_show_command(
+            node_name=node_name,
+            section_type=section_type,
+            command_type="all",
+            command_category="all"
+        )
     
-    def _rule_matches(self, 
-                     rule: Dict, 
-                     node_name: str, 
-                     section_type: str, 
-                     command_type: str) -> bool:
+    def _rule_matches(self,
+                      rule: Dict,
+                      node_name: str,
+                      section_type: str,
+                      command_type: str,
+                      command_category: str = "all") -> bool:
         """
         Check if a rule matches the current context.
         
@@ -133,6 +162,12 @@ class ContextMenuFilterService:
         # Check command type (exact match or pattern)
         cmd_match = self._matches_pattern(command_type, rule.get('command_type', 'all'))
         if not cmd_match:
+            return False
+            
+            
+        # Check command category (exact match or pattern)
+        category_match = self._matches_pattern(command_category, rule.get('command_category', 'all'))
+        if not category_match:
             return False
             
         return True

@@ -4,16 +4,13 @@
       "description": "Hide AP01m FBC token commands",
       "node_name": "AP01m",
       "section_type": "FBC",
-      "action": "show",
+      "action": "hide",
       "command_type": "all",
       "command_category": "token"
     },
     {
       "description": "Show FBC/RPC subgroup menus",
-      "section_type": [
-        "FBC",
-        "RPC"
-      ],
+      "section_type": ["FBC", "RPC"],
       "action": "show",
       "command_type": "all",
       "command_category": "subgroup"

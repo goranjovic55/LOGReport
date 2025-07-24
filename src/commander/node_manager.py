@@ -486,3 +486,10 @@ class NodeManager:
     def set_selected_node(self, node_name: str):
         """Sets the currently selected node"""
         self.selected_node = self.nodes.get(node_name)
+        
+    def get_tokens_by_type(self, token_type: str) -> List[NodeToken]:
+        """Get all tokens of specified type for selected node"""
+        if not self.selected_node:
+            return []
+        return [t for t in self.selected_node.tokens.values()
+                if t.token_type == token_type.upper()]

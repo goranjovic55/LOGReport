@@ -94,39 +94,88 @@ class CommanderWindow(QMainWindow):
                 
                 if section_type in ["FBC", "RPC"] and node_name:
                     # Use context menu filter service to determine visibility
-                    if not self.context_menu_filter.is_visible(section_type, node_name):
+                    if not self.context_menu_filter.should_show_command(
+                        node_name=node_name,
+                        section_type=section_type,
+                        command_type="all",
+                        command_category="subgroup"
+                    ):
                         logging.debug(f"Context menu filtered out for {section_type} subgroup of {node_name}")
                         return
                     
                     logging.debug(f"Context menu processing {section_type} subgroup for node {node_name}")
                     
-                    # Create main action for printing all tokens
-                    action_text = f"Print All {section_type} Tokens for {node_name}"
-                    action = QAction(action_text, self)
+                    # Create actions for printing and executing all tokens
+                    print_action = QAction(f"Print All {section_type} Tokens for {node_name}", self)
+                    execute_action = QAction(f"Execute All {section_type} Commands", self)
+                    
                     if section_type == "FBC":
-                        action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
+                        print_action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
+                        execute_action.triggered.connect(lambda: self.execute_all_subgroup_commands(item, "FBC"))
                     else:
-                        action.triggered.connect(lambda: self.process_all_rpc_subgroup_commands(item))
-                    menu.addAction(action)
+                        print_action.triggered.connect(lambda: self.process_all_rpc_subgroup_commands(item))
+                        execute_action.triggered.connect(lambda: self.execute_all_subgroup_commands(item, "RPC"))
+                    
+                    menu.addAction(print_action)
+                    menu.addAction(execute_action)
                     
                     # Add submenu for individual tokens
-                    tokens_submenu = QMenu(f"Print {section_type} Tokens", self)
-                    added_tokens = False
+                    tokens_submenu = QMenu(f"{section_type} Token Actions", self)
+                    
+                    # Print submenu
+                    print_submenu = QMenu("Print Tokens", self)
+                    added_print = False
+                    
+                    # Execute submenu
+                    execute_submenu = QMenu("Execute Commands", self)
+                    added_execute = False
                     
                     node = self.node_manager.get_node(node_name)
                     if node:
                         for token in node.tokens.values():
                             if token.token_type == section_type:
                                 token_id = token.token_id
-                                token_action = QAction(f"Token {token_id}", self)
-                                token_action.triggered.connect(
+                                
+                                # Check if token commands should be shown
+                                if not self.context_menu_filter.should_show_command(
+                                    node_name=node_name,
+                                    section_type=section_type,
+                                    command_type="all",
+                                    command_category="token"
+                                ):
+                                    logging.debug(f"Context menu filtered out {section_type} token command for {token_id}")
+                                    continue
+                                
+                                # Print action
+                                print_token_action = QAction(f"Print Token {token_id}", self)
+                                print_token_action.triggered.connect(
                                     lambda checked, t=token_id, n=node_name, tt=section_type:
                                         self._print_tokens_sequentially(t, n, tt)
                                 )
-                                tokens_submenu.addAction(token_action)
-                                added_tokens = True
+                                print_submenu.addAction(print_token_action)
+                                added_print = True
+                                
+                                # Execute action
+                                execute_token_action = QAction(f"Execute Token {token_id}", self)
+                                if section_type == "FBC":
+                                    execute_token_action.triggered.connect(
+                                        lambda checked, t=token_id, n=node_name:
+                                            self.process_fieldbus_command(t, n)
+                                    )
+                                else:
+                                    execute_token_action.triggered.connect(
+                                        lambda checked, t=token_id:
+                                            self.process_rpc_command(t, "print")
+                                    )
+                                execute_submenu.addAction(execute_token_action)
+                                added_execute = True
                     
-                    if added_tokens:
+                    if added_print:
+                        tokens_submenu.addMenu(print_submenu)
+                    if added_execute:
+                        tokens_submenu.addMenu(execute_submenu)
+                    
+                    if added_print or added_execute:
                         menu.addMenu(tokens_submenu)
                         added_actions = True
             
@@ -140,24 +189,42 @@ class CommanderWindow(QMainWindow):
                     logging.debug(f"Context menu processing token item: type={token_type}, id={token_id}, node={node_name}")
                     
                     if token_type == "FBC":
-                        token_str = str(token_id)
-                        action = QAction(f"Print FieldBus Structure (Token {token_str})", self)
-                        action.setProperty("context_item", item)
-                        action.triggered.connect(
-                            lambda checked, t=token_str, n=node_name: self.process_fieldbus_command(t, n)
-                        )
-                        menu.addAction(action)
-                        added_actions = True
+                        # Check if FBC token commands should be shown
+                        if not self.context_menu_filter.should_show_command(
+                            node_name=node_name,
+                            section_type=token_type,
+                            command_type="all",
+                            command_category="token"
+                        ):
+                            logging.debug(f"Context menu filtered out FBC token command for {token_id}")
+                        else:
+                            token_str = str(token_id)
+                            action = QAction(f"Print FieldBus Structure (Token {token_str})", self)
+                            action.setProperty("context_item", item)
+                            action.triggered.connect(
+                                lambda checked, t=token_str, n=node_name: self.process_fieldbus_command(t, n)
+                            )
+                            menu.addAction(action)
+                            added_actions = True
                         
                     elif token_type == "RPC":
-                        display_token = token_id.split('_')[-1] if '_' in token_id else token_id
-                        print_action = QAction(f"Print Rupi counters Token '{display_token}'", self)
-                        print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
-                        clear_action = QAction(f"Clear Rupi counters '{display_token}'", self)
-                        clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
-                        menu.addAction(print_action)
-                        menu.addAction(clear_action)
-                        added_actions = True
+                        # Check if RPC token commands should be shown
+                        if not self.context_menu_filter.should_show_command(
+                            node_name=node_name,
+                            section_type=token_type,
+                            command_type="all",
+                            command_category="token"
+                        ):
+                            logging.debug(f"Context menu filtered out RPC token command for {token_id}")
+                        else:
+                            display_token = token_id.split('_')[-1] if '_' in token_id else token_id
+                            print_action = QAction(f"Print Rupi counters Token '{display_token}'", self)
+                            print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
+                            clear_action = QAction(f"Clear Rupi counters '{display_token}'", self)
+                            clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
+                            menu.addAction(print_action)
+                            menu.addAction(clear_action)
+                            added_actions = True
             
             # Handle FBC/RPC subgroup selection
             elif item.text(0) in ["FBC", "RPC"]:
@@ -177,6 +244,18 @@ class CommanderWindow(QMainWindow):
                         node_name = node_item.text(0).split(' ', 1)[0].strip()
                         if not node_name:
                             raise ValueError("Node item text is empty")
+                    
+                    section_type = item.text(0)
+                    
+                    # Use context menu filter service to determine visibility
+                    if not self.context_menu_filter.should_show_command(
+                        node_name=node_name,
+                        section_type=section_type,
+                        command_type="all",
+                        command_category="subgroup"
+                    ):
+                        logging.debug(f"Context menu filtered out for {section_type} subgroup of {node_name}")
+                        return
                     
                     logging.debug(f"Context menu valid structure detected:")
                     logging.debug(f"  Node: {node_name}")
@@ -198,12 +277,24 @@ class CommanderWindow(QMainWindow):
                     # Get node tokens
                     node = self.node_manager.get_node(node_name)
                     if node:
+                        section_type = item.text(0)
                         for token in node.tokens.values():
-                            if token.token_type == item.text(0):
+                            if token.token_type == section_type:
                                 token_id = token.token_id
+                                
+                                # Check if token commands should be shown
+                                if not self.context_menu_filter.should_show_command(
+                                    node_name=node_name,
+                                    section_type=section_type,
+                                    command_type="all",
+                                    command_category="token"
+                                ):
+                                    logging.debug(f"Context menu filtered out {section_type} token command for {token_id}")
+                                    continue
+                                
                                 token_action = QAction(f"Token {token_id}", self)
                                 token_action.triggered.connect(
-                                    lambda checked, t=token_id, n=node_name, tt=item.text(0):
+                                    lambda checked, t=token_id, n=node_name, tt=section_type:
                                         self._print_tokens_sequentially(t, n, tt)
                                 )
                                 tokens_submenu.addAction(token_action)
