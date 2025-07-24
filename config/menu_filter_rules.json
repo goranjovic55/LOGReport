@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "description": "Hide AP01m FBC commands",
+      "node_name": "AP01m",
+      "section_type": "FBC",
+      "action": "hide",
+      "command_type": "all"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "description": "Context menu filtering rules"
+  }
+}

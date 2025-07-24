@@ -23,7 +23,7 @@ customModes:
       evolution, Optimize-mode evolution).
 
       • Always use external data sources for alternatives and best practices
-      using firecrawl_mcp server tool.
+      using firecrawl_mcp server tools.
     groups:
       - read
       - edit

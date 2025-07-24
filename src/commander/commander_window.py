@@ -1,6 +1,7 @@
 from .models import NodeToken
 from .services.fbc_command_service import FbcCommandService
 from .services.rpc_command_service import RpcCommandService
+from .services.context_menu_filter import ContextMenuFilterService
 """
 Commander Main Window
 Dual-pane interface for managing nodes and sessions
@@ -92,6 +93,11 @@ class CommanderWindow(QMainWindow):
                 node_name = data.get("node")
                 
                 if section_type in ["FBC", "RPC"] and node_name:
+                    # Use context menu filter service to determine visibility
+                    if not self.context_menu_filter.is_visible(section_type, node_name):
+                        logging.debug(f"Context menu filtered out for {section_type} subgroup of {node_name}")
+                        return
+                    
                     logging.debug(f"Context menu processing {section_type} subgroup for node {node_name}")
                     
                     # Create main action for printing all tokens
@@ -422,6 +428,9 @@ class CommanderWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Commander LogCreator v1.0")
         self.setMinimumSize(1200, 800)
+        
+        # Initialize context menu filter service
+        self.context_menu_filter = ContextMenuFilterService()
         
         # Configure logging to handle Unicode characters
         logging.basicConfig(

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Implemented context menu filtering system to control command visibility based on node type and section. The `ContextMenuFilterService` now manages filtering rules from configuration, allowing for flexible control of context menu items without code changes.
+- Removed AP01m command from FBC subclass group context menus through configuration-driven filtering. This optimization reduces clutter and prevents execution of deprecated commands on specific node types.
 - Documented the existing functionality for right-click actions on FBC and RPC group nodes in the README.md. This includes the use of `CommanderWindow.process_all_fbc_subgroup_commands` and `process_all_rpc_subgroup_commands` methods, which utilize `NodeManager` to get child log files and `CommandQueue` to dispatch commands with error handling and sequential processing.
 - Fixed issue where commands from `.fbc` log files were not displayed in the Telnet terminal. The fix involved removing an explicit `command_queue.start_processing()` call in [`FbcCommandService.queue_fieldbus_command()`](src/commander/services/fbc_command_service.py:53). This change ensures that FBC commands now follow the same processing flow as RPC commands, resulting in their outputs being correctly displayed in the terminal.
 - Resolved `UnicodeEncodeError` in logging by configuring log file writing to use UTF-8 encoding, enabling proper handling of Unicode characters such as emojis (e.g., '📝').
