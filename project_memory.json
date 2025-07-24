@@ -68,6 +68,7 @@
 {"type":"entity","name":"ApiContractEnforcement","entityType":"Global Development Practice","observations":["Standardized naming from API_Contract_Enforcement","Implements comprehensive unit tests for core APIs","Integrates type hinting and static analysis (mypy, pyright) into CI/CD","Considers using Abstract Base Classes (ABCs) for critical interfaces"]}
 {"type":"entity","name":"CommanderArchitecture","entityType":"System Architecture","observations":["Standardized name from Core System Components","Provides unified view of Commander application architecture","Includes all core components and their relationships"]}
 {"type":"entity","name":"TypeHintingStandard","entityType":"Global Development Practice","observations":["Standardized name from ComprehensiveTypeHinting","Coding standard for explicit data types","Improves readability, maintainability, and static analysis effectiveness"]}
+{"type":"entity","name":"NodeTreePresenter","entityType":"PythonClass","observations":["Presenter class for handling node tree presentation logic","Created to encapsulate node tree UI logic following MVP pattern","Located in src/commander/presenters/node_tree_presenter.py","Inherits from QObject to support Qt signals","Follows same pattern as CommanderPresenter"]}
 {"type":"relation","from":"SessionEvent","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Class","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Task","to":"EntityType","relationType":"IS_A"}
@@ -180,3 +181,4 @@
 {"type":"relation","from":"CommandExecution","to":"LogWriter","relationType":"logs via"}
 {"type":"relation","from":"FbcCommandSystem","to":"SessionManagement","relationType":"uses"}
 {"type":"relation","from":"NodeToken","to":"TypeHintingStandard","relationType":"follows"}
+{"type":"relation","from":"NodeTreePresenter","to":"CommanderPresenter","relationType":"related_to"}
