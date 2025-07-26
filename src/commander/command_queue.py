@@ -223,34 +223,40 @@ class CommandQueue(QObject):
                 if telnet_session == self.parent().active_telnet_client:
                     logging.debug("CommandQueue.start_processing: Reusing active manual Telnet connection")
             else:
-                session_key = f"{item.token.name}_{item.token.token_type}"
-                config = SessionConfig(
-                    host=item.token.ip_address,
-                    port=23,
-                    session_type=SessionType.TELNET
-                )
-                
-                try:
-                    # Get or create session from session manager
-                    telnet_session = self.session_manager.get_or_create_session(
-                        session_key,
-                        SessionType.TELNET,
-                        config
+                # Check for active debugger session first
+                debugger_session = self.session_manager.get_debugger_session()
+                if debugger_session:
+                    telnet_session = debugger_session
+                    logging.debug(f"CommandQueue.start_processing: Using debugger session for command {idx+1}: {item.command} (connected: {telnet_session.is_connected})")
+                else:
+                    session_key = f"{item.token.name}_{item.token.token_type}"
+                    config = SessionConfig(
+                        host=item.token.ip_address,
+                        port=23,
+                        session_type=SessionType.TELNET
                     )
-                    logging.debug(f"CommandQueue.start_processing: Using session for {session_key} (connected: {telnet_session.is_connected})")
                     
-                    # Reconnect if session exists but is disconnected
-                    if not telnet_session.is_connected:
-                        logging.debug(f"CommandQueue.start_processing: Reconnecting session for {session_key}")
-                        telnet_session.connect()
+                    try:
+                        # Get or create session from session manager
+                        telnet_session = self.session_manager.get_or_create_session(
+                            session_key,
+                            SessionType.TELNET,
+                            config
+                        )
+                        logging.debug(f"CommandQueue.start_processing: Using session for {session_key} (connected: {telnet_session.is_connected})")
                         
-                    if not telnet_session.is_connected:
-                        raise ConnectionError(f"Failed to connect session {session_key}")
-                        
-                except Exception as e:
-                    logging.error(f"CommandQueue.start_processing: Error getting session for {session_key}: {str(e)}")
-                    item.status = 'failed'
-                    continue
+                        # Reconnect if session exists but is disconnected
+                        if not telnet_session.is_connected:
+                            logging.debug(f"CommandQueue.start_processing: Reconnecting session for {session_key}")
+                            telnet_session.connect()
+                            
+                        if not telnet_session.is_connected:
+                            raise ConnectionError(f"Failed to connect session {session_key}")
+                            
+                    except Exception as e:
+                        logging.error(f"CommandQueue.start_processing: Error getting session for {session_key}: {str(e)}")
+                        item.status = 'failed'
+                        continue
 
             worker = CommandWorker(item.command, item.token, telnet_session)
             logging.debug(f"CommandQueue.start_processing: Created worker for command {idx+1}/{total}: {item.command} (token {item.token.token_id})")

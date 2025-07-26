@@ -16,6 +16,7 @@ class SessionType(Enum):
     TELNET = "TELNET"
     VNC = "VNC"
     FTP = "FTP"
+    DEBUGGER = "DEBUGGER"  # Manually established sessions
 
 @dataclass
 class SessionConfig:
@@ -256,7 +257,8 @@ class SessionManager:
     session_types = {
         SessionType.TELNET: TelnetSession,
         SessionType.VNC: VNCSession,
-        SessionType.FTP: FTPSession
+        SessionType.FTP: FTPSession,
+        SessionType.DEBUGGER: TelnetSession  # Use TelnetSession for DEBUGGER sessions
     }
 
     def validate_token(self, token: NodeToken) -> bool:
@@ -309,6 +311,13 @@ class SessionManager:
         self.active_sessions[session_key] = session
         logging.debug(f"SessionManager.create_session: Session created (not auto-connected): {session_key}")
         return session
+    
+    def get_debugger_session(self) -> Optional[BaseSession]:
+        """Get the active debugger session if it exists and is connected"""
+        for session in self.active_sessions.values():
+            if session.config.session_type == SessionType.DEBUGGER and session.is_connected:
+                return session
+        return None
     
     def get_or_create_session(self, session_key: str, session_type: SessionType, config: SessionConfig) -> Optional[BaseSession]:
         """Get existing session or create a new one if it doesn't exist"""

@@ -281,10 +281,13 @@ class CommanderWindow(QMainWindow):
                 
             self.status_message_signal.emit(f"Processing {len(rpc_tokens)} RPC tokens in node {node_name}...", 0)
             
+            # Pass active telnet client for reuse
+            telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
+            
             # Queue commands for all RPC tokens
             for token in rpc_tokens:
                 command_text = f"print from fbc rupi counters {token.token_id}0000"
-                self.command_queue.add_command(command_text, token)
+                self.command_queue.add_command(command_text, token, telnet_client)
                 
             self.status_message_signal.emit(f"Queued {len(rpc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
             self.command_queue.start_processing()
@@ -321,49 +324,31 @@ class CommanderWindow(QMainWindow):
             if not token_id or not isinstance(token_id, str):
                 raise ValueError("Invalid token ID")
                 
-            token_num = token_id.split('_')[-1]  # Extract token number after last underscore
-            command_text = (
-                f"print from fbc rupi counters {token_num}0000"
-                if action_type == "print"
-                else f"clear fbc rupi counters {token_num}0000"
-            )
+            # Extract node name from token_id (format: NODE_TOKEN)
+            if '_' not in token_id:
+                self.statusBar().showMessage("Invalid token format")
+                return
+                
+            node_name, token_part = token_id.rsplit('_', 1)
             
-            # Log context menu command initiation
-            logging.debug(f"Context menu command: {action_type} for token {token_id}")
+            # Validate token
+            token = self.rpc_service.get_token(node_name, token_part)
+            if not self.session_manager.validate_token(token):
+                self.statusBar().showMessage(f"Invalid token: {token_id}")
+                return
             
-            # Set command and switch to telnet tab
-            self.cmd_input.setPlainText(command_text)
-            self.session_tabs.setCurrentWidget(self.telnet_tab)
-            self.cmd_input.setFocus()
+            # Pass active telnet client for reuse
+            telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
             
-            # Display command in terminal before execution
-            self.telnet_output.append(f"> {command_text}")
+            # Queue command through service
+            self.rpc_service.queue_rpc_command(node_name, token_part, action_type, telnet_client)
+            self.command_queue.start_processing()
+            
+            # Show command in terminal like FBC does
+            command = self.rpc_service.generate_rpc_command(token_part, action_type)
+            self.telnet_output.append(f"> {command}")
             self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
             
-            # Prioritize reusing active manual connection
-            if hasattr(self, 'active_telnet_client') and self.active_telnet_client and self.active_telnet_client.is_connected:
-                logging.debug("Reusing active telnet connection for context command")
-                self.telnet_session = self.active_telnet_client
-            # Fallback to existing session or manual connection
-            elif not self.telnet_session or not self.telnet_session.is_connected:
-                try:
-                    # Get current manual connection settings
-                    ip, port_text = self.telnet_connection_bar.get_address()
-                    port = int(port_text) if port_text else 23
-                    if not self.connect_telnet(ip, port):
-                        raise ConnectionError(f"Failed to connect to manual telnet at {ip}:{port}")
-                    # Update active client reference
-                    self.active_telnet_client = self.telnet_session
-                except Exception as e:
-                    self._report_error("Connection error", e)
-                    return
-            
-            # Execute command immediately
-            self.execute_telnet_command(automatic=True)
-            
-            action_name = "Print" if action_type == "print" else "Clear"
-            self.statusBar().showMessage(
-                f"{action_name} Rupi counters for token {token_num}", 3000)
         except ValueError as e:
             self._report_error("Invalid RPC command parameters", e)
         except AttributeError as e:
@@ -1046,11 +1031,8 @@ class CommanderWindow(QMainWindow):
             self.settings.setValue("telnet_ip", ip_address)
             self.settings.setValue("telnet_port", port_text)
             self.connect_telnet(ip_address, port)
-            # Store active client for reuse in context commands
-            self.active_telnet_client = self.telnet_session
         else:
             self.disconnect_telnet()
-            self.active_telnet_client = None
 
     def connect_telnet(self, ip_address: str, port: int):
         """Connects to specified telnet server using provided IP and port"""
@@ -1058,7 +1040,7 @@ class CommanderWindow(QMainWindow):
         config = SessionConfig(
             host=ip_address,
             port=port,
-            session_type=SessionType.TELNET,
+            session_type=SessionType.DEBUGGER,  # Use DEBUGGER session type for manual connections
             username="",   # No username by default
             password=""    # No password by default
         )
@@ -1074,6 +1056,8 @@ class CommanderWindow(QMainWindow):
                 self.telnet_output.append(f"Connected to {ip_address}:{port}")
                 self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
                 self.cmd_input.setFocus()
+                # Store active client for reuse in context commands
+                self.active_telnet_client = self.telnet_session
                 return True
             
             # Handle connection failure
@@ -1099,6 +1083,8 @@ class CommanderWindow(QMainWindow):
             self.session_manager.close_all_sessions()
             # Clear local reference AFTER session manager has closed sessions
             self.telnet_session = None
+            # Clear active client reference
+            self.active_telnet_client = None
             # Force UI update to disconnected state
             self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
             self.telnet_output.append("\n>>> DISCONNECTED")
@@ -1201,10 +1187,13 @@ class CommanderWindow(QMainWindow):
                 
             self.status_message_signal.emit(f"Processing {len(fbc_tokens)} FBC tokens in node {node_name}...", 0)
             
+            # Pass active telnet client for reuse
+            telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
+            
             # Queue commands for all FBC tokens
             for token in fbc_tokens:
                 command_text = f"print from fbc io structure {token.token_id}0000"
-                self.command_queue.add_command(command_text, token)
+                self.command_queue.add_command(command_text, token, telnet_client)
                 
             self.status_message_signal.emit(f"Queued {len(fbc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
             self.command_queue.start_processing()

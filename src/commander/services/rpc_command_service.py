@@ -51,7 +51,7 @@ class RpcCommandService(QObject):
             ip_address="0.0.0.0"
         )
     
-    def queue_rpc_command(self, node_name: str, token_id: str, action: str = "print"):
+    def queue_rpc_command(self, node_name: str, token_id: str, action: str = "print", telnet_client=None):
         """Queue RPC command for execution"""
         try:
             token = self.get_token(node_name, token_id)
@@ -63,7 +63,7 @@ class RpcCommandService(QObject):
             self.focus_command_input.emit()
             self.status_message.emit(f"Queued RPC command for token {token_id}", 3000)
             
-            self.command_queue.add_command(command, token)
+            self.command_queue.add_command(command, token, telnet_client)
         except Exception as e:
             self.report_error.emit(str(e))
             self.status_message.emit(f"Error queuing command: {str(e)}", 5000)
