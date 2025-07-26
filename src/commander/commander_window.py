@@ -105,79 +105,16 @@ class CommanderWindow(QMainWindow):
                     
                     logging.debug(f"Context menu processing {section_type} subgroup for node {node_name}")
                     
-                    # Create actions for printing and executing all tokens
+                    # Create action for printing all tokens (simplified to only this command)
                     print_action = QAction(f"Print All {section_type} Tokens for {node_name}", self)
-                    execute_action = QAction(f"Execute All {section_type} Commands", self)
                     
                     if section_type == "FBC":
                         print_action.triggered.connect(lambda: self.process_all_fbc_subgroup_commands(item))
-                        execute_action.triggered.connect(lambda: self.execute_all_subgroup_commands(item, "FBC"))
                     else:
                         print_action.triggered.connect(lambda: self.process_all_rpc_subgroup_commands(item))
-                        execute_action.triggered.connect(lambda: self.execute_all_subgroup_commands(item, "RPC"))
                     
                     menu.addAction(print_action)
-                    menu.addAction(execute_action)
-                    
-                    # Add submenu for individual tokens
-                    tokens_submenu = QMenu(f"{section_type} Token Actions", self)
-                    
-                    # Print submenu
-                    print_submenu = QMenu("Print Tokens", self)
-                    added_print = False
-                    
-                    # Execute submenu
-                    execute_submenu = QMenu("Execute Commands", self)
-                    added_execute = False
-                    
-                    node = self.node_manager.get_node(node_name)
-                    if node:
-                        for token in node.tokens.values():
-                            if token.token_type == section_type:
-                                token_id = token.token_id
-                                
-                                # Check if token commands should be shown
-                                if not self.context_menu_filter.should_show_command(
-                                    node_name=node_name,
-                                    section_type=section_type,
-                                    command_type="all",
-                                    command_category="token"
-                                ):
-                                    logging.debug(f"Context menu filtered out {section_type} token command for {token_id}")
-                                    continue
-                                
-                                # Print action
-                                print_token_action = QAction(f"Print Token {token_id}", self)
-                                print_token_action.triggered.connect(
-                                    lambda checked, t=token_id, n=node_name, tt=section_type:
-                                        self._print_tokens_sequentially(t, n, tt)
-                                )
-                                print_submenu.addAction(print_token_action)
-                                added_print = True
-                                
-                                # Execute action
-                                execute_token_action = QAction(f"Execute Token {token_id}", self)
-                                if section_type == "FBC":
-                                    execute_token_action.triggered.connect(
-                                        lambda checked, t=token_id, n=node_name:
-                                            self.process_fieldbus_command(t, n)
-                                    )
-                                else:
-                                    execute_token_action.triggered.connect(
-                                        lambda checked, t=token_id:
-                                            self.process_rpc_command(t, "print")
-                                    )
-                                execute_submenu.addAction(execute_token_action)
-                                added_execute = True
-                    
-                    if added_print:
-                        tokens_submenu.addMenu(print_submenu)
-                    if added_execute:
-                        tokens_submenu.addMenu(execute_submenu)
-                    
-                    if added_print or added_execute:
-                        menu.addMenu(tokens_submenu)
-                        added_actions = True
+                    added_actions = True
             
             # Handle token items (individual token files)
             elif data and isinstance(data, dict) and 'token' in data:
@@ -261,7 +198,7 @@ class CommanderWindow(QMainWindow):
                     logging.debug(f"  Node: {node_name}")
                     logging.debug(f"  Subgroup: {item.text(0)}")
 
-                    # Create context menu action after validation
+                    # Create context menu action after validation (simplified to only this command)
                     action_text = f"Print All {item.text(0)} Tokens for {node_name}"
                     action = QAction(action_text, self)
                     if item.text(0) == "FBC":
@@ -269,40 +206,7 @@ class CommanderWindow(QMainWindow):
                     else:
                         action.triggered.connect(lambda: self.process_all_rpc_subgroup_commands(item))
                     menu.addAction(action)
-                    
-                    # Add new Print Tokens submenu
-                    tokens_submenu = QMenu(f"Print {item.text(0)} Tokens", self)
-                    added_tokens = False
-                    
-                    # Get node tokens
-                    node = self.node_manager.get_node(node_name)
-                    if node:
-                        section_type = item.text(0)
-                        for token in node.tokens.values():
-                            if token.token_type == section_type:
-                                token_id = token.token_id
-                                
-                                # Check if token commands should be shown
-                                if not self.context_menu_filter.should_show_command(
-                                    node_name=node_name,
-                                    section_type=section_type,
-                                    command_type="all",
-                                    command_category="token"
-                                ):
-                                    logging.debug(f"Context menu filtered out {section_type} token command for {token_id}")
-                                    continue
-                                
-                                token_action = QAction(f"Token {token_id}", self)
-                                token_action.triggered.connect(
-                                    lambda checked, t=token_id, n=node_name, tt=section_type:
-                                        self._print_tokens_sequentially(t, n, tt)
-                                )
-                                tokens_submenu.addAction(token_action)
-                                added_tokens = True
-                    
-                    if added_tokens:
-                        menu.addMenu(tokens_submenu)
-                        added_actions = True
+                    added_actions = True
 
                 except Exception as e:
                     logging.error(f"Context menu structure validation failed: {str(e)}")
@@ -347,53 +251,6 @@ class CommanderWindow(QMainWindow):
         self.status_message_signal.emit(error_msg, duration)
         logging.error(error_msg)
         
-    def _print_tokens_sequentially(self, token_id, node_name, token_type):
-        """Print token values sequentially for the given token"""
-        try:
-            # Get node IP from node manager to ensure session reuse
-            node = self.node_manager.get_node(node_name)
-            if not node:
-                raise ValueError(f"Node {node_name} not found")
-                
-            # Get existing active session if available
-            session = None
-            for active_session in self.session_manager.get_active_sessions():
-                if active_session.config.host == node.ip_address and \
-                   active_session.config.session_type == SessionType.TELNET:
-                    session = active_session
-                    logging.debug(f"Reusing existing telnet session to {node.ip_address}")
-                    break
-            
-            # If no active session found, create a new one
-            if not session:
-                logging.debug(f"Creating new telnet session to {node.ip_address}")
-                session = self.session_manager.create_session(
-                    SessionConfig(
-                        session_type=SessionType.TELNET,
-                        host=node.ip_address,
-                        port=23  # Default telnet port
-                    ),
-                    auto_connect=True
-                )
-                
-                # If session creation failed, return early
-                if not session or not session.is_connected:
-                    raise ConnectionError(f"Failed to connect to {node.ip_address}")
-            
-            if token_type == "FBC":
-                self.fbc_service.queue_fieldbus_command(node_name, token_id, session)
-            else:
-                self.rpc_service.queue_rpc_command(node_name, token_id, "print", session)
-                
-            self.command_queue.start_processing()
-        except Exception as e:
-            self._report_error(f"Error processing {token_type} command", e)
-        except ConnectionRefusedError as e:
-            self._report_error("Connection refused", e)
-        except TimeoutError as e:
-            self._report_error("Connection timed out", e)
-        except ConnectionError as e:
-            self._report_error(str(e), e)
 
     def _handle_fbc_error(self, error_msg: str):
         """Handle FBC service errors by reporting them"""
