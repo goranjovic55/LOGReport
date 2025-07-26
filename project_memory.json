@@ -72,6 +72,12 @@
 {"type":"entity","name":"CommandProcessing","entityType":"ConsolidatedComponent","observations":["Merged entity combining command execution stability, execution issues, and service functionality","Provides unified view of command processing pipeline","Includes command queuing, execution, and error handling"]}
 {"type":"entity","name":"NetworkOperations","entityType":"ConsolidatedComponent","observations":["Merged entity containing all network-related functionality","Includes stability improvements, error handling, and connection management","Defined across telnet_client.py and related files"]}
 {"type":"entity","name":"Context Menu Filtering System","entityType":"DesignPattern","observations":["System for controlling command visibility in context menus","Uses configuration-driven rules to show/hide commands","Based on node name, section type, and command type","Implemented through ContextMenuFilterService","Configuration file: config/menu_filter_rules.json","Enables dynamic UI customization without code deployment","Generalized pattern that can be promoted to global memory"]}
+{"type":"entity","name":"MemoryOptimizationOpportunity","entityType":"AnalysisFinding","observations":["NodeToken class contains redundant fields (token_id and token_type)","project_memory.json appears underutilized based on TODO.md","Lack of hierarchical relationships between entities in knowledge graph"]}
+{"type":"entity","name":"WorkflowEnhancement","entityType":"Recommendation","observations":["Implement hierarchical relationships between entities","Add memory validation steps before persistence operations","Create cross-references between code modules and memory entities"]}
+{"type":"entity","name":"memory_workflow","entityType":"workflow","observations":["Dual memory consolidation process","Includes project and global memory synchronization"]}
+{"type":"entity","name":"optimization_process","entityType":"procedure","observations":["Structural analysis phase","External validation step","Memory graph updating","Added pre-phase validation checkpoint","Implemented post-update verification step"]}
+{"type":"entity","name":"document_user","entityType":"User","observations":["Identity for Document mode operations","Responsible for maintaining project documentation and memory","Updated documentation in .docs/memory_management.md to reflect MCP server usage for memory management workflow","Updated README.md with high-level overview of improved memory consolidation process","Updated CHANGELOG.md to record changes to update_memory.md workflow","Updated TODO.md with new memory management tasks related to documentation and MCP server integration"]}
+{"type":"entity","name":"update_memory_workflow_status","entityType":"workflow_status","observations":["Workflow analysis completed by Analyze mode.","Workflow file `update_memory.md` updated by Code mode.","Project documentation updated by Document mode."]}
 {"type":"relation","from":"SessionEvent","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Class","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Task","to":"EntityType","relationType":"IS_A"}
@@ -196,3 +202,6 @@
 {"type":"relation","from":"Context Menu Filtering System","to":"CommanderWindow","relationType":"applied_in"}
 {"type":"relation","from":"CommanderWindow","to":"MVP Presenter Pattern","relationType":"implements"}
 {"type":"relation","from":"ApiContractEnforcement","to":"API Contract Enforcement","relationType":"standardized_from"}
+{"type":"relation","from":"MemoryOptimizationOpportunity","to":"src/commander/models.py","relationType":"requires_refactoring_in"}
+{"type":"relation","from":"WorkflowEnhancement","to":"project_memory.json","relationType":"improves_usage_of"}
+{"type":"relation","from":"WorkflowEnhancement","to":"TODO.md","relationType":"addresses_task_in"}
