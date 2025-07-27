@@ -29,12 +29,19 @@ class TestCommandQueue(unittest.TestCase):
         self.assertEqual(self.queue.queue[-1]['token'], self.valid_token)
         self.assertEqual(self.queue.queue[-1]['status'], "pending")
 
-    def test_start_processing_resets_index(self):
-        self.queue.add_command("cmd1", self.valid_token)
-        self.queue.add_command("cmd2", self.valid_token)
-        self.queue.current_index = 2
-        self.queue.start_processing()
-        self.assertEqual(self.queue.current_index, 0)
+    def test_start_processing_only_processes_pending_commands(self):
+        # Add commands with different statuses
+        self.queue.add_command("cmd1", self.valid_token)  # pending
+        self.queue.add_command("cmd2", self.valid_token)  # pending
+        
+        # Manually set one command to completed to simulate it was already processed
+        self.queue.queue[0].status = 'completed'
+        
+        # Start processing - should only process the pending command
+        with patch.object(self.queue.thread_pool, 'start') as mock_start:
+            self.queue.start_processing()
+            # Should only start one worker for the pending command
+            self.assertEqual(mock_start.call_count, 1)
 
     @patch('builtins.print')
     def test_process_next_updates_progress(self, mock_print):
@@ -115,6 +122,29 @@ class TestCommandQueue(unittest.TestCase):
         self.queue.start_processing()
         self.assertEqual(self.queue.current_index, 0)
         self.assertEqual(len(self.queue.queue), 0)
+        
+    def test_queue_cleanup_removes_completed_commands(self):
+        # Add multiple commands
+        self.queue.add_command("cmd1", self.valid_token)
+        self.queue.add_command("cmd2", self.valid_token)
+        self.queue.add_command("cmd3", self.valid_token)
+        
+        # Manually set statuses
+        self.queue.queue[0].status = 'completed'
+        self.queue.queue[1].status = 'failed'
+        self.queue.queue[2].status = 'pending'
+        
+        # Trigger cleanup by calling start_processing
+        original_length = len(self.queue.queue)
+        with patch.object(self.queue.thread_pool, 'start'):
+            self.queue.start_processing()
+            
+        # Check that completed commands were removed but failed and pending remain
+        self.assertEqual(len(self.queue.queue), 2)  # failed and pending commands remain
+        statuses = [cmd.status for cmd in self.queue.queue]
+        self.assertIn('failed', statuses)
+        self.assertIn('pending', statuses)
+        self.assertNotIn('completed', statuses)
 
 if __name__ == '__main__':
     unittest.main()

@@ -24,3 +24,5 @@ This file contains a list of pending tasks and improvements for the LOGReport pr
 - [x] Document architectural pattern for service layer usage in batch operations, including why service layer is critical and how to identify similar issues
 - [x] Create/update documentation in .docs/ about context menu implementation patterns
 - [x] Update README.md about proper service layer usage for batch operations
+- [x] Fix command queue re-execution issue by modifying start_processing() to only process pending commands and implementing queue cleanup in _handle_worker_finished() to remove completed commands
+- [x] Fix log file initialization for context menu actions by ensuring command queue properly passes token information with completion signals and commander window handles command completion with token information

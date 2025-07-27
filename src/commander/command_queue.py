@@ -26,7 +26,7 @@ class QueuedCommand:
 
 class CommandWorkerSignals(QObject):
     finished = pyqtSignal(object, str)  # Emits (worker, result)
-    command_completed = pyqtSignal(str, str, bool)  # Emits (command, result, success)
+    command_completed = pyqtSignal(str, str, bool, object)  # Emits (command, result, success, token)
 
 class CommandWorker(QRunnable):
     """Worker for executing a single command in a thread"""
@@ -139,12 +139,12 @@ class CommandWorker(QRunnable):
         finally:
             logging.debug(f"CommandWorker.run: Finished command: {self.command}, success={self.success}")
             self.signals.finished.emit(self, self.result)
-            self.signals.command_completed.emit(self.command, self.result, self.success)
+            self.signals.command_completed.emit(self.command, self.result, self.success, self.token)
 
 class CommandQueue(QObject):
     """Manages a queue of commands to execute with progress tracking"""
     
-    command_completed = pyqtSignal(str, str, bool)  # command, result, success
+    command_completed = pyqtSignal(str, str, bool, object)  # command, result, success, token
     progress_updated = pyqtSignal(int, int)    # current, total
     
     @property
@@ -202,18 +202,22 @@ class CommandQueue(QObject):
         logging.debug(f"CommandQueue.start_processing: Thread pool status - active threads: {self.thread_pool.activeThreadCount()}, max threads: {self.thread_pool.maxThreadCount()}")
         
         self.completed_count = 0
-        total = len(self.queue)
+        # Only process pending commands
+        pending_commands = [cmd for cmd in self.queue if cmd.status == 'pending']
+        total = len(pending_commands)
         if total == 0:
-            logging.info("CommandQueue.start_processing: Queue is empty, nothing to process")
+            logging.info("CommandQueue.start_processing: No pending commands to process")
+            with self._processing_lock:
+                self._is_processing = False
             return
             
-        # Update all commands to processing status
-        for idx, item in enumerate(self.queue):
+        # Update all pending commands to processing status
+        for idx, item in enumerate(pending_commands):
             item.status = 'processing'
             logging.debug(f"CommandQueue.start_processing: Marked command {idx+1}/{total} as processing: {item.command}")
             
-        # Create and start workers for each command
-        for idx, item in enumerate(self.queue):
+        # Create and start workers for each pending command
+        for idx, item in enumerate(pending_commands):
             telnet_session = None
             # Prioritize using the provided telnet_client if available
             if item.telnet_client:
@@ -296,6 +300,13 @@ class CommandQueue(QObject):
         if not updated:
             logging.error(f"CommandQueue._handle_worker_finished: Could not find command in queue: {command}")
         
+        # Clean up completed commands from queue
+        original_queue_size = len(self.queue)
+        self.queue = [cmd for cmd in self.queue if cmd.status != 'completed']
+        cleaned_count = original_queue_size - len(self.queue)
+        if cleaned_count > 0:
+            logging.debug(f"CommandQueue._handle_worker_finished: Cleaned {cleaned_count} completed commands from queue")
+        
         # Emit progress update
         remaining = len(self.queue) - self.completed_count
         logging.debug(f"CommandQueue._handle_worker_finished: Progress: {self.completed_count}/{len(self.queue)} completed, {remaining} remaining")
@@ -303,7 +314,7 @@ class CommandQueue(QObject):
         
         # Emit command completion with result
         # Ensure error details are properly propagated
-        self.command_completed.emit(command, result, success)
+        self.command_completed.emit(command, result, success, worker.token)
         logging.debug(f"CommandQueue._handle_worker_finished: Emitted completion signal for command: {command} (success={success})")
         
         # If this was the last command, emit final completion signal

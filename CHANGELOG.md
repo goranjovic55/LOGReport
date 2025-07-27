@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fixed log file initialization for context menu actions by ensuring command queue properly passes token information with completion signals and commander window handles command completion with token information
+- Fixed command queue re-execution issue where completed commands remained in the queue and were executed again when new commands were added. The fix modifies `CommandQueue.start_processing()` to only process pending commands and implements queue cleanup in `CommandQueue._handle_worker_finished()` to remove completed commands from the queue. This prevents previous commands (e.g., token 162) from re-executing when new commands (e.g., token 182) are triggered.
 - Updated memory management workflow documentation in `.docs/memory_management.md` to reflect the improved dual memory consolidation process using `project_memory` and `global_memory` MCP servers.
 - Enhanced README.md with a high-level overview of the memory consolidation process, detailing how the system uses dual memory for project-specific and cross-project knowledge.
 - Updated documentation workflow to follow the MCP-aligned, command-safe pattern with consistent identity scoping using `document_user`.

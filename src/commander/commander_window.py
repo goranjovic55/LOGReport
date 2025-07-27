@@ -1198,20 +1198,14 @@ class CommanderWindow(QMainWindow):
         except Exception as e:
             self.status_message_signal.emit(f"Error processing FBC commands: {str(e)}", self.STATUS_MSG_MEDIUM)
 
-    def _handle_queued_command_result(self, command: str, result: str, success: bool):
+    def _handle_queued_command_result(self, command: str, result: str, success: bool, token=None):
         """Handle completed commands from the queue and log results"""
         logging.debug(f"_handle_queued_command_result: command={command}, success={success}, result_length={len(result)}")
         if success:
             self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
             logging.info(f"Command completed successfully: {command}\nResult: {result}")
             
-            # Find the token associated with this command by searching the queue
-            token = None
-            for queued_command in self.command_queue.queue:
-                if queued_command.command == command:
-                    token = queued_command.token
-                    break
-            
+            # Use the token passed with the signal
             if token and hasattr(token, 'token_id'):
                 try:
                     self.log_writer.append_to_log(

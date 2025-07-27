@@ -31,6 +31,26 @@ class FbcCommandService(QObject):
         token_str = str(token_id).strip()
         return token_str.zfill(3) if token_str.isdigit() else token_str
     
+    def _initialize_log_file(self, token: NodeToken):
+        """Initialize log file for the token if not already initialized"""
+        try:
+            # Get reference to log writer from parent (CommanderWindow)
+            if hasattr(self.parent(), 'log_writer'):
+                log_writer = self.parent().log_writer
+                
+                # Check if log is already initialized for this token
+                if token.token_id not in log_writer.loggers:
+                    # Generate log path
+                    node_ip = token.ip_address.replace('.', '-') if token.ip_address else "unknown-ip"
+                    log_path = log_writer.get_log_path(token.name, node_ip, token)
+                    
+                    # Open log file
+                    log_writer.open_log(token.name, node_ip, token, log_path)
+                    self.logger.debug(f"Initialized log file for token {token.token_id} at {log_path}")
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize log file for token {token.token_id}: {str(e)}")
+            # Don't fail the command if log initialization fails
+    
     def get_token(self, node_name: str, token_id: str) -> NodeToken:
         """Retrieve token from node manager with multiple lookup attempts"""
         node = self.node_manager.get_node(node_name)
@@ -56,6 +76,9 @@ class FbcCommandService(QObject):
         try:
             token = self.get_token(node_name, token_id)
             self.logger.debug(f"FbcCommandService.queue_fieldbus_command: Retrieved token - ID: {token.token_id}, Type: {token.token_type}, Node: {token.name}, IP: {token.ip_address}")
+            
+            # Ensure log file is initialized before queuing command
+            self._initialize_log_file(token)
             
             command = self.generate_fieldbus_command(token_id)
             self.logger.debug(f"FbcCommandService.queue_fieldbus_command: Generated command: {command}")

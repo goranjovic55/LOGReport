@@ -168,7 +168,3 @@ class LogWriter:
         """Closes all open log files"""
         for token in list(self.loggers.keys()):
             self.close_log(token)
-            
-    def get_log_path(self, token_id: str) -> str:
-        """Returns the absolute path to a token's log file"""
-        return os.path.abspath(self.log_paths[token_id])
