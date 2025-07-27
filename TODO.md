@@ -20,3 +20,7 @@ This file contains a list of pending tasks and improvements for the LOGReport pr
 - [ ] Incorporate external validation using firecrawl_mcp MCP server for documentation quality
 - [ ] Update memory loading, tracking, and persistence steps to use MCP server tools
 - [ ] Finalize memory updates with proper session closure and traceability
+- [x] Fix batch token processing in context menus by replacing hardcoded command generation with service method calls
+- [x] Document architectural pattern for service layer usage in batch operations, including why service layer is critical and how to identify similar issues
+- [x] Create/update documentation in .docs/ about context menu implementation patterns
+- [x] Update README.md about proper service layer usage for batch operations

@@ -1,10 +1,10 @@
 # Context Menu Architecture
 
-This document details the architecture and implementation of the context menu system in the LOGReport application, with a focus on the filtering mechanism that controls command visibility.
+This document details the architecture and implementation of the context menu system in the LOGReport application, with a focus on the filtering mechanism that controls command visibility and the service layer integration for batch operations.
 
 ## Overview
 
-The context menu system provides users with a right-click interface to execute commands on nodes and log files. The system has been enhanced with a filtering mechanism that dynamically controls which commands are visible based on node type, section type, and other contextual factors.
+The context menu system provides users with a right-click interface to execute commands on nodes and log files. The system has been enhanced with a filtering mechanism that dynamically controls which commands are visible based on node type, section type, and other contextual factors. Additionally, the system now properly handles batch operations through service layer integration, ensuring all tokens in a batch are processed correctly.
 
 ## Core Components
 
@@ -70,6 +70,26 @@ The `ContextMenuFilterService` class implements the filtering logic with the fol
 - `should_show_command(node_name, section_type, command_type)`: Main entry point that determines visibility
 - `_rule_matches(rule, node_name, section_type, command_type)`: Checks if a rule applies to the current context
 - `_matches_pattern(value, pattern)`: Handles pattern matching with support for exact, wildcard, and regex patterns
+
+## Batch Operation Processing
+
+The context menu system handles batch operations through dedicated methods in the `CommanderWindow` class:
+
+- `process_all_fbc_subgroup_commands()`: Processes all FBC tokens in a subgroup by calling `fbc_service.queue_fieldbus_command()` for each token
+- `process_all_rpc_subgroup_commands()`: Processes all RPC tokens in a subgroup by calling `rpc_service.queue_rpc_command()` for each token
+
+These methods ensure proper command generation, error handling, and logging by leveraging the service layer rather than direct command queue manipulation. The service methods handle command processing internally, including starting the command queue when needed, which eliminates the need for explicit `command_queue.start_processing()` calls.
+
+## Service Layer Integration
+
+The integration with the service layer provides several benefits for batch operations:
+
+1. **Consistent Command Generation**: Service methods ensure commands are generated with the correct format and parameters
+2. **Proper Error Handling**: All error handling logic is centralized in the service layer
+3. **Comprehensive Logging**: Service methods include appropriate logging for monitoring and debugging
+4. **Automatic Queue Management**: Service methods handle starting and stopping the command queue as needed
+5. **Thread Safety**: Service methods ensure thread-safe execution of commands
+6. **Extensibility**: New functionality can be added to service methods without modifying the UI code
 
 ## Usage Example
 

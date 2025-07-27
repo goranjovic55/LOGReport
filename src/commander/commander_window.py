@@ -284,13 +284,11 @@ class CommanderWindow(QMainWindow):
             # Pass active telnet client for reuse
             telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
             
-            # Queue commands for all RPC tokens
+            # Queue commands for all RPC tokens using service method
             for token in rpc_tokens:
-                command_text = f"print from fbc rupi counters {token.token_id}0000"
-                self.command_queue.add_command(command_text, token, telnet_client)
+                self.rpc_service.queue_rpc_command(node_name, token.token_id, "print", telnet_client)
                 
             self.status_message_signal.emit(f"Queued {len(rpc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
-            self.command_queue.start_processing()
             
         except Exception as e:
             self.status_message_signal.emit(f"Error processing RPC commands: {str(e)}", self.STATUS_MSG_MEDIUM)
@@ -1190,13 +1188,11 @@ class CommanderWindow(QMainWindow):
             # Pass active telnet client for reuse
             telnet_client = self.active_telnet_client if hasattr(self, 'active_telnet_client') else None
             
-            # Queue commands for all FBC tokens
+            # Queue commands for all FBC tokens using service method
             for token in fbc_tokens:
-                command_text = f"print from fbc io structure {token.token_id}0000"
-                self.command_queue.add_command(command_text, token, telnet_client)
+                self.fbc_service.queue_fieldbus_command(node_name, token.token_id, telnet_client)
                 
             self.status_message_signal.emit(f"Queued {len(fbc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
-            self.command_queue.start_processing()
             self.status_message_signal.emit(f"Started processing {len(fbc_tokens)} FBC commands", self.STATUS_MSG_SHORT)
             
         except Exception as e:
