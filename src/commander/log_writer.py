@@ -75,6 +75,10 @@ class LogWriter:
         file_node = os.path.basename(log_path).split('_')[0]
         if node_name != file_node:
             raise ValueError(f"Node name {node_name} doesn't match file's node {file_node}")
+            
+        # Validate IP address in filename matches token IP
+        self._validate_ip_address(node_name, node_ip, token, log_path)
+        
         self.log_paths[token_id_str] = log_path
         
         if token_id_str not in self.loggers:
@@ -117,6 +121,24 @@ class LogWriter:
             f"====================\n\n"
         )
         file_handle.write(header)
+        
+    def _validate_ip_address(self, node_name: str, node_ip: str, token: NodeToken, log_path: str):
+        """
+        Validates that token IP matches filename IP and provides warning/correction
+        """
+        # Extract IP from filename (format: node_ip_token.type)
+        filename_parts = os.path.basename(log_path).split('_')
+        if len(filename_parts) >= 2:
+            filename_ip_formatted = filename_parts[1]  # IP part in filename
+            filename_ip = filename_ip_formatted.replace('-', '.')  # Convert to standard format
+            
+            # Check if token IP differs from filename IP
+            token_ip = token.ip_address if token.ip_address else "unknown-ip"
+            if token_ip != filename_ip and token_ip != "unknown-ip" and filename_ip != "unknown-ip":
+                print(f"[WARNING] Token IP {token_ip} != Filename IP {filename_ip} for token {token.token_id}")
+                # For now, we'll just log the warning. In a real implementation, we might want
+                # to prompt for user confirmation before correcting the IP
+                # token.ip_address = filename_ip  # Automatic correction (commented out for safety)
         
     def append_to_log(self, token_id: str, content: str, protocol: str):
         """Appends content to log with protocol annotation"""

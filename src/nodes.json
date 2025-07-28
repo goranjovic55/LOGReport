@@ -20,6 +20,30 @@
                 "token_type": "RPC",
                 "port": 2077,
                 "protocol": "telnet"
+            },
+            {
+                "token_id": "162",
+                "token_type": "RPC",
+                "port": 2077,
+                "protocol": "telnet"
+            }
+        ]
+    },
+    {
+        "name": "AP01r",
+        "ip_address": "192.168.1.102",
+        "tokens": [
+            {
+                "token_id": "362",
+                "token_type": "FBC",
+                "port": 2077,
+                "protocol": "telnet"
+            },
+            {
+                "token_id": "363",
+                "token_type": "RPC",
+                "port": 2077,
+                "protocol": "telnet"
             }
         ]
     },

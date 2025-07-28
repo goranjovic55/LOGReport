@@ -5,6 +5,7 @@ Loads and manages node configuration for Commander UI
 import json
 import os
 import logging
+import re
 from typing import Dict, List, Optional
 from .models import Node, NodeToken
 
@@ -202,6 +203,9 @@ class NodeManager:
             print(f"[DEBUG] ERROR: Log root does not exist")
             return
             
+        # First, scan for IPs in log directory names and update token objects
+        self._scan_for_dynamic_ips(root)
+            
         print(f"[DEBUG] Log root exists")
         
         # Check directory structure
@@ -388,6 +392,51 @@ class NodeManager:
         if token1.startswith(token2) or token2.startswith(token1):
             return 1
         return 2
+    
+    def _scan_for_dynamic_ips(self, log_root: str):
+        """
+        Scans log directory for IPs using regex pattern and updates token objects
+        Pattern: r"(\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3})"
+        """
+        ip_pattern = r"(\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3})"
+        print(f"[DEBUG] Scanning for dynamic IPs in: {log_root}")
+        
+        # Walk through all directories and files
+        for dirpath, _, filenames in os.walk(log_root):
+            # Process directory names for IP patterns
+            dir_name = os.path.basename(dirpath)
+            ip_matches = re.findall(ip_pattern, dir_name)
+            if ip_matches:
+                # Convert IP format from 192-168-0-11 to 192.168.0.11
+                for ip_match in ip_matches:
+                    formatted_ip = ip_match.replace('-', '.')
+                    print(f"[DEBUG] Found IP in directory name: {ip_match} -> {formatted_ip}")
+                    # Update tokens with this IP if they don't already have a valid IP
+                    self._update_tokens_with_ip(formatted_ip)
+            
+            # Process filenames for IP patterns
+            for filename in filenames:
+                ip_matches = re.findall(ip_pattern, filename)
+                if ip_matches:
+                    # Convert IP format from 192-168-0-11 to 192.168.0.11
+                    for ip_match in ip_matches:
+                        formatted_ip = ip_match.replace('-', '.')
+                        print(f"[DEBUG] Found IP in filename: {ip_match} -> {formatted_ip}")
+                        # Update tokens with this IP if they don't already have a valid IP
+                        self._update_tokens_with_ip(formatted_ip)
+    
+    def _update_tokens_with_ip(self, ip_address: str):
+        """
+        Updates token objects with discovered IP addresses
+        Only updates tokens that don't already have a valid IP address
+        """
+        print(f"[DEBUG] Updating tokens with IP: {ip_address}")
+        for node in self.nodes.values():
+            for token in node.tokens.values():
+                # Only update tokens without a valid IP address
+                if not token.ip_address or token.ip_address == "0.0.0.0":
+                    print(f"[DEBUG] Updating token {token.token_id} with IP {ip_address}")
+                    token.ip_address = ip_address
     
     def get_node(self, node_name: str) -> Optional[Node]:
         """Retrieves node by name"""

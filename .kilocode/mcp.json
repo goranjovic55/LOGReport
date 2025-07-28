@@ -18,10 +18,28 @@
         "delete_observations",
         "search_nodes",
         "open_nodes",
-        "read_graph",
         "memory"
       ],
       "disabled": false
+    },
+    "codegraph_mcp": {
+      "command": "uvx",
+      "args": [
+        "code-graph-mcp"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "analyze_codebase",
+        "get_usage_guide",
+        "find_definition",
+        "find_references",
+        "find_callers",
+        "find_callees",
+        "complexity_analysis",
+        "dependency_analysis",
+        "project_statistics"
+      ],
+      "timeout": 60
     }
   }
 }

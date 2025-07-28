@@ -6,6 +6,8 @@ import os
 import logging
 
 class RpcCommandService(QObject):
+    logger = logging.getLogger(__name__)
+
     # Define signals for communication
     set_command_text = pyqtSignal(str)
     switch_to_telnet_tab = pyqtSignal()
@@ -17,6 +19,7 @@ class RpcCommandService(QObject):
         super().__init__(parent)
         self.node_manager = node_manager
         self.command_queue = command_queue
+        self.logger = logging.getLogger(__name__)
         
     def generate_rpc_command(self, token_id: str, action: str = "print") -> str:
         """Generate RPC command text for a token ID"""
@@ -58,12 +61,29 @@ class RpcCommandService(QObject):
         if not node:
             raise ValueError(f"Node {node_name} not found")
         
+        # First try to find existing RPC token with matching ID
         token_formats = [token_id, str(int(token_id)) if token_id.isdigit() else token_id]
         for fmt in token_formats:
             if token := node.tokens.get(fmt):
-                return token
+                # Only return token if it's an RPC token
+                if token.token_type == "RPC":
+                    return token
         
-        # Create temporary token if not found
+        # Fallback: Try to find FBC token with matching ID and convert it
+        for fmt in token_formats:
+            if token := node.tokens.get(fmt):
+                # If it's an FBC token, create a new RPC token with the same ID and IP
+                if token.token_type == "FBC":
+                    return NodeToken(
+                        token_id=token.token_id,
+                        token_type="RPC",
+                        name=token.name,
+                        ip_address=token.ip_address,
+                        port=token.port,
+                        protocol=token.protocol
+                    )
+        
+        # Create temporary RPC token if not found
         return NodeToken(
             token_id=token_id,
             token_type="RPC",
@@ -73,21 +93,29 @@ class RpcCommandService(QObject):
     
     def queue_rpc_command(self, node_name: str, token_id: str, action: str = "print", telnet_client=None):
         """Queue RPC command for execution"""
+        self.logger.info(f"RpcCommandService.queue_rpc_command: Starting command queue for node '{node_name}' token '{token_id}' action '{action}'")
         try:
             token = self.get_token(node_name, token_id)
+            self.logger.debug(f"RpcCommandService.queue_rpc_command: Retrieved token - ID: {token.token_id}, Type: {token.token_type}, Node: {token.name}, IP: {token.ip_address}")
             
             # Ensure log file is initialized before queuing command
             self._initialize_log_file(token)
             
             command = self.generate_rpc_command(token_id, action)
+            self.logger.debug(f"RpcCommandService.queue_rpc_command: Generated command: {command}")
+            self.logger.debug(f"RpcCommandService.queue_rpc_command: Full token details: {vars(token)}")
             
             # Emit signals to update UI
+            self.logger.debug("RpcCommandService.queue_rpc_command: Emitting UI update signals")
             self.set_command_text.emit(command)
             self.switch_to_telnet_tab.emit()
             self.focus_command_input.emit()
             self.status_message.emit(f"Queued RPC command for token {token_id}", 3000)
             
+            self.logger.info(f"RpcCommandService.queue_rpc_command: Adding command to queue - Command: '{command}', Token: {token.token_id}")
             self.command_queue.add_command(command, token, telnet_client)
+            self.logger.info("RpcCommandService.queue_rpc_command: Command added to queue")
         except Exception as e:
+            self.logger.error(f"Error queuing RPC command: {str(e)}", exc_info=True)
             self.report_error.emit(str(e))
             self.status_message.emit(f"Error queuing command: {str(e)}", 5000)

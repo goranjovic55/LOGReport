@@ -156,9 +156,9 @@ class CommanderWindow(QMainWindow):
                         else:
                             display_token = token_id.split('_')[-1] if '_' in token_id else token_id
                             print_action = QAction(f"Print Rupi counters Token '{display_token}'", self)
-                            print_action.triggered.connect(lambda: self.process_rpc_command(token_id, "print"))
+                            print_action.triggered.connect(lambda: self.process_rpc_command(node_name, token_id, "print"))
                             clear_action = QAction(f"Clear Rupi counters '{display_token}'", self)
-                            clear_action.triggered.connect(lambda: self.process_rpc_command(token_id, "clear"))
+                            clear_action.triggered.connect(lambda: self.process_rpc_command(node_name, token_id, "clear"))
                             menu.addAction(print_action)
                             menu.addAction(clear_action)
                             added_actions = True
@@ -313,7 +313,7 @@ class CommanderWindow(QMainWindow):
         except Exception as e:
             self._report_error("Unexpected error processing command", e)
             
-    def process_rpc_command(self, token_id, action_type):
+    def process_rpc_command(self, node_name, token_id, action_type):
         """Process RPC commands with token validation and auto-execute"""
         if action_type not in ["print", "clear"]:
             return
@@ -322,12 +322,8 @@ class CommanderWindow(QMainWindow):
             if not token_id or not isinstance(token_id, str):
                 raise ValueError("Invalid token ID")
                 
-            # Extract node name from token_id (format: NODE_TOKEN)
-            if '_' not in token_id:
-                self.statusBar().showMessage("Invalid token format")
-                return
-                
-            node_name, token_part = token_id.rsplit('_', 1)
+            # Extract token part from token_id (format: NODE_TOKEN)
+            token_part = token_id.split('_')[-1] if '_' in token_id else token_id
             
             # Validate token
             token = self.rpc_service.get_token(node_name, token_part)

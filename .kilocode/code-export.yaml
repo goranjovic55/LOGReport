@@ -1,7 +1,6 @@
 customModes:
   - slug: code
     name: Code
-    iconName: codicon-code
     roleDefinition: You are Kilo Code, a highly skilled software engineer with
       extensive knowledge in many programming languages, frameworks, design
       patterns, and best practices.
@@ -9,13 +8,6 @@ customModes:
       for implementing features, fixing bugs, creating new files, or making code
       improvements across any programming language or framework.
     description: Write, modify, and refactor code
-    groups:
-      - read
-      - edit
-      - browser
-      - command
-      - mcp
-    source: project
     customInstructions: >-
       • Remember using global_memory and project_memory if we have solved
       similar problem, and load whole knowledge from it
@@ -30,3 +22,11 @@ customModes:
 
       • Get alternatives and best practices from external sources (
       firecrawl_mcp server tool)
+    groups:
+      - read
+      - edit
+      - browser
+      - command
+      - mcp
+    source: project
+    iconName: codicon-code

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- [FIX] Node resolution: Corrected IP address resolution for hybrid FBC/RPC tokens by implementing fallback logic in [`RpcCommandService.get_token()`](src/commander/services/rpc_command_service.py:58) that allows FBC tokens to be used for RPC commands when no RPC token exists
+- [FEATURE] Dynamic IP extraction from log filenames by scanning directory and file names for IP patterns (e.g., 192-168-0-11) in [`NodeManager._scan_for_dynamic_ips()`](src/commander/node_manager.py:396) and updating token IP addresses accordingly
+- [IMPROVEMENT] Enhanced token type handling with fallback logic and improved validation in [`LogWriter.open_log()`](src/commander/log_writer.py:55) that validates token IP addresses against filename IPs and provides warnings for mismatches
 - Fixed log file initialization for context menu actions by ensuring command queue properly passes token information with completion signals and commander window handles command completion with token information
 - Fixed command queue re-execution issue where completed commands remained in the queue and were executed again when new commands were added. The fix modifies `CommandQueue.start_processing()` to only process pending commands and implements queue cleanup in `CommandQueue._handle_worker_finished()` to remove completed commands from the queue. This prevents previous commands (e.g., token 162) from re-executing when new commands (e.g., token 182) are triggered.
 - Updated memory management workflow documentation in `.docs/memory_management.md` to reflect the improved dual memory consolidation process using `project_memory` and `global_memory` MCP servers.

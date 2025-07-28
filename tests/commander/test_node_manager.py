@@ -185,3 +185,100 @@ def test_scan_log_files_handles_root_errors(caplog):
         
         # Verify error was logged
         assert "Error scanning root directory" in caplog.text
+
+class TestNodeManagerHybridTokenResolution:
+    """Test cases for NodeManager's hybrid token resolution"""
+    
+    def test_get_token_with_fallback_to_fbc(self, tmp_path):
+        """Test that RPC commands can use FBC tokens as fallback"""
+        # Create node manager with test configuration
+        manager = NodeManager()
+        manager.log_root = str(tmp_path)
+        
+        # Create node with FBC token only
+        node = Node(name="AP01m", ip_address="192.168.0.11")
+        fbc_token = NodeToken(
+            name="AP01m 162",
+            token_id="162",
+            token_type="FBC",
+            ip_address="192.168.0.11",
+            port=2077
+        )
+        node.add_token(fbc_token)
+        manager.nodes = {"AP01m": node}
+        
+        # Test that we can get an RPC token based on FBC token
+        token = manager.get_token("AP01m", "162")
+        assert token is not None
+        assert token.token_id == "162"
+        assert token.token_type == "FBC"  # Original token is still FBC
+        
+    def test_scan_log_files_dynamic_ip_resolution(self, tmp_path):
+        """Test dynamic IP resolution from directory names"""
+        # Create directory structure with IP in directory name
+        log_root = tmp_path / "logs"
+        rpc_dir = log_root / "RPC" / "AP01m_192-168-0-11"
+        rpc_dir.mkdir(parents=True)
+        
+        # Create node manager with test node that has no IP
+        manager = NodeManager()
+        manager.log_root = str(log_root)
+        
+        node = Node(name="AP01m", ip_address="0.0.0.0")
+        token = NodeToken(
+            name="AP01m 162",
+            token_id="162",
+            token_type="RPC",
+            ip_address="0.0.0.0",  # No IP initially
+            port=2077
+        )
+        node.add_token(token)
+        manager.nodes = {"AP01m": node}
+        
+        # Scan for IPs
+        manager.scan_log_files()
+        
+        # Verify token IP was updated
+        assert token.ip_address == "192.168.0.11"
+        
+    def test_scan_log_files_dynamic_ip_resolution_from_filename(self, tmp_path):
+        """Test dynamic IP resolution from filenames"""
+        # Create directory structure with IP in filename
+        log_root = tmp_path / "logs"
+        rpc_dir = log_root / "RPC" / "AP01m"
+        rpc_dir.mkdir(parents=True)
+        
+        # Create file with IP in name
+        log_file = rpc_dir / "AP01m_192-168-0-11_162.rpc"
+        log_file.write_text("test content")
+        
+        # Create node manager with test node that has no IP
+        manager = NodeManager()
+        manager.log_root = str(log_root)
+        
+        node = Node(name="AP01m", ip_address="0.0.0.0")
+        token = NodeToken(
+            name="AP01m 162",
+            token_id="162",
+            token_type="RPC",
+            ip_address="0.0.0.0",  # No IP initially
+            port=2077
+        )
+        node.add_token(token)
+        manager.nodes = {"AP01m": node}
+        
+        # Scan for IPs
+        manager.scan_log_files()
+        
+        # Verify token IP was updated
+        assert token.ip_address == "192.168.0.11"
+        
+    def test_configuration_fallback_behavior(self):
+        """Test configuration fallback behavior when tokens are not found"""
+        # Create node manager with empty configuration
+        manager = NodeManager()
+        manager.nodes = {}
+        
+        # Test that get_token returns None for non-existent node
+        token = manager.get_token("NonExistentNode", "123")
+        assert token is None

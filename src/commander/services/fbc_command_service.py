@@ -57,12 +57,15 @@ class FbcCommandService(QObject):
         if not node:
             raise ValueError(f"Node {node_name} not found")
         
+        # First try to find existing FBC token with matching ID
         token_formats = [token_id, str(int(token_id)) if token_id.isdigit() else token_id]
         for fmt in token_formats:
             if token := node.tokens.get(fmt):
-                return token
+                # Only return token if it's an FBC token
+                if token.token_type == "FBC":
+                    return token
         
-        # Create temporary token if not found
+        # Create temporary FBC token if not found
         return NodeToken(
             token_id=token_id,
             token_type="FBC",
