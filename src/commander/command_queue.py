@@ -113,12 +113,27 @@ class CommandWorker(QRunnable):
                 logging.warning("Empty response received from command execution")
                 # Consider empty response as successful but log warning
                 self.success = True
-            elif "error" in self.result.lower() or "invalid token" in self.result.lower():
-                raise ValueError(f"Command returned error response: {self.result[:200]}")
             else:
-                if len(self.result) < 10:  # Minimum expected response length
-                    logging.warning(f"CommandWorker.run: Unexpectedly short response: {len(self.result)} chars")
-                self.success = True
+                # More precise error detection
+                lower_result = self.result.lower()
+                # Handle error responses without crashing
+                if "error" in lower_result or "invalid token" in lower_result or "unknown command" in lower_result:
+                    error_msg = f"Command returned error response: {self.result[:200]}"
+                    logging.error(error_msg)
+                    self.result = error_msg
+                    self.success = False
+                else:
+                    # Handle specific device response patterns
+                    if "int from fbc rupi counters" in lower_result:
+                        # This appears to be a valid device response format
+                        self.success = True
+                        if len(self.result) < 10:
+                            logging.warning(f"CommandWorker.run: Unexpectedly short response: {len(self.result)} chars")
+                    else:
+                        # Handle general case
+                        if len(self.result) < 10:  # Minimum expected response length
+                            logging.warning(f"CommandWorker.run: Unexpectedly short response: {len(self.result)} chars")
+                        self.success = True
             logging.info(f"CommandWorker.run: Command executed successfully: {self.command}")
             logging.debug(f"CommandWorker.run: Final processed response length: {len(self.result)}")
             

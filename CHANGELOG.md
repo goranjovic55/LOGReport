@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- [FIX] Resolved ValueError crash in command_queue.py by adding specific device response handling for "int from fbc rupi counters" commands from context menus. The fix implements targeted validation for this command format while maintaining the existing processing flow.
+- [IMPROVEMENT] Enhanced error handling in CommandWorker.run() with specific validation for device response formats and improved logging for short responses. Added explicit validation for "int from fbc rupi counters" response pattern to prevent ValueError crashes.
 - [FEATURE] Completed Dual Memory Consolidation Workflow by finalizing the optimization and cleanup of `project_memory` and `global_memory` using Analyze, Optimize, and Document modes. This workflow ensures insights are properly captured, validated, and shared across contexts, with key patterns promoted to global memory for reuse.
 
 - [FIX] Node resolution: Corrected IP address resolution for hybrid FBC/RPC tokens by implementing fallback logic in [`RpcCommandService.get_token()`](src/commander/services/rpc_command_service.py:58) that allows FBC tokens to be used for RPC commands when no RPC token exists
