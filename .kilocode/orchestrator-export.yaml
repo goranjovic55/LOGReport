@@ -60,6 +60,7 @@ customModes:
           - `global_memory`
           - `sequential_thinking`
           - `firecrawl_mcp` for external research
+          - `mcp-code-graph` for deeper code insight
 
         - Memory loading:
           - Instruct to load project-specific context using `project_memory` tools
@@ -69,7 +70,7 @@ customModes:
           - Use tools from the `sequential_thinking` MCP server
 
         - Community research:
-          - Use tools from `firecrawl_mcp` to search GitHub, Reddit, SuperUser
+          - Use tools from `firecrawl_mcp` MCP server to search GitHub, Reddit, SuperUser
 
         - Memory updates before completion:
           - Persist task results using:
@@ -91,8 +92,8 @@ customModes:
       - Monitor each subtask through its `attempt_completion` result
 
       - Integrate and review results using:
-        - `project_memory`
-        - `global_memory`
+        - `project_memory` MCP server tools
+        - `global_memory` MCP server tools
 
       ---
 
@@ -103,7 +104,7 @@ customModes:
       - Upon completion of a subtask:
         - Spawn a `new_task` in `optimize-mode`
         - Pass in the result
-        - Use MCP tools to capture any improvements
+        - Use MCP server tools to capture any improvements
 
       ---
 
@@ -143,6 +144,8 @@ customModes:
 
       ### 8. Read Before Acting
 
+
+      - Always use `mcp-code-graph` for deeper code insights.
 
       - Always consult `.docs/`, `README.md`, `TODO.md`, and `CHANGELOG.md` and
       memory before planning

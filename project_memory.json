@@ -90,6 +90,7 @@
 {"type":"entity","name":"node_resolution_fix","entityType":"implementation","observations":["Implemented hybrid token resolution in rpc_command_service.py to accept FBC tokens for RPC commands with fallback logic","Added dynamic IP resolution in node_manager.py using regex pattern r'(\\d{1,3}-\\d{1,3}-\\d{1,3}-\\d{1,3})'","Updated nodes.json with RPC entry for token 162","Enhanced log_writer.py with IP validation in open_log method","Added unit tests for hybrid token resolution and dynamic IP extraction"]}
 {"type":"entity","name":"process_log_data","entityType":"function","observations":["called_by: generate_report","calls: validate_format"]}
 {"type":"entity","name":"ContextMenuRoutingIssue","entityType":"AnalysisFinding","observations":["RPC logs receive FBC commands due to insufficient file extension validation","ContextMenuFilterService pattern matching doesn't account for file extensions","ContextMenuService uses token_type from item data without extension validation"]}
+{"type":"entity","name":"Token Padding Requirement","entityType":"Protocol Specification","observations":["All commands (FBC and RPC) must use 7-digit token format (3-digit base + '0000' suffix)","Token normalization should convert all tokens to 3-digit format before padding"]}
 {"type":"relation","from":"SessionEvent","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Class","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Task","to":"EntityType","relationType":"IS_A"}
@@ -224,3 +225,4 @@
 {"type":"relation","from":"Batch Token Processing Fix","to":"FbcCommandService","relationType":"uses"}
 {"type":"relation","from":"Batch Token Processing Fix","to":"RpcCommandService","relationType":"uses"}
 {"type":"relation","from":"CommandQueue","to":"Command Re-execution Issue","relationType":"fixes"}
+{"type":"relation","from":"Token Padding Requirement","to":"RPC Command Format","relationType":"UPDATES"}

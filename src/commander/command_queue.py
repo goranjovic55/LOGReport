@@ -113,7 +113,7 @@ class CommandWorker(QRunnable):
                 logging.warning("Empty response received from command execution")
                 # Consider empty response as successful but log warning
                 self.success = True
-            elif "error" in self.result.lower():
+            elif "error" in self.result.lower() or "invalid token" in self.result.lower():
                 raise ValueError(f"Command returned error response: {self.result[:200]}")
             else:
                 if len(self.result) < 10:  # Minimum expected response length

@@ -26,8 +26,7 @@ customModes:
 
       Get alternative using external sources using firecrawl_mcp server tools.
 
-      Use mcp-code-graph mcp server tools to understand better dependencies and
-      call graph.
+      Use mcp-code-graph mcp server tools to gain deeper understanding of code.
 
       Do not consider a bug fixed untill tested or confirmed by user its working
       correctly.
