@@ -12,34 +12,36 @@
       "alwaysAllow": [
         "create_entities",
         "create_relations",
-        "add_observations",
         "delete_entities",
         "delete_relations",
         "delete_observations",
         "search_nodes",
         "open_nodes",
-        "memory"
+        "memory",
+        "read_graph"
       ],
       "disabled": false
     },
-    "codegraph_mcp": {
-      "command": "uvx",
+    "mcp-code-graph": {
+      "command": "npx",
       "args": [
-        "code-graph-mcp"
+        "-y",
+        "mcp-code-graph@latest"
       ],
-      "disabled": false,
+      "env": {
+        "CODEGPT_API_KEY": "sk-3f80b540-1a0c-4809-8335-eeea5f7d964a",
+        "CODEGPT_ORG_ID": "08e85a15-51d0-48fc-93a1-3bcc345f7693",
+        "CODEGPT_GRAPH_ID": "b37a52d8-d972-4528-b391-937ea9b28f34"
+      },
       "alwaysAllow": [
-        "analyze_codebase",
-        "get_usage_guide",
-        "find_definition",
-        "find_references",
-        "find_callers",
-        "find_callees",
-        "complexity_analysis",
-        "dependency_analysis",
-        "project_statistics"
-      ],
-      "timeout": 60
+        "find-direct-connections",
+        "nodes-semantic-search",
+        "docs-semantic-search",
+        "folder-tree-structure",
+        "get-usage-dependency-links",
+        "list-graphs",
+        "get-code"
+      ]
     }
   }
 }

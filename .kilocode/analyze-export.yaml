@@ -44,6 +44,10 @@ customModes:
 
       Emphasize cause-effect and how components or issues are interconnected
 
+
+      Use mcp-code-graph mcp server tools for indepth code analysis
+
+
       Alternatively use firecrawl_mcp MCP server tools to find analyisis methods
       and procedures
 

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- [FEATURE] Completed Dual Memory Consolidation Workflow by finalizing the optimization and cleanup of `project_memory` and `global_memory` using Analyze, Optimize, and Document modes. This workflow ensures insights are properly captured, validated, and shared across contexts, with key patterns promoted to global memory for reuse.
+
 - [FIX] Node resolution: Corrected IP address resolution for hybrid FBC/RPC tokens by implementing fallback logic in [`RpcCommandService.get_token()`](src/commander/services/rpc_command_service.py:58) that allows FBC tokens to be used for RPC commands when no RPC token exists
 - [FEATURE] Dynamic IP extraction from log filenames by scanning directory and file names for IP patterns (e.g., 192-168-0-11) in [`NodeManager._scan_for_dynamic_ips()`](src/commander/node_manager.py:396) and updating token IP addresses accordingly
 - [IMPROVEMENT] Enhanced token type handling with fallback logic and improved validation in [`LogWriter.open_log()`](src/commander/log_writer.py:55) that validates token IP addresses against filename IPs and provides warnings for mismatches

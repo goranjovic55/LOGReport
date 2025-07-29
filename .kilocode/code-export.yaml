@@ -20,6 +20,10 @@ customModes:
 
       • Preserve existing behavior; write clear commit-style summaries.
 
+      • Use code-graph-mcp mcp server tools to understand better parts
+
+      of code that you are about to change.
+
       • Get alternatives and best practices from external sources (
       firecrawl_mcp server tool)
     groups:
