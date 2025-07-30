@@ -8,14 +8,14 @@ import logging
 from logging.handlers import RotatingFileHandler
 import time
 from datetime import datetime
-from typing import Dict, TextIO
+from typing import Dict, TextIO, Tuple
 
 class LogWriter:
     def __init__(self, node_manager=None):
         super().__init__()
         self.node_manager = node_manager
-        self.loggers: Dict[str, logging.Logger] = {}
-        self.log_paths = {}
+        self.loggers: Dict[Tuple[str, str], logging.Logger] = {}  # (token_id, protocol) -> logger
+        self.log_paths: Dict[Tuple[str, str], str] = {}  # (token_id, protocol) -> path
         self.thread_pool = None  # Will be set by CommanderWindow
         
     def set_thread_pool(self, thread_pool):
@@ -40,14 +40,23 @@ class LogWriter:
         normalized_ip = node_ip.replace('.', '-')
         # Handle missing token_id with fallback
         safe_token_id = "unknown-token" if not token_id else str(token_id).strip()
-        filename = f"{node_name}_{normalized_ip}_{safe_token_id}.{log_type.lower()}"
+        filename = f"{node_name}_{safe_token_id}_{normalized_ip}_{safe_token_id}.{log_type.lower()}"
         return os.path.join(log_dir, filename)
+
+    def get_node_log_path(self, node, token_id, protocol) -> str:
+        """Generates standardized log path with formatted IP for a node and token"""
+        # Format IP address: 192.168.0.11 -> 192-168-0-11
+        formatted_ip = node.ip_address.replace('.', '-')
+        
+        # Create path: <log_root>/<token_type>/<node_name>/<filename>
+        filename = f"{node.name}_{formatted_ip}_{token_id}.{protocol.lower()}"
+        return os.path.join(self.node_manager.log_root, protocol.upper(), node.name, filename)
 
     def get_log_path(self, node_name: str, node_ip: str, token: NodeToken) -> str:
         """Returns the full path to a token's log file, creating directories if needed"""
         return self._generate_filename(
-            node_name,
-            node_ip.replace('.', '-'),
+            node_name or "unknown-node",
+            (node_ip or "unknown-ip").replace('.', '-'),
             token.token_id,
             token.token_type
         )
@@ -74,19 +83,37 @@ class LogWriter:
         node_ip = node_ip or "unknown-ip"
         token_id_str = str(token.token_id).strip() if token.token_id else "unknown-token"
         
+        # Use provided protocol or default to token's type
+        protocol = log_type.lower()
+        
         # Ensure node_name matches file's node name
-        file_node = os.path.basename(log_path).split('_')[0]
+        # Extract node_name from filename (format: {node_name}_{token_id}_{ip}_{token_id}.{extension})
+        filename_parts = os.path.basename(log_path).split('_')
+        if len(filename_parts) >= 4:
+            # Node name is everything except the last 3 parts (token_id, ip, token_id)
+            file_node = '_'.join(filename_parts[:-3])
+        else:
+            # Fallback for unexpected filename format
+            file_node = filename_parts[0] if filename_parts else ""
         if node_name != file_node:
             raise ValueError(f"Node name {node_name} doesn't match file's node {file_node}")
             
         # Validate IP address in filename matches token IP
         self._validate_ip_address(node_name, node_ip, token, log_path)
         
-        self.log_paths[token_id_str] = log_path
+        # Check if directory exists before proceeding
+        log_dir = os.path.dirname(log_path)
+        if not os.path.exists(log_dir):
+            # Directory doesn't exist, raise error instead of creating directories
+            raise FileNotFoundError(f"Log directory does not exist: {log_dir}")
+            
+        # Use composite key (token_id, protocol) for log_paths
+        key = (token_id_str, protocol)
+        self.log_paths[key] = log_path
         
-        if token_id_str not in self.loggers:
-            # Create logger specific to this token
-            logger = logging.getLogger(f"commander.{token_id_str}")
+        if key not in self.loggers:
+            # Create logger specific to this token and protocol
+            logger = logging.getLogger(f"commander.{token_id_str}.{protocol}")
             logger.setLevel(logging.INFO)
             
             # Create rotating file handler (10MB max, keep 5 backups)
@@ -109,7 +136,7 @@ class LogWriter:
                 with open(log_path, 'w', encoding='utf-8') as f:
                     self._write_header(node_name, token_id_str, log_type, f)
                     
-            self.loggers[token_id_str] = logger
+            self.loggers[key] = logger
                 
         return log_path
         
@@ -146,14 +173,26 @@ class LogWriter:
     def append_to_log(self, token_id: str, content: str, protocol: str):
         """Appends content to log with protocol annotation"""
         try:
-            logging.info(f"Attempting to append to log for token {token_id}")
-            if token_id not in self.loggers:
-                raise ValueError(f"No open log for token ID: {token_id}")
+            # Use provided protocol or default to "fbc"
+            protocol = protocol.lower() if protocol else "fbc"
+            
+            logging.info(f"Attempting to append to log for token {token_id} with protocol {protocol}")
+            
+            # Use composite key (token_id, protocol) to find logger
+            key = (token_id, protocol)
+            if key not in self.loggers:
+                raise ValueError(f"No open log for token ID: {token_id} with protocol {protocol}")
                 
             # Handle empty/null content
             safe_content = content.strip() if content else "<empty response>"
-            log_path = self.log_paths[token_id]
+            log_path = self.log_paths.get(key, "unknown path")
             logging.debug(f"Sanitizing content for log: {log_path}")
+            
+            # Validate protocol parameter (just ensure it's a valid protocol, not that it matches file extension)
+            if protocol:
+                valid_protocols = {'telnet', 'vnc', 'fbc', 'rpc', 'log', 'lis'}
+                if protocol.lower() not in valid_protocols:
+                    raise ValueError(f"Invalid protocol: {protocol}")
             
             # Add source prefix if provided
             prefix = f"[{protocol.upper()}] " if protocol else ""
@@ -164,9 +203,13 @@ class LogWriter:
             
             try:
                 # Use logger to write formatted message
-                self.loggers[token_id].info(f"{timestamp} >> {formatted}")
-                logging.info(f"Successfully appended to log for token {token_id}")
+                self.loggers[key].info(f"{timestamp} >> {formatted}")
+                logging.info(f"Successfully appended to log for token {token_id} with protocol {protocol}")
                 logging.debug(f"Wrote to log: {log_path}")
+                
+                # Log debugging information
+                logging.debug(f"Using token type: {protocol}")
+                logging.debug(f"Generated log path: {log_path}")
                 
             except IOError as e:
                 error_msg = f"Failed to write to log file {log_path}: {str(e)}"
@@ -174,22 +217,27 @@ class LogWriter:
                 raise IOError(error_msg)
                 
         except Exception as e:
-            error_msg = f"Error in append_to_log for token {token_id}: {str(e)}"
+            error_msg = f"Error in append_to_log for token {token_id} with protocol {protocol}: {str(e)}"
             logging.error(error_msg, exc_info=True)
             raise type(e)(error_msg) from e
         
-    def close_log(self, token_id: str):
-        """Closes log file for a specific token ID"""
-        if token_id in self.loggers:
-            logger = self.loggers[token_id]
+    def close_log(self, token_id: str, protocol: str = "fbc"):
+        """Closes log file for a specific token ID and protocol"""
+        # Use provided protocol or default to "fbc"
+        protocol = protocol.lower() if protocol else "fbc"
+        
+        # Use composite key (token_id, protocol) to find logger
+        key = (token_id, protocol)
+        if key in self.loggers:
+            logger = self.loggers[key]
             # Remove and close all handlers
             for handler in logger.handlers[:]:
                 handler.close()
                 logger.removeHandler(handler)
-            del self.loggers[token_id]
-            del self.log_paths[token_id]
+            del self.loggers[key]
+            del self.log_paths[key]
             
     def close_all_logs(self):
         """Closes all open log files"""
-        for token in list(self.loggers.keys()):
-            self.close_log(token)
+        for token_id, protocol in list(self.loggers.keys()):
+            self.close_log(token_id, protocol)

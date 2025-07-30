@@ -44,12 +44,18 @@ class RpcCommandService(QObject):
                 
                 # Check if log is already initialized for this token
                 if token.token_id not in log_writer.loggers:
-                    # Generate log path
-                    node_ip = token.ip_address.replace('.', '-') if token.ip_address else "unknown-ip"
-                    log_path = log_writer.get_log_path(token.name, node_ip, token)
+                    # Get node from node manager
+                    node = self.node_manager.get_node_by_token(token)
+                    if not node:
+                        # Fallback to creating a temporary node with token's name
+                        from ..models import Node
+                        node = Node(name=token.name, ip_address=token.ip_address)
+                    
+                    # Generate log path using shared utility
+                    log_path = log_writer.get_node_log_path(node, token.token_id, token.token_type.lower())
                     
                     # Open log file
-                    log_writer.open_log(token.name, node_ip, token, log_path)
+                    log_writer.open_log(node.name, node.ip_address, token, log_path)
                     self.logger.debug(f"Initialized log file for token {token.token_id} at {log_path}")
         except Exception as e:
             self.logger.warning(f"Failed to initialize log file for token {token.token_id}: {str(e)}")
@@ -61,34 +67,16 @@ class RpcCommandService(QObject):
         if not node:
             raise ValueError(f"Node {node_name} not found")
         
-        # First try to find existing RPC token with matching ID
-        token_formats = [token_id, str(int(token_id)) if token_id.isdigit() else token_id]
-        for fmt in token_formats:
-            if token := node.tokens.get(fmt):
-                # Only return token if it's an RPC token
-                if token.token_type == "RPC":
-                    return token
-        
-        # Fallback: Try to find FBC token with matching ID and convert it
-        for fmt in token_formats:
-            if token := node.tokens.get(fmt):
-                # If it's an FBC token, create a new RPC token with the same ID and IP
-                if token.token_type == "FBC":
-                    return NodeToken(
-                        token_id=token.token_id,
-                        token_type="RPC",
-                        name=token.name,
-                        ip_address=token.ip_address,
-                        port=token.port,
-                        protocol=token.protocol
-                    )
-        
-        # Create temporary RPC token if not found
+        # Create pure RPC token without inheriting FBC properties
+        # Extract base node name (before space) for directory path consistency with FBC pattern
+        base_node_name = node_name.split()[0] if " " in node_name else node_name
         return NodeToken(
             token_id=token_id,
             token_type="RPC",
-            name=node_name,
-            ip_address="0.0.0.0"
+            name=base_node_name,
+            ip_address=node.ip_address,
+            port=23,  # Default port for RPC
+            protocol="telnet"
         )
     
     def queue_rpc_command(self, node_name: str, token_id: str, action: str = "print", telnet_client=None):

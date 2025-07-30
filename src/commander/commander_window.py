@@ -380,6 +380,9 @@ class CommanderWindow(QMainWindow):
         self.session_manager = SessionManager()
         self.command_queue = CommandQueue(self.session_manager, parent=self)
         self.command_queue.command_completed.connect(self._handle_queued_command_result)
+        
+        # Direct connection for logging command responses
+        self.command_queue.command_completed.connect(self._log_command_result)
 
         # Initialize RPC Command Service
         self.rpc_service = RpcCommandService(self.node_manager, self.command_queue, self)
@@ -1200,20 +1203,23 @@ class CommanderWindow(QMainWindow):
         if success:
             self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
             logging.info(f"Command completed successfully: {command}\nResult: {result}")
-            
-            # Use the token passed with the signal
-            if token and hasattr(token, 'token_id'):
-                try:
-                    self.log_writer.append_to_log(
-                        token.token_id,
-                        f"{command}\n{result}",
-                        protocol=token.token_type
-                    )
-                except Exception as e:
-                    logging.error(f"Failed to log command result: {str(e)}")
         else:
             self.status_message_signal.emit(f"Command failed: {command} - {result}", 5000)
             logging.error(f"Command failed: {command}\nError: {result}")
+            
+    def _log_command_result(self, command: str, result: str, success: bool, token=None):
+        """Log command results to the appropriate log file"""
+        try:
+            if token and hasattr(token, 'token_id') and hasattr(token, 'token_type'):
+                self.log_writer.append_to_log(
+                    token.token_id,
+                    f"{command}\n{result}",
+                    protocol=token.token_type
+                )
+            else:
+                logging.warning(f"Unable to log command result: missing token information")
+        except Exception as e:
+            logging.error(f"Failed to log command result: {str(e)}")
     
     def _validate_node(self, item) -> bool:
         """Validate node structure before processing"""

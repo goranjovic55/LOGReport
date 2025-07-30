@@ -18,7 +18,8 @@
         "open_nodes",
         "memory",
         "add_observations",
-        "search_nodes"
+        "search_nodes",
+        "read_graph"
       ],
       "disabled": false
     },
@@ -31,7 +32,7 @@
       "env": {
         "CODEGPT_API_KEY": "sk-3f80b540-1a0c-4809-8335-eeea5f7d964a",
         "CODEGPT_ORG_ID": "08e85a15-51d0-48fc-93a1-3bcc345f7693",
-        "CODEGPT_GRAPH_ID": "b37a52d8-d972-4528-b391-937ea9b28f34"
+        "CODEGPT_GRAPH_ID": "0a29770f-3c24-4638-999c-07b65d5c59b1"
       },
       "alwaysAllow": [
         "find-direct-connections",
@@ -43,7 +44,8 @@
         "get-code",
         "get_usage_dependency_links",
         "analyze_codebase"
-      ]
+      ],
+      "disabled": false
     }
   }
 }

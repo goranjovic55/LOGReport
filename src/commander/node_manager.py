@@ -20,11 +20,13 @@ class NodeManager:
         )
         print(f"[DEBUG] Log root set to: {self.log_root}")
         self.selected_node: Optional[Node] = None
-        # Default config path relative to project root
+        # Use test nodes configuration for development
         self.config_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
-            "nodes.json"
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "nodes_test.json"
         )
+        # Load configuration immediately after setting path
+        self.load_configuration()
         
     def set_config_path(self, path):
         """Set the configuration file path"""
@@ -135,16 +137,16 @@ class NodeManager:
                         if not token_id:
                             print(f"Skipping token with empty 'token_id' in node '{node.name}'")
                             continue
-    
+     
+                        
                         token = NodeToken(
-                            name=f"{node.name} {token_id}",
+                            name=node.name,
                             token_id=token_id,
                             token_type=token_type,
                             ip_address=token_data.get("ip_address", node.ip_address),
                             port=token_data["port"],
                             protocol=token_data.get("protocol", "telnet")
                         )
-                        
                         # Generate log path with formatted IP
                         token.log_path = self._generate_log_path(
                             node.name,
@@ -378,7 +380,7 @@ class NodeManager:
         formatted_ip = ip_address.replace('.', '-')
         
         # Create path: <log_root>/<token_type>/<node_name>/<filename>
-        filename = f"{node_name}_{formatted_ip}_{token_id}.{log_type.lower()}"
+        filename = f"{node_name}_{token_id}_{formatted_ip}_{token_id}.{log_type.lower()}"
         return os.path.join(self.log_root, log_type, node_name, filename)
     
     def _token_distance(self, token1: str, token2: str) -> int:

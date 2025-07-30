@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- [FIX] Implemented RPC command logging via signal-slot connection between [`CommandQueue`](src/commander/command_queue.py) and [`LogWriter`](src/commander/log_writer.py):
+  - Added `command_executed` signal emission in `CommandQueue._handle_worker_finished()`
+  - Connected to `LogWriter.log_command_result()` slot
+  - Ensures all RPC command results are properly logged with timestamp, command, and response
+  - Fixes missing log entries for batch-processed commands
 - [FIX] Resolved ValueError crash in command_queue.py by adding specific device response handling for "int from fbc rupi counters" commands from context menus. The fix implements targeted validation for this command format while maintaining the existing processing flow.
 - [IMPROVEMENT] Enhanced error handling in CommandWorker.run() with specific validation for device response formats and improved logging for short responses. Added explicit validation for "int from fbc rupi counters" response pattern to prevent ValueError crashes.
 - [FEATURE] Completed Dual Memory Consolidation Workflow by finalizing the optimization and cleanup of `project_memory` and `global_memory` using Analyze, Optimize, and Document modes. This workflow ensures insights are properly captured, validated, and shared across contexts, with key patterns promoted to global memory for reuse.

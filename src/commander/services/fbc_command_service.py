@@ -40,12 +40,18 @@ class FbcCommandService(QObject):
                 
                 # Check if log is already initialized for this token
                 if token.token_id not in log_writer.loggers:
-                    # Generate log path
-                    node_ip = token.ip_address.replace('.', '-') if token.ip_address else "unknown-ip"
-                    log_path = log_writer.get_log_path(token.name, node_ip, token)
+                    # Get node from node manager
+                    node = self.node_manager.get_node_by_token(token)
+                    if not node:
+                        # Fallback to creating a temporary node with token's name
+                        from ..models import Node
+                        node = Node(name=token.name, ip_address=token.ip_address)
+                    
+                    # Generate log path using shared utility
+                    log_path = log_writer.get_node_log_path(node, token.token_id, token.token_type.lower())
                     
                     # Open log file
-                    log_writer.open_log(token.name, node_ip, token, log_path)
+                    log_writer.open_log(node.name, node.ip_address, token, log_path)
                     self.logger.debug(f"Initialized log file for token {token.token_id} at {log_path}")
         except Exception as e:
             self.logger.warning(f"Failed to initialize log file for token {token.token_id}: {str(e)}")
@@ -66,10 +72,12 @@ class FbcCommandService(QObject):
                     return token
         
         # Create temporary FBC token if not found
+        # Extract base node name (before space) for directory path consistency with FBC pattern
+        base_node_name = node_name.split()[0] if " " in node_name else node_name
         return NodeToken(
             token_id=token_id,
             token_type="FBC",
-            name=node_name,
+            name=base_node_name,
             ip_address="0.0.0.0"
         )
     
