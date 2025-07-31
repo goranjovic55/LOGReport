@@ -1192,6 +1192,8 @@ class CommanderWindow(QMainWindow):
                 self.fbc_service.queue_fieldbus_command(node_name, token.token_id, telnet_client)
                 
             self.status_message_signal.emit(f"Queued {len(fbc_tokens)} commands for node {node_name}", self.STATUS_MSG_SHORT)
+            # Start processing the queued commands
+            self.command_queue.start_processing()
             self.status_message_signal.emit(f"Started processing {len(fbc_tokens)} FBC commands", self.STATUS_MSG_SHORT)
             
         except Exception as e:
