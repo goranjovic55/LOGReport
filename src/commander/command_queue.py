@@ -332,13 +332,17 @@ class CommandQueue(QObject):
         self.command_completed.emit(command, result, success, worker.token)
         logging.debug(f"CommandQueue._handle_worker_finished: Emitted completion signal for command: {command} (success={success})")
         
-        # If this was the last command, emit final completion signal
-        if self.completed_count >= len(self.queue):
+        # Check if all commands are completed (either successfully or failed) and reset processing state if so
+        active_commands = [cmd for cmd in self.queue if cmd.status in ['pending', 'processing']]
+        logging.debug(f"CommandQueue._handle_worker_finished: Checking processing state - active commands: {len(active_commands)}, total in queue: {len(self.queue)}")
+        if not active_commands:
             logging.info("CommandQueue._handle_worker_finished: All commands processed")
             # Reset processing state
             with self._processing_lock:
                 self._is_processing = False
-                logging.debug("CommandQueue._handle_worker_finished: Reset processing state to idle (state locked)")
+                logging.info("CommandQueue._handle_worker_finished: Reset processing state to idle (state locked)")
+        else:
+            logging.debug(f"CommandQueue._handle_worker_finished: Still have {len(active_commands)} active commands, keeping processing state")
         
         # Auto-continue processing if pending commands remain - atomic check with state lock
         with self._processing_lock:

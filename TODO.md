@@ -18,7 +18,19 @@ This file contains a list of pending tasks and improvements for the LOGReport pr
 - [ ] Logging: Standardize error logging format across services with consistent message structure and severity levels, implement structured logging for command execution
 - [ ] Exception Handling Refactoring: Implement exception chaining for command execution errors to preserve original error context, add detailed error context for network operations
 - [ ] Logging Standardization: Standardize error logging format across services with consistent message structure and severity levels, add command execution tracing
-- [ ] Resource Management: Implement proper resource cleanup in CommandWorker.run() using context managers or finally blocks, ensure proper telnet client lifecycle management
+## Optimization Backlog
+
+### High Priority
+- [ ] Implement adaptive queue sizing based on historical load patterns
+- [ ] Add command prioritization system (critical/normal/low)
+
+### Medium Priority
+- [ ] Implement circuit breaker pattern for failed nodes
+- [ ] Add command execution timeout handling
+
+### Low Priority
+- [ ] Implement proper resource cleanup in CommandWorker.run() using context managers or finally blocks, ensure proper telnet client lifecycle management
+- [ ] Add queue state metrics collection for monitoring
 - [x] Update memory management documentation to reflect MCP server usage for project and global memory
 - [x] Document the use of document_user identity for consistent memory operations in documentation mode
 - [x] Add sequential reasoning planning to documentation workflow using sequential_thinking MCP server

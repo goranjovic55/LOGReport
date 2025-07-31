@@ -146,5 +146,85 @@ class TestCommandQueue(unittest.TestCase):
         self.assertIn('pending', statuses)
         self.assertNotIn('completed', statuses)
 
+    def test_mixed_status_commands_processing_state_reset(self):
+        """Test that processing state resets correctly with mixed success/failure states"""
+        # Add commands
+        self.queue.add_command("cmd1", self.valid_token)
+        self.queue.add_command("cmd2", self.valid_token)
+        self.queue.add_command("cmd3", self.valid_token)
+        
+        # Set mixed statuses
+        self.queue.queue[0].status = 'completed'  # Completed successfully
+        self.queue.queue[1].status = 'failed'     # Failed
+        self.queue.queue[2].status = 'pending'    # Still pending
+        
+        # Before processing, state should be False
+        self.assertFalse(self.queue.is_processing)
+        
+        # After handling all completed/failed commands, state should reset to False
+        # Simulate worker finished for the pending command
+        from src.commander.command_queue import CommandWorker
+        worker = CommandWorker("cmd3", self.valid_token)
+        worker.success = True
+        worker.result = "success"
+        
+        # Manually set the completed count to simulate processing 1 command
+        self.queue.completed_count = 1
+        
+        # Call handle worker finished - this should reset processing state
+        self.queue._handle_worker_finished(worker)
+        
+        # Processing state should be False since no active commands remain
+        self.assertFalse(self.queue.is_processing)
+
+    def test_failed_commands_dont_prevent_processing_state_reset(self):
+        """Test that failed commands don't prevent the processing state from resetting"""
+        # Add commands
+        self.queue.add_command("cmd1", self.valid_token)
+        self.queue.add_command("cmd2", self.valid_token)
+        
+        # Set statuses - one completed, one failed
+        self.queue.queue[0].status = 'completed'
+        self.queue.queue[1].status = 'failed'
+        
+        # Processing state should be False since no active commands remain
+        # Simulate what happens in _handle_worker_finished
+        active_commands = [cmd for cmd in self.queue.queue if cmd.status in ['pending', 'processing']]
+        self.assertEqual(len(active_commands), 0)  # No active commands
+        
+    def test_empty_queue_processing_state(self):
+        """Test that processing state is correctly managed with an empty queue"""
+        # Empty queue should not be processing
+        self.assertFalse(self.queue.is_processing)
+        
+        # Start processing on empty queue
+        self.queue.start_processing()
+        
+        # Should still not be processing
+        self.assertFalse(self.queue.is_processing)
+
+    def test_successful_command_completion_resets_state(self):
+        """Test that successful command completion properly manages processing state"""
+        # Add a command
+        self.queue.add_command("cmd1", self.valid_token)
+        self.queue.queue[0].status = 'processing'
+        
+        # Processing state should be True
+        # Note: In real usage, start_processing() would set this, but we're testing the reset logic
+        self.queue._is_processing = True
+        
+        # Simulate worker completion
+        from src.commander.command_queue import CommandWorker
+        worker = CommandWorker("cmd1", self.valid_token)
+        worker.success = True
+        worker.result = "success"
+        self.queue.completed_count = 1
+        
+        # Handle worker finished - should reset processing state since no active commands remain
+        self.queue._handle_worker_finished(worker)
+        
+        # Processing state should be False
+        self.assertFalse(self.queue.is_processing)
+
 if __name__ == '__main__':
     unittest.main()

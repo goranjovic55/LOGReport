@@ -18,8 +18,8 @@
         "open_nodes",
         "memory",
         "add_observations",
-        "search_nodes",
-        "read_graph"
+        "read_graph",
+        "search_nodes"
       ],
       "disabled": false
     },
