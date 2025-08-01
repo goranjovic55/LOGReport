@@ -2,7 +2,7 @@ import sys
 import os
 import time
 import logging
-from src.commander.commander_window import CommanderWindow
+from src.commander.ui.commander_window import CommanderWindow
 from PyQt6.QtWidgets import QApplication
 
 # Configure logging

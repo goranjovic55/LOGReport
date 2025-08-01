@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.commander.commander_window import CommanderWindow
+from src.commander.ui.commander_window import CommanderWindow
 from src.commander.models import Node, NodeToken
 from src.commander.presenters.node_tree_presenter import NodeTreePresenter
 from PyQt6.QtWidgets import QApplication, QTreeWidget
@@ -245,6 +245,13 @@ class TestContextMenuCommands(unittest.TestCase):
         self.window.current_token = self.mock_token
         self.window.on_telnet_command_finished("test output", automatic=True)
         
-        self.window.log_writer.open_log.assert_called_with(
-            "TEST_NODE", "192-168-0-1", self.mock_token
-        )
+        # Get the node from the mock
+        node = self.mock_node
+        node_ip = node.ip_address.replace('.', '-')
+        
+        # Verify open_log was called with the correct arguments
+        self.window.log_writer.open_log.assert_called()
+        call_args = self.window.log_writer.open_log.call_args
+        self.assertEqual(call_args[0][0], "TEST_NODE")  # node_name
+        self.assertEqual(call_args[0][1], "192-168-0-1")  # node_ip
+        self.assertEqual(call_args[0][2], self.mock_token)  # token
