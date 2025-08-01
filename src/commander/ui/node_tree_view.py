@@ -99,27 +99,26 @@ class NodeTreeView(QWidget):
         """Get viewport"""
         return self.node_tree.viewport()
         
-    def setHeaderLabels(self, labels):
-        """Set header labels"""
-        self.node_tree.setHeaderLabels(labels)
-            
-        def setColumnWidth(self, column, width):
-            """Set column width"""
-            self.node_tree.setColumnWidth(column, width)
-            
-        def setFont(self, font):
-            """Set font"""
-            self.node_tree.setFont(font)
-            
-        def setContextMenuPolicy(self, policy):
-            """Set context menu policy"""
-            self.node_tree.setContextMenuPolicy(policy)
-            
-        def addTopLevelItem(self, item):
-            """Add a top level item to the tree"""
-            self.node_tree.addTopLevelItem(item)
-            
-        def clear(self):
-            """Clear the node tree"""
-            self.node_tree.clear()
-            
+def setHeaderLabels(self, labels):
+    """Set header labels"""
+    self.node_tree.setHeaderLabels(labels)
+    
+def setColumnWidth(self, column, width):
+    """Set column width"""
+    self.node_tree.setColumnWidth(column, width)
+    
+def setFont(self, font):
+    """Set font"""
+    self.node_tree.setFont(font)
+    
+def setContextMenuPolicy(self, policy):
+    """Set context menu policy"""
+    self.node_tree.setContextMenuPolicy(policy)
+    
+def addTopLevelItem(self, item):
+    """Add a top level item to the tree"""
+    self.node_tree.addTopLevelItem(item)
+    
+def clear(self):
+    """Clear the node tree"""
+    self.node_tree.clear()

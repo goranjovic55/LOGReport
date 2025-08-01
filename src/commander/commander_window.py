@@ -130,6 +130,9 @@ class CommanderWindow(QMainWindow):
         # Direct connection for logging command responses
         self.command_queue.command_completed.connect(self._log_command_result)
         
+        # Core components
+        self.log_writer = LogWriter(self.node_manager)
+        
         # Initialize RPC Command Service
         self.rpc_service = RpcCommandService(self.node_manager, self.command_queue, self)
         self.rpc_service.set_command_text.connect(self.set_cmd_input_text_signal)
@@ -232,8 +235,6 @@ class CommanderWindow(QMainWindow):
             }
         """)
         
-        # Core components
-        self.log_writer = LogWriter(self.node_manager)
         self.command_resolver = CommandResolver()
         self.command_history = CommandHistory()
         
