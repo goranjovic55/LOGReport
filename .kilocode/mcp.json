@@ -33,7 +33,7 @@
       "env": {
         "CODEGPT_API_KEY": "sk-3f80b540-1a0c-4809-8335-eeea5f7d964a",
         "CODEGPT_ORG_ID": "08e85a15-51d0-48fc-93a1-3bcc345f7693",
-        "CODEGPT_GRAPH_ID": "0a29770f-3c24-4638-999c-07b65d5c59b1"
+        "CODEGPT_GRAPH_ID": "c003c34d-b4de-4d0e-8a37-ed2bb675c26c"
       },
       "alwaysAllow": [
         "find-direct-connections",

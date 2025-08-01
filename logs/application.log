@@ -39144,3 +39144,23 @@ Command returned error response: int from fbc rupi counters 1630000
 2025-08-01 08:56:35,603 - root - DEBUG - _load_node_children: Added LIS subsection to node tree
 2025-08-01 08:56:37,717 - root - DEBUG - Item expanded: FBC
 2025-08-01 08:56:37,717 - root - DEBUG - Expanded item is not a node or has no placeholder
+2025-08-01 20:50:31,667 - root - INFO - Loaded 2 context menu filtering rules from config\menu_filter_rules.json
+2025-08-01 20:50:31,668 - root - DEBUG - ContextMenuService initialized
+2025-08-01 20:50:31,687 - root - DEBUG - NodeTreePresenter initialized
+2025-08-01 20:50:31,752 - root - DEBUG - Added node with placeholder: AP01m
+2025-08-01 20:50:31,752 - root - DEBUG - Added node with placeholder: AP01r
+2025-08-01 20:50:31,752 - root - DEBUG - Added node with placeholder: AP02m
+2025-08-01 20:50:31,753 - root - DEBUG - Added node with placeholder: AP02r
+2025-08-01 20:50:31,753 - root - DEBUG - Added node with placeholder: AP03m
+2025-08-01 20:50:31,753 - root - DEBUG - Added node with placeholder: AL01
+2025-08-01 20:50:31,753 - root - DEBUG - Added node with placeholder: AL02
+2025-08-01 20:50:31,754 - root - DEBUG - Added node with placeholder: AP03r
+2025-08-01 20:50:34,016 - root - DEBUG - SessionManager.create_session: Creating session for DEBUGGER to 192.168.137.42:1234
+2025-08-01 20:50:34,017 - root - DEBUG - TelnetSession.connect: Connecting to 192.168.137.42:1234 with timeout=15
+2025-08-01 20:50:34,025 - root - DEBUG - TelnetSession.connect: Socket created: <socket.socket fd=1540, family=2, type=1, proto=0, laddr=('192.168.137.54', 59913), raddr=('192.168.137.42', 1234)>
+2025-08-01 20:50:34,025 - root - DEBUG - TelnetSession.connect: Socket timeout: 15.0
+2025-08-01 20:50:35,026 - root - DEBUG - TelnetSession.connect: Initial response (hex): 
+2025-08-01 20:50:35,026 - root - DEBUG - TelnetSession.connect: Initial response (text): 
+2025-08-01 20:50:35,026 - root - DEBUG - TelnetSession.connect: Skipping artifact clearing for debug
+2025-08-01 20:50:35,026 - root - INFO - TelnetSession: Connection established successfully
+2025-08-01 20:50:35,026 - root - DEBUG - SessionManager.create_session: Session created and connected: DEBUGGER_0

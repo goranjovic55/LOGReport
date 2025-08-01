@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- [REFACTOR] CommanderWindow MVP Implementation:
+  - Separated UI logic from business logic using Model-View-Presenter pattern
+  - Created NodeTreePresenter to handle node tree UI logic
+  - Moved UI components to `src/commander/ui/` directory
+  - Implemented clear interface contracts between View and Presenter components
+  - Added comprehensive documentation for MVP implementation in `.docs/`
+
 - [FEATURE] Memory Consolidation Architecture:
   - Implemented dual-assertion model with project_memory and global_memory MCP servers
   - Added UAL (Universal Asset Locator) identifier system for cross-context asset referencing
