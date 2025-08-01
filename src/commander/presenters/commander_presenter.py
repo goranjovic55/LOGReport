@@ -13,6 +13,8 @@ from ..log_writer import LogWriter
 from ..command_queue import CommandQueue
 from ..services.fbc_command_service import FbcCommandService
 from ..services.rpc_command_service import RpcCommandService
+from ..services.context_menu_service import ContextMenuService
+from ..services.context_menu_filter import ContextMenuFilterService
 
 
 class CommanderPresenter(QObject):
@@ -25,7 +27,8 @@ class CommanderPresenter(QObject):
     
     def __init__(self, view, node_manager: NodeManager, session_manager: SessionManager,
                  log_writer: LogWriter, command_queue: CommandQueue,
-                 fbc_service: FbcCommandService, rpc_service: RpcCommandService):
+                 fbc_service: FbcCommandService, rpc_service: RpcCommandService,
+                 context_menu_service: ContextMenuService):
         """
         Initialize the CommanderPresenter.
         
@@ -37,6 +40,7 @@ class CommanderPresenter(QObject):
             command_queue: Queue for command execution
             fbc_service: Service for FBC command operations
             rpc_service: Service for RPC command operations
+            context_menu_service: Service for context menu operations
         """
         super().__init__()
         self.view = view
@@ -46,6 +50,7 @@ class CommanderPresenter(QObject):
         self.command_queue = command_queue
         self.fbc_service = fbc_service
         self.rpc_service = rpc_service
+        self.context_menu_service = context_menu_service
         
         # Connect signals
         self.command_queue.command_completed.connect(self._on_command_completed)

@@ -24,7 +24,17 @@ class ContextMenuService:
         """
         self.node_manager = node_manager
         self.context_menu_filter = context_menu_filter
+        self.presenter = None
         logging.debug("ContextMenuService initialized")
+    
+    def set_presenter(self, presenter):
+        """
+        Set the presenter for handling context menu actions.
+        
+        Args:
+            presenter: The presenter to handle context menu actions
+        """
+        self.presenter = presenter
     
     def show_context_menu(self, menu: QMenu, item_data: Dict[str, Any], position) -> bool:
         """
@@ -61,6 +71,20 @@ class ContextMenuService:
                 
                 # Create action for printing all tokens (simplified to only this command)
                 print_action = QAction(f"Print All {section_type} Tokens for {node_name}", menu)
+                if self.presenter:
+                    # Connect action to presenter method
+                    if section_type == "FBC":
+                        print_action.triggered.connect(
+                            lambda: self.presenter.process_all_fbc_subgroup_commands(
+                                self._get_current_item_from_data(item_data)
+                            )
+                        )
+                    elif section_type == "RPC":
+                        print_action.triggered.connect(
+                            lambda: self.presenter.process_all_rpc_subgroup_commands(
+                                self._get_current_item_from_data(item_data)
+                            )
+                        )
                 menu.addAction(print_action)
                 added_actions = True
         
@@ -85,6 +109,11 @@ class ContextMenuService:
                     else:
                         token_str = str(token_id)
                         action = QAction(f"Print FieldBus Structure (Token {token_str})", menu)
+                        if self.presenter:
+                            # Connect action to presenter method
+                            action.triggered.connect(
+                                lambda: self._handle_fbc_token_action(node_name, token_id)
+                            )
                         menu.addAction(action)
                         added_actions = True
                     
@@ -101,6 +130,14 @@ class ContextMenuService:
                         display_token = token_id.split('_')[-1] if '_' in token_id else token_id
                         print_action = QAction(f"Print Rupi counters Token '{display_token}'", menu)
                         clear_action = QAction(f"Clear Rupi counters '{display_token}'", menu)
+                        if self.presenter:
+                            # Connect actions to presenter methods
+                            print_action.triggered.connect(
+                                lambda: self._handle_rpc_token_action(node_name, token_id, "print")
+                            )
+                            clear_action.triggered.connect(
+                                lambda: self._handle_rpc_token_action(node_name, token_id, "clear")
+                            )
                         menu.addAction(print_action)
                         menu.addAction(clear_action)
                         added_actions = True
@@ -113,6 +150,68 @@ class ContextMenuService:
             logging.debug("Context menu - no applicable actions for this item")
             
         return added_actions
+    
+    def _get_current_item_from_data(self, item_data: Dict[str, Any]):
+        """
+        Create a mock item from item data for compatibility with existing methods.
+        
+        Args:
+            item_data: Data associated with the tree item
+            
+        Returns:
+            Mock item with parent hierarchy
+        """
+        # This is a simplified approach - in a real implementation, we would need
+        # to properly reconstruct the item hierarchy or modify the presenter methods
+        # to accept item data directly
+        class MockItem:
+            def __init__(self, data):
+                self.data = data
+                self._parent = None
+            
+            def parent(self):
+                return self._parent
+            
+            def text(self, column):
+                if "node" in self.data:
+                    return self.data["node"]
+                return ""
+        
+        # Create mock item hierarchy
+        mock_item = MockItem(item_data)
+        if "section_type" in item_data:
+            # For subgroup items, create parent section and node items
+            section_item = MockItem({"node": item_data.get("node")})
+            section_item._parent = mock_item
+            mock_item._parent = section_item
+            
+        return mock_item
+    
+    def _handle_fbc_token_action(self, node_name: str, token_id: str):
+        """
+        Handle FBC token context menu action.
+        
+        Args:
+            node_name: Name of the node
+            token_id: ID of the token
+        """
+        if self.presenter:
+            # Use presenter method instead of window method
+            self.presenter.process_fieldbus_command(token_id, node_name)
+    
+    def _handle_rpc_token_action(self, node_name: str, token_id: str, action_type: str):
+        """
+        Handle RPC token context menu action.
+        
+        Args:
+            node_name: Name of the node
+            token_id: ID of the token
+            action_type: Type of action (print, clear)
+        """
+        if self.presenter:
+            # Use presenter method instead of window method
+            token_part = token_id.split('_')[-1] if '_' in token_id else token_id
+            self.presenter.process_rpc_command(node_name, token_id, action_type)
     
     def get_node_tokens(self, node_name: str, token_type: str) -> List[NodeToken]:
         """

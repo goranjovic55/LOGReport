@@ -16,6 +16,7 @@ class NodeTreeView(QWidget):
     context_menu_requested = pyqtSignal(object)  # QPoint
     load_nodes_clicked = pyqtSignal()
     set_log_root_clicked = pyqtSignal()
+    item_expanded = pyqtSignal(object)  # QTreeWidgetItem
     
     def __init__(self):
         super().__init__()
@@ -48,6 +49,7 @@ class NodeTreeView(QWidget):
         self.set_log_root_btn.clicked.connect(self.set_log_root_clicked.emit)
         self.node_tree.itemClicked.connect(self._on_item_clicked)
         self.node_tree.itemDoubleClicked.connect(self._on_item_double_clicked)
+        self.node_tree.itemExpanded.connect(self._on_item_expanded)
         self.node_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.node_tree.customContextMenuRequested.connect(self.context_menu_requested.emit)
         
@@ -58,6 +60,10 @@ class NodeTreeView(QWidget):
     def _on_item_double_clicked(self, item, column):
         """Handle item double click and emit signal"""
         self.node_double_clicked.emit(item)
+        
+    def _on_item_expanded(self, item):
+        """Handle item expanded and emit signal"""
+        self.item_expanded.emit(item)
         
     def clear(self):
         """Clear the node tree"""
@@ -92,3 +98,28 @@ class NodeTreeView(QWidget):
     def viewport(self):
         """Get viewport"""
         return self.node_tree.viewport()
+        
+    def setHeaderLabels(self, labels):
+        """Set header labels"""
+        self.node_tree.setHeaderLabels(labels)
+            
+        def setColumnWidth(self, column, width):
+            """Set column width"""
+            self.node_tree.setColumnWidth(column, width)
+            
+        def setFont(self, font):
+            """Set font"""
+            self.node_tree.setFont(font)
+            
+        def setContextMenuPolicy(self, policy):
+            """Set context menu policy"""
+            self.node_tree.setContextMenuPolicy(policy)
+            
+        def addTopLevelItem(self, item):
+            """Add a top level item to the tree"""
+            self.node_tree.addTopLevelItem(item)
+            
+        def clear(self):
+            """Clear the node tree"""
+            self.node_tree.clear()
+            

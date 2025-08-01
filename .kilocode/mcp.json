@@ -19,7 +19,8 @@
         "memory",
         "add_observations",
         "read_graph",
-        "search_nodes"
+        "search_nodes",
+        "validate_json_schema"
       ],
       "disabled": false
     },

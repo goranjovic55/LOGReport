@@ -153,8 +153,10 @@ class CommandWorker(QRunnable):
             raise
         finally:
             logging.debug(f"CommandWorker.run: Finished command: {self.command}, success={self.success}")
-            self.signals.finished.emit(self, self.result)
-            self.signals.command_completed.emit(self.command, self.result, self.success, self.token)
+            # Ensure result is a string for signal emission
+            result_str = str(self.result) if self.result is not None else ""
+            self.signals.finished.emit(self, result_str)
+            self.signals.command_completed.emit(self.command, result_str, self.success, self.token)
 
 class CommandQueue(QObject):
     """Manages a queue of commands to execute with progress tracking"""

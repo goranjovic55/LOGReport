@@ -15,10 +15,11 @@ class FbcCommandService(QObject):
     status_message = pyqtSignal(str, int)  # message, duration
     report_error = pyqtSignal(str)         # error message
     
-    def __init__(self, node_manager: NodeManager, command_queue: CommandQueue, parent=None):
+    def __init__(self, node_manager: NodeManager, command_queue: CommandQueue, log_writer=None, parent=None):
         super().__init__(parent)
         self.node_manager = node_manager
         self.command_queue = command_queue
+        self.log_writer = log_writer
         self.logger = logging.getLogger(__name__)
         
     def generate_fieldbus_command(self, token_id: str) -> str:
@@ -34,8 +35,9 @@ class FbcCommandService(QObject):
     def _initialize_log_file(self, token: NodeToken):
         """Initialize log file for the token if not already initialized"""
         try:
-            # Get reference to log writer from parent (CommanderWindow)
-            if hasattr(self.parent(), 'log_writer'):
+            # Use provided log_writer or get reference from parent (CommanderWindow)
+            log_writer = self.log_writer
+            if log_writer is None and hasattr(self.parent(), 'log_writer'):
                 log_writer = self.parent().log_writer
                 
                 # Check if log is already initialized for this token

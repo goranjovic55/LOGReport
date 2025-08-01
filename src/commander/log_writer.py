@@ -87,9 +87,16 @@ class LogWriter:
         protocol = log_type.lower()
         
         # Ensure node_name matches file's node name
-        # Extract node_name from filename (format: {node_name}_{token_id}_{ip}_{token_id}.{extension})
-        filename_parts = os.path.basename(log_path).split('_')
-        if len(filename_parts) >= 4:
+        # Extract node_name from filename with special handling for LIS files
+        filename = os.path.basename(log_path)
+        filename_parts = filename.split('_')
+        
+        if log_type == 'LIS':
+            # LIS files have format: {node_name}_{ip}_exe{number}_{suffix}.{extension}
+            # Extract node_name as the first part
+            file_node = filename_parts[0] if filename_parts else ""
+        elif len(filename_parts) >= 4:
+            # Standard format: {node_name}_{token_id}_{ip}_{token_id}.{extension}
             # Node name is everything except the last 3 parts (token_id, ip, token_id)
             file_node = '_'.join(filename_parts[:-3])
         else:
