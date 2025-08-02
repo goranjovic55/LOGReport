@@ -5,6 +5,7 @@ from ..command_queue import CommandQueue
 from ..log_writer import LogWriter
 from ..node_manager import NodeManager
 from ..session_manager import SessionManager
+from ..services.logging_service import LoggingService
 import logging
 import os
 from PyQt6.QtCore import pyqtSignal, QObject
@@ -22,7 +23,7 @@ class CommanderService(QObject):
     command_finished = pyqtSignal(str, bool)  # response, automatic
     queue_processed = pyqtSignal(int, int)  # Success count, total
     
-    def __init__(self, node_manager: NodeManager, session_manager: SessionManager, 
+    def __init__(self, node_manager: NodeManager, session_manager: SessionManager,
                  command_queue: CommandQueue, log_writer: LogWriter,
                  fbc_service: FbcCommandService, rpc_service: RpcCommandService):
         super().__init__()
@@ -32,6 +33,9 @@ class CommanderService(QObject):
         self.log_writer = log_writer
         self.fbc_service = fbc_service
         self.rpc_service = rpc_service
+        
+        # Initialize Logging Service
+        self.logging_service = LoggingService(node_manager, log_writer)
         
         # Connect service signals
         self.fbc_service.set_command_text.connect(self.set_cmd_input_text)
@@ -52,9 +56,17 @@ class CommanderService(QObject):
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
         try:
+            # First, try to queue the command
+            # This will validate the node and token
             self.fbc_service.queue_fieldbus_command(node_name, token_id, None)
             self.command_queue.start_processing()
+            
+            # Only emit the "Executing" message after successful queuing
+            command_text = self.fbc_service.generate_fieldbus_command(token_id)
+            self.status_message.emit(f"Executing: {command_text}...", 3000)
         except ValueError as e:
+            # If we get a ValueError, don't emit the "Executing" message
+            # Just emit the error message
             self.status_message.emit(str(e), 3000)
         except Exception as e:
             logging.error(f"Error processing fieldbus command: {e}")
@@ -83,14 +95,4 @@ class CommanderService(QObject):
             
     def _log_command_result(self, command: str, result: str, success: bool, token=None):
         """Log command results to the appropriate log file"""
-        try:
-            if token and hasattr(token, 'token_id') and hasattr(token, 'token_type'):
-                self.log_writer.append_to_log(
-                    token.token_id,
-                    f"{command}\n{result}",
-                    protocol=token.token_type
-                )
-            else:
-                logging.warning(f"Unable to log command result: missing token information")
-        except Exception as e:
-            logging.error(f"Failed to log command result: {str(e)}")
+        self.logging_service.log_command_result(command, result, success, token)

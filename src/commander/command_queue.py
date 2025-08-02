@@ -3,10 +3,10 @@ from PyQt6.QtCore import QObject, pyqtSignal, QRunnable, QThreadPool
 from typing import List, Optional
 from .models import NodeToken
 from .session_manager import SessionConfig, SessionType
+from .services.threading_service import ThreadingService
 import logging
 import socket
 import time
-import threading
 
 logger = logging.getLogger(__name__)
 
@@ -182,8 +182,9 @@ class CommandQueue(QObject):
         self.thread_pool.setMaxThreadCount(1)
         self.completed_count = 0
         self.session_manager = session_manager
+        self.threading_service = ThreadingService()
         self._is_processing = False
-        self._processing_lock = threading.Lock()
+        self._processing_lock = self.threading_service.create_lock()
         
     def add_command(self, command: str, token: NodeToken, telnet_client=None):
         """Add a command to the queue with associated token"""

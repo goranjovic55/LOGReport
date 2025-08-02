@@ -4,8 +4,9 @@ from src.commander.ui.commander_window import CommanderWindow
 from src.commander.models import Node, NodeToken
 from src.commander.presenters.node_tree_presenter import NodeTreePresenter
 from src.commander.services.commander_service import CommanderService
+from src.commander.services.logging_service import LoggingService
+from src.commander.services.status_service import StatusService
 from PyQt6.QtWidgets import QApplication, QTreeWidget
-import threading
 import os
 
 class TestCommanderWindowTokenQueue(unittest.TestCase):
@@ -18,6 +19,11 @@ class TestCommanderWindowTokenQueue(unittest.TestCase):
     def setUp(self):
         self.window = CommanderWindow()
         self.window.node_manager = MagicMock()
+        self.window.log_writer = MagicMock()
+        # Mock the threading service
+        self.window.threading_service = MagicMock()
+        # Mock the status service
+        self.window.status_service = MagicMock()
         self.mock_node = Node(name="TEST_NODE", ip_address="192.168.0.1")
         self.mock_node.tokens = {
             "123": NodeToken(token_id="123", token_type="FBC", name="test", ip_address="192.168.0.1", port=23),
@@ -30,7 +36,7 @@ class TestCommanderWindowTokenQueue(unittest.TestCase):
         
         # Initialize services with mock dependencies
         self.mock_session_manager = MagicMock()
-        self.mock_log_writer = MagicMock()
+        self.mock_log_writer = self.window.log_writer  # Use the same mock as window.log_writer
         self.mock_command_queue = MagicMock()
         self.mock_fbc_service = MagicMock()
         self.mock_rpc_service = MagicMock()
@@ -44,6 +50,9 @@ class TestCommanderWindowTokenQueue(unittest.TestCase):
             self.mock_fbc_service,
             self.mock_rpc_service
         )
+        
+        # Mock LoggingService
+        self.window.logging_service = MagicMock()
         
         # Initialize NodeTreePresenter with mock dependencies
         self.mock_view = MagicMock()
@@ -149,7 +158,12 @@ class TestContextMenuCommands(unittest.TestCase):
         self.window = CommanderWindow()
         self.window.node_manager = MagicMock()
         self.window.log_writer = MagicMock()
-        self.window.execute_telnet_command = MagicMock()
+        # Mock the threading service
+        self.window.threading_service = MagicMock()
+        self.window.telnet_service = MagicMock()
+        self.window.telnet_service.execute_command = MagicMock()
+        # Mock the status service
+        self.window.status_service = MagicMock()
         
         # Setup test node with FBC token
         self.mock_node = Node(name="TEST_NODE", ip_address="192.168.0.1")
@@ -167,11 +181,17 @@ class TestContextMenuCommands(unittest.TestCase):
         
         # Initialize services with mock dependencies for TestContextMenuCommands
         self.mock_session_manager = MagicMock()
-        self.mock_log_writer = MagicMock()
+        self.mock_log_writer = self.window.log_writer  # Use the same mock as window.log_writer
         self.mock_command_queue = MagicMock()
         self.mock_fbc_service = MagicMock()
         self.mock_fbc_service.generate_fieldbus_command.return_value = "print from fbc io structure 1230000"
         self.mock_rpc_service = MagicMock()
+        
+        # Mock LoggingService
+        self.window.logging_service = MagicMock()
+        
+        # Mock LoggingService
+        self.window.logging_service = MagicMock()
         
         # Initialize CommanderService with mock dependencies
         self.window.commander_service = CommanderService(
@@ -182,6 +202,13 @@ class TestContextMenuCommands(unittest.TestCase):
             self.mock_fbc_service,
             self.mock_rpc_service
         )
+        # Mock the logging_service in commander_service as well
+        self.window.commander_service.logging_service = self.window.logging_service
+        # Mock the logging_service in commander_service as well
+        self.window.commander_service.logging_service = self.window.logging_service
+        
+        # Mock LoggingService
+        self.window.logging_service = MagicMock()
         
         # Initialize NodeTreePresenter with mock dependencies for TestContextMenuCommands
         self.mock_view = MagicMock()
@@ -204,8 +231,7 @@ class TestContextMenuCommands(unittest.TestCase):
         )
         
         # Connect presenter signals like in the real window
-        self.window.node_tree_presenter.status_message_signal.connect(self.window.statusBar().showMessage)
-        self.window.node_tree_presenter.status_message_signal.connect(self.window.status_message_signal)
+        self.window.node_tree_presenter.status_message_signal.connect(self.window.status_service.status_updated)
         self.window.node_tree_presenter.node_tree_updated_signal.connect(self.window.on_node_tree_updated)
 
     def test_context_menu_command_execution(self):
@@ -229,15 +255,15 @@ class TestContextMenuCommands(unittest.TestCase):
         # Simulate command completion through commander service
         self.window.commander_service._log_command_result("test command", test_response, True, self.mock_token)
         
-        # Verify logging
-        self.window.log_writer.append_to_log.assert_called_with(
-            "123", "test command\nFieldbus structure data", protocol="FBC"
+        # Verify logging through LoggingService
+        self.window.commander_service.logging_service.log_command_result.assert_called_with(
+            "test command", test_response, True, self.mock_token
         )
 
     def test_invalid_node_logging(self):
         """Test error handling for invalid node references"""
-        # Mock the FBC service's get_token method to raise ValueError for invalid node
-        self.mock_fbc_service.get_token.side_effect = ValueError("Node INVALID_NODE not found")
+        # Mock the FBC service's queue_fieldbus_command method to raise ValueError for invalid node
+        self.mock_fbc_service.queue_fieldbus_command.side_effect = ValueError("Node INVALID_NODE not found")
         
         with patch.object(self.window.commander_service, 'status_message') as mock_signal:
             self.window.process_fieldbus_command("123", "INVALID_NODE")
@@ -265,13 +291,5 @@ class TestContextMenuCommands(unittest.TestCase):
         self.window.current_token = self.mock_token
         self.window.on_telnet_command_finished("test output", automatic=True)
         
-        # Get the node from the mock
-        node = self.mock_node
-        node_ip = node.ip_address.replace('.', '-')
-        
-        # Verify open_log was called with the correct arguments
-        self.window.log_writer.open_log.assert_called()
-        call_args = self.window.log_writer.open_log.call_args
-        self.assertEqual(call_args[0][0], "TEST_NODE")  # node_name
-        self.assertEqual(call_args[0][1], "192-168-0-1")  # node_ip
-        self.assertEqual(call_args[0][2], self.mock_token)  # token
+        # Verify logging through LoggingService
+        self.window.commander_service.logging_service.log_telnet_command_finished.assert_called()

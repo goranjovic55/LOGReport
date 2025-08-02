@@ -50,7 +50,7 @@ def test_node_tree(window):
         logging.error(f"Test config not found: {test_config}")
     
     # Verify node tree has items
-    top_level_count = window.node_tree.topLevelItemCount()
+    top_level_count = window.node_tree_view.node_tree.topLevelItemCount()
     logging.debug(f"Top-level items in node tree: {top_level_count}")
     if top_level_count > 0:
         logging.debug("Node tree population: SUCCESS")
@@ -62,8 +62,8 @@ def test_context_menus(window):
     logging.debug("=== TESTING CONTEXT MENUS ===")
     
     # Find the first FBC/RPC subsection
-    for i in range(window.node_tree.topLevelItemCount()):
-        node_item = window.node_tree.topLevelItem(i)
+    for i in range(window.node_tree_view.topLevelItemCount()):
+        node_item = window.node_tree_view.topLevelItem(i)
         for j in range(node_item.childCount()):
             section_item = node_item.child(j)
             if section_item.text(0) in ["FBC", "RPC"]:
@@ -74,11 +74,11 @@ def test_context_menus(window):
                 window.show_context_menu(section_item.treeWidget().visualItemRect(section_item).center())
                 
                 # Simulate selecting "Print All Tokens" action
-                if hasattr(window, 'process_all_fbc_subgroup_commands') and section_item.text(0) == "FBC":
-                    window.process_all_fbc_subgroup_commands(section_item)
+                if hasattr(window.node_tree_presenter, 'process_all_fbc_subgroup_commands') and section_item.text(0) == "FBC":
+                    window.node_tree_presenter.process_all_fbc_subgroup_commands(section_item)
                     logging.debug("Triggered FBC subgroup commands")
-                elif hasattr(window, 'process_all_rpc_subgroup_commands') and section_item.text(0) == "RPC":
-                    window.process_all_rpc_subgroup_commands(section_item)
+                elif hasattr(window.node_tree_presenter, 'process_all_rpc_subgroup_commands') and section_item.text(0) == "RPC":
+                    window.node_tree_presenter.process_all_rpc_subgroup_commands(section_item)
                     logging.debug("Triggered RPC subgroup commands")
                 return
     

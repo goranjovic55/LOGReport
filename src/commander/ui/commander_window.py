@@ -4,6 +4,9 @@ from ..services.rpc_command_service import RpcCommandService
 from ..services.context_menu_filter import ContextMenuFilterService
 from ..services.context_menu_service import ContextMenuService
 from ..services.commander_service import CommanderService
+from ..services.telnet_service import TelnetService
+from ..services.logging_service import LoggingService
+from ..services.status_service import StatusService
 from ..presenters.node_tree_presenter import NodeTreePresenter
 from .node_tree_view import NodeTreeView
 import sys
@@ -38,16 +41,11 @@ from ..icons import get_node_online_icon, get_node_offline_icon, get_token_icon
 # Centralized Qt application initialization
 from ..qt_init import initialize_qt
 
-import threading
 import time
 
 class CommanderWindow(QMainWindow):
     """Main Commander window."""
     
-    # Status message durations in milliseconds
-    STATUS_MSG_SHORT = 3000    # 3 seconds
-    STATUS_MSG_MEDIUM = 5000   # 5 seconds
-    STATUS_MSG_LONG = 10000    # 10 seconds
     
     # Compiled regex patterns for token extraction
     FBC_TOKEN_PATTERN = re.compile(r"^([\w-]+)_[\d\.-]+_([\w-]+)\.")
@@ -63,28 +61,12 @@ class CommanderWindow(QMainWindow):
     command_finished = pyqtSignal(str, bool)
     queue_processed = pyqtSignal(int, int)  # Success count, total
     
-    # Signals for UI updates from background threads
-    status_message_signal = pyqtSignal(str, int)
     set_cmd_input_text_signal = pyqtSignal(str)
     update_connection_status_signal = pyqtSignal(ConnectionState)
     switch_to_telnet_tab_signal = pyqtSignal()
     set_cmd_focus_signal = pyqtSignal()
         
             
-    def _report_error(self, message: str, exception: Exception | None = None, duration: int | None = None):
-        """Centralized error reporting with logging and status bar updates"""
-        duration = duration or self.STATUS_MSG_MEDIUM
-        error_msg = f"{message}: {str(exception)}" if exception else message
-        logging.error(error_msg)
-        self.status_message_signal.emit(error_msg, duration)
-        logging.error(error_msg)
-        
-
-    def _handle_fbc_error(self, error_msg: str):
-        """Handle FBC service errors by reporting them"""
-        self._report_error("FBC Service Error", Exception(error_msg))
-
-
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
         self.commander_service.process_fieldbus_command(token_id, node_name)
@@ -92,6 +74,13 @@ class CommanderWindow(QMainWindow):
     def process_rpc_command(self, node_name, token_id, action_type):
         """Process RPC commands with token validation and auto-execute"""
         self.commander_service.process_rpc_command(node_name, token_id, action_type)
+        
+    def on_queue_processed(self, success_count, total_count):
+        """Handle queue processing completion"""
+        if success_count == total_count:
+            self.status_service.show_success(f"Successfully processed {success_count} commands")
+        else:
+            self.status_service.show_status(f"Processed {success_count}/{total_count} commands successfully", StatusService.STATUS_MSG_MEDIUM)
             
     def __init__(self):
         super().__init__()
@@ -105,20 +94,17 @@ class CommanderWindow(QMainWindow):
             encoding='utf-8'
         )
         
-        # Thread lock for telnet operations
-        self.telnet_lock = threading.Lock()
-        
         # Load application settings
         self.settings = QSettings("CommanderLogCreator", "Settings")
         
-        # Reference to active telnet client (manual connection)
-        self.active_telnet_client = None
-
         # Core components needed for services
         self.node_manager = NodeManager()
         self.session_manager = SessionManager()
         self.command_queue = CommandQueue(self.session_manager, parent=self)
-        self.command_queue.command_completed.connect(self._handle_queued_command_result)
+        
+        # Initialize Status Service
+        self.status_service = StatusService()
+        self.status_service.status_updated.connect(self.statusBar().showMessage)
         
         # Initialize context menu filter service
         self.context_menu_filter = ContextMenuFilterService()
@@ -132,6 +118,15 @@ class CommanderWindow(QMainWindow):
         # Core components
         self.log_writer = LogWriter(self.node_manager)
         
+        # Initialize Logging Service in commander_service instead
+        # self.logging_service = LoggingService(self.node_manager, self.log_writer)
+        
+        # Initialize FBC Command Service
+        self.fbc_service = FbcCommandService(self.node_manager, self.command_queue, self.log_writer, self)
+        
+        # Initialize RPC Command Service
+        self.rpc_service = RpcCommandService(self.node_manager, self.command_queue, self)
+        
         # Initialize Commander Service
         self.commander_service = CommanderService(
             self.node_manager,
@@ -144,10 +139,16 @@ class CommanderWindow(QMainWindow):
         self.commander_service.set_cmd_input_text.connect(self.set_cmd_input_text_signal)
         self.commander_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
         self.commander_service.focus_command_input.connect(self.set_cmd_focus_signal)
-        self.commander_service.status_message.connect(self.status_message_signal)
-        self.commander_service.report_error.connect(lambda msg: self._report_error("Commander Service Error", Exception(msg)))
+        self.commander_service.status_message.connect(self.status_service.status_updated)
+        self.commander_service.report_error.connect(lambda msg: self.logging_service.report_error("Commander Service Error", Exception(msg)))
         self.commander_service.command_finished.connect(self.on_telnet_command_finished)
         self.commander_service.queue_processed.connect(self.on_queue_processed)
+        
+        # Initialize Telnet Service
+        self.telnet_service = TelnetService(self.session_manager)
+        self.telnet_service.status_message_signal = self.status_service.status_updated
+        self.telnet_service.command_finished_signal = self.command_finished
+        self.telnet_service.update_connection_status_signal = self.update_connection_status_signal
         
         # Dark theme with grey/neutral accents
         self.setStyleSheet("""
@@ -240,8 +241,6 @@ class CommanderWindow(QMainWindow):
         
         # State tracking
         self.current_token = None
-        self.telnet_session = None
-        self.telnet_active = False
         
         # Setup UI first - we'll initialize with empty tree
         self.init_ui()
@@ -262,8 +261,7 @@ class CommanderWindow(QMainWindow):
         self.context_menu_service.set_presenter(self.node_tree_presenter)
         
         # Connect presenter signals
-        self.node_tree_presenter.status_message_signal.connect(self.statusBar().showMessage)
-        self.node_tree_presenter.status_message_signal.connect(self.status_message_signal)
+        self.node_tree_presenter.status_message_signal.connect(self.status_service.status_updated)
         self.node_tree_presenter.node_tree_updated_signal.connect(self.on_node_tree_updated)
         
         # Connect signals after UI initialization
@@ -272,7 +270,11 @@ class CommanderWindow(QMainWindow):
         self.update_connection_status_signal.connect(self.telnet_connection_bar.update_status)
         self.switch_to_telnet_tab_signal.connect(lambda: self.session_tabs.setCurrentWidget(self.telnet_tab))
         self.set_cmd_focus_signal.connect(self.cmd_input.setFocus)
-        self.status_message_signal.connect(self.statusBar().showMessage)
+        
+        # Connect telnet service signals
+        self.telnet_service.status_message_signal = self.status_service.status_updated
+        self.telnet_service.command_finished_signal = self.command_finished
+        self.telnet_service.update_connection_status_signal = self.update_connection_status_signal
         
         # Try loading default configuration if available
         try:
@@ -390,7 +392,7 @@ class CommanderWindow(QMainWindow):
         
         # Status Bar
         self.setStatusBar(QStatusBar())
-        self.statusBar().showMessage("Welcome to Commander LogCreator")
+        self.status_service.show_status("Welcome to Commander LogCreator")
         
         # Button connections
         self.copy_to_log_btn.clicked.connect(self.copy_to_log)
@@ -417,6 +419,7 @@ class CommanderWindow(QMainWindow):
         self.telnet_output.setFont(QFont("Consolas", 10))
         self.telnet_output.setReadOnly(False)
         self.telnet_output.setPlaceholderText("Telnet session output will appear here")
+        self.status_service.show_info("Telnet session output will appear here")
         self.telnet_output.setStyleSheet("font-family: Consolas; background:#1A1A1A; color: #DDD;")
         layout.addWidget(self.telnet_output, 5)
         
@@ -518,7 +521,8 @@ class CommanderWindow(QMainWindow):
                     self.session_tabs.setCurrentWidget(self.telnet_tab)
                     
                     # Update status based on actual connection state
-                    if self.telnet_session and self.telnet_session.is_connected:
+                    # Check if telnet service is connected
+                    if self.telnet_service and hasattr(self.telnet_service, 'telnet_session') and self.telnet_service.telnet_session and self.telnet_service.telnet_session.is_connected:
                         self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
                     else:
                         self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
@@ -559,114 +563,37 @@ class CommanderWindow(QMainWindow):
                     logging.debug(f"Displaying log: {os.path.basename(actual_log_path)}")
                     # Display exact filename with extension
                     full_filename = os.path.basename(actual_log_path)
-                    self.statusBar().showMessage(f"Log ready: {full_filename}")
+                    self.status_service.show_status(f"Log ready: {full_filename}")
                 except OSError as e:
-                    self.statusBar().showMessage(f"Error opening log: {str(e)}")
+                    self.status_service.show_error(f"Error opening log: {str(e)}")
 
     def toggle_telnet_connection(self, connect: bool):
         """Toggles connection/disconnection for Telnet tab"""
         # Get IP and port directly from input fields
         ip_address, port_text = self.telnet_connection_bar.get_address()
         if not ip_address or not port_text:
-            self.statusBar().showMessage("IP and port are required.")
+            self.status_service.show_error("IP and port are required.")
             self.telnet_connection_bar.update_status(ConnectionState.ERROR)
             return
         
         try:
             port = int(port_text)
         except ValueError:
-            self.statusBar().showMessage(f"Invalid port number: {port_text}")
+            self.status_service.show_error(f"Invalid port number: {port_text}")
             self.telnet_connection_bar.update_status(ConnectionState.ERROR)
             return
             
-        if connect:
-            # Save connection parameters to settings
-            self.settings.setValue("telnet_ip", ip_address)
-            self.settings.setValue("telnet_port", port_text)
-            self.connect_telnet(ip_address, port)
-        else:
-            self.disconnect_telnet()
+        # Delegate to telnet service
+        self.telnet_service.toggle_connection(connect, ip_address, port, self.settings)
 
-    def connect_telnet(self, ip_address: str, port: int):
-        """Connects to specified telnet server using provided IP and port"""
-        # Configure telnet connection using the parameters
-        config = SessionConfig(
-            host=ip_address,
-            port=port,
-            session_type=SessionType.DEBUGGER,  # Use DEBUGGER session type for manual connections
-            username="",   # No username by default
-            password=""    # No password by default
-        )
-        
-        try:
-            self.telnet_connection_bar.update_status(ConnectionState.CONNECTING)
-            self.telnet_session = self.session_manager.create_session(config)
-            
-            # Attempt connection and get detailed result
-            if self.telnet_session and self.telnet_session.is_connected:
-                # Clear output and update status
-                self.telnet_output.clear()
-                self.telnet_output.append(f"Connected to {ip_address}:{port}")
-                self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
-                self.cmd_input.setFocus()
-                # Store active client for reuse in context commands
-                self.active_telnet_client = self.telnet_session
-                return True
-            
-            # Handle connection failure
-            self.statusBar().showMessage("Connection failed")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-            return False
-            
-        except socket.timeout as e:
-            self.statusBar().showMessage(f"Connection timed out: {str(e)}")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-        except ConnectionRefusedError as e:
-            self.statusBar().showMessage(f"Connection refused: {str(e)}")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-        except Exception as e:
-            self.statusBar().showMessage(f"Connection error: {str(e)}")
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-            return False
     
-    def disconnect_telnet(self):
-        """Disconnects from current telnet session"""
-        try:
-            # Only close through session manager to avoid double disconnect
-            self.session_manager.close_all_sessions()
-            # Clear local reference AFTER session manager has closed sessions
-            self.telnet_session = None
-            # Clear active client reference
-            self.active_telnet_client = None
-            # Force UI update to disconnected state
-            self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
-            self.telnet_output.append("\n>>> DISCONNECTED")
-        except Exception as e:
-            self.telnet_output.append(f"Error disconnecting: {str(e)}")
-            # Still reset UI state even if disconnection failed
-            self.telnet_connection_bar.update_status(ConnectionState.DISCONNECTED)
-            
     def execute_telnet_command(self, automatic=False):
         """Executes command in Telnet session using background thread"""
-        # Prioritize active manual connection if available
-        if hasattr(self, 'active_telnet_client') and self.active_telnet_client and self.active_telnet_client.is_connected:
-            self.telnet_session = self.active_telnet_client
-            
-        if not self.telnet_session:
-            if not automatic:
-                self.statusBar().showMessage("Create a Telnet session first!")
-            logging.debug("Telnet session not available for command execution")
-            return ""
-        
         command = self.cmd_input.toPlainText().strip()
         if not command:
             logging.debug("Empty command received in execute_telnet_command")
             return ""
-        logging.debug(f"Executing telnet command: {command} (automatic={automatic})")
             
-        logging.debug(f"Executing telnet command: {command}")
-        logging.debug(f"DEBUG: Automatic={automatic}, Current token: {self.current_token.token_id if self.current_token else 'None'}")
-
         if not automatic:
             self.command_history.add(command)
             # Display user command in output
@@ -675,69 +602,21 @@ class CommanderWindow(QMainWindow):
             # Disable execute button during execution
             self.execute_btn.setEnabled(False)
         
-        # Start command execution in background thread
-        threading.Thread(
-            target=self._run_telnet_command,
-            args=(command, automatic),
-            daemon=True
-        ).start()
-        
-        return ""  # Response will be handled asynchronously
+        # Delegate to telnet service
+        self.telnet_service.set_current_token(self.current_token)
+        return self.telnet_service.execute_command(command, automatic)
 
-    def _run_telnet_command(self, command, automatic):
-        """Runs telnet command in background thread with improved error handling"""
-        with self.telnet_lock:
-            try:
-                token_id = self.current_token.token_id if self.current_token else ""
-                resolved_cmd = self.command_resolver.resolve(command, token_id)
-                response = self.telnet_session.send_command(resolved_cmd, timeout=5)
-                self.telnet_connection_bar.update_status(ConnectionState.CONNECTED)
-            except (ConnectionRefusedError, TimeoutError, socket.timeout) as e:
-                response = f"ERROR: {type(e).__name__} - {str(e)}"
-                self._handle_connection_error(e)
-            except Exception as e:
-                response = f"ERROR: {type(e).__name__} - {str(e)}"
-                logging.error(f"Telnet command failed: {command}", exc_info=True)
             
-            logging.debug(f"Emitting command_finished signal for command: {command}")
-            self.command_finished.emit(response, automatic)
-            
-    def _handle_connection_error(self, error):
-        """Centralized connection error handling"""
-        error_type = type(error).__name__
-        if error_type in ["ConnectionRefusedError", "TimeoutError", "socket.timeout"]:
-            self.telnet_connection_bar.update_status(ConnectionState.ERROR)
-            self.status_message_signal.emit(f"Connection error: {str(error)}", self.STATUS_MSG_MEDIUM)
 
 
-    def _handle_queued_command_result(self, command: str, result: str, success: bool, token=None):
-        """Handle completed commands from the queue and log results"""
-        logging.debug(f"_handle_queued_command_result: command={command}, success={success}, result_length={len(result)}")
-        if success:
-            self.status_message_signal.emit(f"Command succeeded: {command}", 3000)
-            logging.info(f"Command completed successfully: {command}\nResult: {result}")
-        else:
-            self.status_message_signal.emit(f"Command failed: {command} - {result}", 5000)
-            logging.error(f"Command failed: {command}\nError: {result}")
-            
     def _log_command_result(self, command: str, result: str, success: bool, token=None):
         """Log command results to the appropriate log file"""
-        try:
-            if token and hasattr(token, 'token_id') and hasattr(token, 'token_type'):
-                self.log_writer.append_to_log(
-                    token.token_id,
-                    f"{command}\n{result}",
-                    protocol=token.token_type
-                )
-            else:
-                logging.warning(f"Unable to log command result: missing token information")
-        except Exception as e:
-            logging.error(f"Failed to log command result: {str(e)}")
+        self.commander_service.logging_service.log_command_result(command, result, success, token)
     
     def _validate_node(self, item) -> bool:
         """Validate node structure before processing"""
         if not item or not item.parent():
-            self.status_message_signal.emit("Invalid node structure", 3000)
+            self.status_service.show_error("Invalid node structure")
             return False
         return True
 
@@ -745,7 +624,7 @@ class CommanderWindow(QMainWindow):
         """Retrieve and validate FBC tokens"""
         node = self.node_manager.get_selected_node()
         if not node:
-            self.status_message_signal.emit("No node selected! Select a node first.", 3000)
+            self.status_service.show_error("No node selected! Select a node first.")
             return []
             
         logging.debug(f"Selected node: {node.name} ({node.ip_address})")
@@ -770,81 +649,22 @@ class CommanderWindow(QMainWindow):
             self.telnet_output.append(response)
         self.telnet_output.moveCursor(QTextCursor.MoveOperation.End)
         
-        if not automatic:
-            # For manual commands: re-enable button and clear input
-            self.execute_btn.setEnabled(True)
-            self.cmd_input.clear()
-            
-            # Only write to log for manual commands when explicitly requested
-            if self.current_token and response.strip():
-                try:
-                    logging.debug(f"Processing manual command for token {self.current_token.token_id}")
-                    node = self.node_manager.get_node_by_token(self.current_token)
-                    if node:
-                        node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
-                        log_path = self.log_writer.log_paths.get(self.current_token.token_id)
-                        if not log_path:
-                            logging.debug(f"Opening new log for token {self.current_token.token_id}")
-                            log_path = self.log_writer.open_log(node.name, node_ip, self.current_token, self.log_writer.get_log_path(node.name, node_ip, self.current_token))
-                            
-                        self.log_writer.append_to_log(self.current_token.token_id, response, protocol=self.current_token.token_type)
-                        logging.info(f"Successfully appended to log: {os.path.basename(log_path)}")
-                        self.status_message_signal.emit(f"Command output appended to {os.path.basename(log_path)}", 3000)
-                    else:
-                        logging.warning(f"Node not found for token {self.current_token.token_id}")
-                        self.status_message_signal.emit(f"Node not found for token {self.current_token.token_id}", 3000)
-                except Exception as e:
-                    logging.error(f"Failed to write to log: {str(e)}", exc_info=True)
-                    self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
-        else:   # automatic commands
-            if response.strip() and self.current_token:
-                try:
-                    # Check if token has a direct log path (from context menu)
-                    log_path = getattr(self.current_token, 'log_path', None)
-                    if log_path:
-                        # Write directly to the specified log file
-                        with open(log_path, 'a') as f:
-                            f.write(response + "\n")
-                        self.status_message_signal.emit(
-                            f"Command output appended to {os.path.basename(log_path)}",
-                            3000
-                        )
-                    else:
-                        # For automatic commands, always ensure we have a log file open
-                        node = self.node_manager.get_node_by_token(self.current_token)
-                        if node:
-                            node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
-                            # Always call open_log for automatic commands to ensure proper log path generation
-                            self.log_writer.open_log(node.name, node_ip, self.current_token, self.log_writer.get_log_path(node.name, node_ip, self.current_token))
-                        
-                        # Fall back to standard log writer
-                        self.log_writer.append_to_log(
-                            self.current_token.token_id,
-                            response,
-                            protocol=self.current_token.token_type
-                        )
-                        self.status_message_signal.emit(
-                            "Command output logged",
-                            3000
-                        )
-                except Exception as e:
-                    logging.error(f"Log write error: {str(e)}")
-                    self.status_message_signal.emit(f"Log write failed: {str(e)}", 5000)
-            elif response.strip():
-                self.status_message_signal.emit("Command executed successfully", 3000)
-            else:
-                self.status_message_signal.emit("Empty response received", 3000)
+        # Delegate logging to LoggingService
+        self.commander_service.logging_service.log_telnet_command_finished(
+            response, automatic, self.current_token, self.node_manager,
+            self.status_message_signal, self.log_writer, self.cmd_input, self.execute_btn
+        )
             
     def copy_to_log(self):
         """Copies current session content to selected token or log file"""
         selected_items = self.node_tree_view.selectedItems()
         if not selected_items:
-            self.statusBar().showMessage("No item selected! Select a token or log file on the left.")
+            self.status_service.show_error("No item selected! Select a token or log file on the left.")
             return
         item = selected_items[0]
         data = item.data(0, Qt.ItemDataRole.UserRole)
         if not data:
-            self.statusBar().showMessage("Selected item has no data")
+            self.status_service.show_error("Selected item has no data")
             return
         
         tab_index = self.session_tabs.currentIndex()
@@ -863,7 +683,7 @@ class CommanderWindow(QMainWindow):
                     return
 
             if not content:
-                self.statusBar().showMessage("No content in current session")
+                self.status_service.show_error("No content in current session")
                 return
 
             # Handle based on item type
@@ -873,19 +693,19 @@ class CommanderWindow(QMainWindow):
                 with open(log_path, 'a') as f:
                     f.write(content + "\n")
                 filename = os.path.basename(log_path)
-                self.statusBar().showMessage(f"Content copied to {filename}")
+                self.status_service.show_success(f"Content copied to {filename}")
 
             elif "token" in data:
                 token_id = data["token"]
                 node_name = data.get("node")
                 token_type = data.get("token_type")
                 if not node_name or not token_type:
-                    self.statusBar().showMessage("Token item missing node or token_type")
+                    self.status_service.show_error("Token item missing node or token_type")
                     return
 
                 node = self.node_manager.get_node(node_name)
                 if not node:
-                    self.statusBar().showMessage(f"Node {node_name} not found")
+                    self.status_service.show_error(f"Node {node_name} not found")
                     return
 
                 # Reconstruct the log path for display
@@ -894,30 +714,30 @@ class CommanderWindow(QMainWindow):
                 filename = f"{node_name}_{ip}_{token_id}.{token_type.lower()}"
                 # Write using the log_writer
                 self.log_writer.append_to_log(token_id, content, source=session_type)
-                self.statusBar().showMessage(f"Content copied to {filename}")
+                self.status_service.show_success(f"Content copied to {filename}")
 
             else:
-                self.statusBar().showMessage("Unsupported item type")
+                self.status_service.show_error("Unsupported item type")
 
         except Exception as e:
-            self.statusBar().showMessage(f"Log write error: {str(e)}")
+            self.status_service.show_error(f"Log write error: {str(e)}")
     
     def clear_terminal(self):
         """Clear the telnet output area"""
         self.telnet_output.clear()
-        self.statusBar().showMessage("Terminal cleared", 3000)
+        self.status_service.show_status("Terminal cleared", StatusService.STATUS_MSG_SHORT)
     
     def clear_node_log(self):
         """Clear the currently selected node's log file"""
         selected_items = self.node_tree_view.selectedItems()
         if not selected_items:
-            self.statusBar().showMessage("No item selected! Select a log file on the left.")
+            self.status_service.show_error("No item selected! Select a log file on the left.")
             return
         
         item = selected_items[0]
         data = item.data(0, Qt.ItemDataRole.UserRole)
         if not data or "log_path" not in data:
-            self.statusBar().showMessage("Selected item is not a log file")
+            self.status_service.show_error("Selected item is not a log file")
             return
             
         log_path = data["log_path"]
@@ -925,9 +745,9 @@ class CommanderWindow(QMainWindow):
             # Open the file in write mode to truncate it
             with open(log_path, 'w') as f:
                 f.truncate(0)
-            self.statusBar().showMessage(f"Cleared log: {os.path.basename(log_path)}", 3000)
+            self.status_service.show_success(f"Cleared log: {os.path.basename(log_path)}")
         except Exception as e:
-            self.statusBar().showMessage(f"Error clearing log: {str(e)}")
+            self.status_service.show_error(f"Error clearing log: {str(e)}")
     
     def open_log_file(self, item: QTreeWidgetItem, column: int):
         """Opens log file when double-clicked in tree view"""
@@ -939,9 +759,9 @@ class CommanderWindow(QMainWindow):
                 # Use system default application to open the log file
                 try:
                     os.startfile(log_path)  # Windows-specific
-                    self.statusBar().showMessage(f"Opened log file: {os.path.basename(log_path)}")
+                    self.status_service.show_status(f"Opened log file: {os.path.basename(log_path)}")
                 except Exception as e:
-                    self.statusBar().showMessage(f"Error opening file: {str(e)}")
+                    self.status_service.show_error(f"Error opening file: {str(e)}")
                 return True
         return False
         
@@ -952,7 +772,7 @@ class CommanderWindow(QMainWindow):
         
     def closeEvent(self, event):
         """Cleanup on window close"""
-        self.disconnect_telnet()
+        self.telnet_service.disconnect()
         self.log_writer.close_all_logs()
         
         # Save application state

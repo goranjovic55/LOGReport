@@ -3,6 +3,7 @@ from .services.fbc_command_service import FbcCommandService
 from .services.rpc_command_service import RpcCommandService
 from .services.context_menu_filter import ContextMenuFilterService
 from .services.context_menu_service import ContextMenuService
+from .services.threading_service import ThreadingService
 from .presenters.node_tree_presenter import NodeTreePresenter
 from .ui.node_tree_view import NodeTreeView
 import sys
@@ -37,7 +38,6 @@ from .icons import get_node_online_icon, get_node_offline_icon, get_token_icon
 # Centralized Qt application initialization
 from .qt_init import initialize_qt
 
-import threading
 import time
 
 class CommanderWindow(QMainWindow):
@@ -107,7 +107,8 @@ class CommanderWindow(QMainWindow):
         )
         
         # Thread lock for telnet operations
-        self.telnet_lock = threading.Lock()
+        self.threading_service = ThreadingService()
+        self.telnet_lock = self.threading_service.create_lock()
         
         # Load application settings
         self.settings = QSettings("CommanderLogCreator", "Settings")
@@ -676,11 +677,11 @@ class CommanderWindow(QMainWindow):
             self.execute_btn.setEnabled(False)
         
         # Start command execution in background thread
-        threading.Thread(
+        self.threading_service.start_thread(
             target=self._run_telnet_command,
             args=(command, automatic),
             daemon=True
-        ).start()
+        )
         
         return ""  # Response will be handled asynchronously
 

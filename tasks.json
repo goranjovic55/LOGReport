@@ -1,0 +1,154 @@
+{
+  "requests": [
+    {
+      "id": "req-4",
+      "title": "Refactor LOGReport CommanderWindow to MVP pattern",
+      "description": "Refactor the monolithic CommanderWindow into MVP pattern with separate Model, View, and Presenter components, and extract services for telnet, logging, and other business logic.",
+      "tasks": [
+        {
+          "id": "task-10",
+          "title": "Set up LOGReport MVP Refactoring",
+          "description": "Project initialized for refactoring CommanderWindow to MVP pattern with service extraction",
+          "status": "pending",
+          "priority": "high",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:31:09.367Z",
+          "updatedAt": "2025-08-02T19:31:09.367Z"
+        },
+        {
+          "id": "task-11",
+          "title": "Establish Task Creation Protocol",
+          "description": "Define default rules for new task initialization",
+          "status": "pending",
+          "priority": "medium",
+          "type": "documentation",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:31:56.915Z",
+          "updatedAt": "2025-08-02T19:31:56.915Z"
+        },
+        {
+          "id": "task-12",
+          "title": "Refactor CommanderWindow into MVP structure",
+          "description": "Break down CommanderWindow implementation into Model-View-Presenter components per project standards",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:31:56.915Z",
+          "updatedAt": "2025-08-02T19:31:56.915Z"
+        },
+        {
+          "id": "task-13",
+          "title": "Create CommanderView class",
+          "description": "Implement CommanderView in src/commander/ui/views/ to handle UI components extracted from CommanderWindow",
+          "status": "pending",
+          "priority": "medium",
+          "type": "code",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:31:56.915Z",
+          "updatedAt": "2025-08-02T19:31:56.915Z"
+        },
+        {
+          "id": "task-14",
+          "title": "Create CommanderModel class",
+          "description": "Implement CommanderModel in src/commander/models/ to handle state management extracted from CommanderWindow",
+          "status": "pending",
+          "priority": "medium",
+          "type": "code",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:31:56.915Z",
+          "updatedAt": "2025-08-02T19:31:56.915Z"
+        },
+        {
+          "id": "task-15",
+          "title": "Refactor CommanderPresenter",
+          "description": "Update CommanderPresenter in src/commander/presenters/ to handle UI logic extracted from CommanderWindow",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:31:56.915Z",
+          "updatedAt": "2025-08-02T19:31:56.915Z"
+        },
+        {
+          "id": "task-16",
+          "title": "Extract Tab Creation Logic",
+          "description": "Move duplicated tab creation logic from CommanderWindow to src/commander/utils/tab_utils.py",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:32:59.402Z",
+          "updatedAt": "2025-08-02T19:32:59.402Z"
+        },
+        {
+          "id": "task-17",
+          "title": "Split CommanderWindow into View Components",
+          "description": "Break down 800-line commander_window.py into focused view components following MVP pattern",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:32:59.402Z",
+          "updatedAt": "2025-08-02T19:32:59.402Z"
+        },
+        {
+          "id": "task-18",
+          "title": "Refactor CommanderWindow to comply with MVP pattern and project standards",
+          "description": "CommanderWindow currently violates MVP pattern and project structure standards by combining view, presenter, and service logic in a single large file. Refactor by: 1) Extracting business logic to CommanderService, 2) Creating TelnetService for connection management, 3) Moving logging to LoggingService, 4) Separating UI components into smaller files, 5) Abstracting threading logic. This will improve maintainability and reduce file size from 868 lines to under 300 lines.",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:32:59.402Z",
+          "updatedAt": "2025-08-02T19:32:59.402Z"
+        },
+        {
+          "id": "task-19",
+          "title": "Extract telnet operations to TelnetService",
+          "description": "Create a new TelnetService class to handle all telnet operations previously managed by CommanderWindow. This includes connection management, command execution, and error handling. Update CommanderWindow to use the new service via dependency injection.",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:32:59.402Z",
+          "updatedAt": "2025-08-02T19:32:59.402Z"
+        },
+        {
+          "id": "task-20",
+          "title": "Extract logging operations to LoggingService",
+          "description": "Refactor CommanderWindow by extracting logging operations to a new LoggingService class. This involves creating the service, moving logging-related methods from CommanderWindow to the service, and updating CommanderWindow to use the service via dependency injection.",
+          "status": "pending",
+          "priority": "medium",
+          "type": "refactor",
+          "dependsOn": [],
+          "subtaskIds": [],
+          "artifactsGenerated": [],
+          "createdAt": "2025-08-02T19:32:59.402Z",
+          "updatedAt": "2025-08-02T19:32:59.402Z"
+        }
+      ]
+    }
+  ]
+}

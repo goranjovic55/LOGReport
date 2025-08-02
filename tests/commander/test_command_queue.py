@@ -11,6 +11,8 @@ class TestCommandQueue(unittest.TestCase):
         # Create a mock session manager for testing
         self.mock_session_manager = MagicMock()
         self.queue = CommandQueue(self.mock_session_manager)
+        # Mock the threading service
+        self.queue.threading_service = MagicMock()
         
         self.valid_token = NodeToken(
             token_id="123",
@@ -34,7 +36,8 @@ class TestCommandQueue(unittest.TestCase):
         # The command should be processing immediately
         self.assertEqual(self.queue.queue[-1].status, "processing")
 
-    def test_start_processing_only_processes_pending_commands(self):
+    @patch('src.commander.command_queue.QThreadPool.start')
+    def test_start_processing_only_processes_pending_commands(self, mock_start):
         # Add commands with different statuses
         self.queue.add_command("cmd1", self.valid_token)  # pending
         self.queue.add_command("cmd2", self.valid_token)  # pending
@@ -43,11 +46,10 @@ class TestCommandQueue(unittest.TestCase):
         self.queue.queue[0].status = 'completed'
         
         # Start processing - should only process the pending command
-        with patch.object(self.queue.thread_pool, 'start') as mock_start:
-            self.queue.start_processing()
-            # Should only start one worker for the pending command
-            # In the new implementation, we process pending commands immediately
-            self.assertEqual(mock_start.call_count, 1)
+        self.queue.start_processing()
+        # Should only start one worker for the pending command
+        # In the new implementation, we process pending commands immediately
+        self.assertEqual(mock_start.call_count, 1)
 
     def test_process_next_updates_progress(self):
         with self.subTest("Progress signal emission"):
