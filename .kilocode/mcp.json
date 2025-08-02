@@ -47,6 +47,42 @@
         "analyze_codebase"
       ],
       "disabled": false
+    },
+    "conductor-tasks": {
+      "command": "npx",
+      "args": [
+        "conductor-tasks",
+        "--serve-mcp"
+      ],
+      "env": {
+        "GOOGLE_API_KEY": "AIzaSyDSCl-b7XlAh8eNy7RGQTQkiE-SUCS4MIo",
+        "DEFAULT_LLM_PROVIDER": "google"
+      },
+      "alwaysAllow": [
+        "update-task",
+        "list-tasks",
+        "get-task",
+        "add-task-note",
+        "get-next-task",
+        "parse-prd",
+        "propose-diff",
+        "generate-diff",
+        "research-topic",
+        "delete-task",
+        "initialize-project",
+        "generate-implementation-steps",
+        "expand-task",
+        "suggest-task-improvements",
+        "help-implement-task",
+        "visualize-tasks-kanban",
+        "visualize-tasks-dependency-tree",
+        "parse-prd-file",
+        "visualize-tasks-dashboard",
+        "list-task-templates",
+        "get-task-template",
+        "create-task-from-template",
+        "create-task"
+      ]
     }
   }
 }

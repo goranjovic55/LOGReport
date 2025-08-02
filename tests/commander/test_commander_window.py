@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from src.commander.ui.commander_window import CommanderWindow
 from src.commander.models import Node, NodeToken
 from src.commander.presenters.node_tree_presenter import NodeTreePresenter
+from src.commander.services.commander_service import CommanderService
 from PyQt6.QtWidgets import QApplication, QTreeWidget
 import threading
 import os
@@ -27,13 +28,25 @@ class TestCommanderWindowTokenQueue(unittest.TestCase):
         self.window.fbc_subgroup_item = MagicMock()
         self.window.fbc_subgroup_item.parent.return_value = MagicMock()
         
-        # Initialize NodeTreePresenter with mock dependencies
-        self.mock_view = MagicMock()
+        # Initialize services with mock dependencies
         self.mock_session_manager = MagicMock()
         self.mock_log_writer = MagicMock()
         self.mock_command_queue = MagicMock()
         self.mock_fbc_service = MagicMock()
         self.mock_rpc_service = MagicMock()
+        
+        # Initialize CommanderService with mock dependencies
+        self.window.commander_service = CommanderService(
+            self.window.node_manager,
+            self.mock_session_manager,
+            self.mock_command_queue,
+            self.mock_log_writer,
+            self.mock_fbc_service,
+            self.mock_rpc_service
+        )
+        
+        # Initialize NodeTreePresenter with mock dependencies
+        self.mock_view = MagicMock()
         self.mock_context_menu_service = MagicMock()
         
         # Mock the node manager's get_node method to return our mock node
@@ -152,14 +165,26 @@ class TestContextMenuCommands(unittest.TestCase):
             "token_type": "FBC"
         }
         
-        # Initialize NodeTreePresenter with mock dependencies for TestContextMenuCommands
-        self.mock_view = MagicMock()
+        # Initialize services with mock dependencies for TestContextMenuCommands
         self.mock_session_manager = MagicMock()
         self.mock_log_writer = MagicMock()
         self.mock_command_queue = MagicMock()
         self.mock_fbc_service = MagicMock()
         self.mock_fbc_service.generate_fieldbus_command.return_value = "print from fbc io structure 1230000"
         self.mock_rpc_service = MagicMock()
+        
+        # Initialize CommanderService with mock dependencies
+        self.window.commander_service = CommanderService(
+            self.window.node_manager,
+            self.mock_session_manager,
+            self.mock_command_queue,
+            self.mock_log_writer,
+            self.mock_fbc_service,
+            self.mock_rpc_service
+        )
+        
+        # Initialize NodeTreePresenter with mock dependencies for TestContextMenuCommands
+        self.mock_view = MagicMock()
         self.mock_context_menu_service = MagicMock()
         
         # Mock the node manager's get_node method to return our mock node
@@ -182,20 +207,15 @@ class TestContextMenuCommands(unittest.TestCase):
         self.window.node_tree_presenter.status_message_signal.connect(self.window.statusBar().showMessage)
         self.window.node_tree_presenter.status_message_signal.connect(self.window.status_message_signal)
         self.window.node_tree_presenter.node_tree_updated_signal.connect(self.window.on_node_tree_updated)
-        
-        # Connect presenter signals like in the real window
-        self.window.node_tree_presenter.status_message_signal.connect(self.window.statusBar().showMessage)
-        self.window.node_tree_presenter.status_message_signal.connect(self.window.status_message_signal)
-        self.window.node_tree_presenter.node_tree_updated_signal.connect(self.window.on_node_tree_updated)
 
     def test_context_menu_command_execution(self):
         """Test context menu command triggers telnet execution"""
-        with patch.object(self.window.node_tree_presenter, 'status_message_signal') as mock_signal:
+        with patch.object(self.window.commander_service, 'status_message') as mock_signal:
             # Simulate context menu command execution by calling the window's method
-            # which should delegate to the presenter
+            # which should delegate to the commander service
             self.window.process_fieldbus_command("123", "TEST_NODE")
             
-            # Verify command execution - the window should call the presenter's method
+            # Verify command execution - the window should call the commander service's method
             # which in turn calls the FBC service
             self.mock_fbc_service.queue_fieldbus_command.assert_called_once_with("TEST_NODE", "123", None)
             self.mock_command_queue.start_processing.assert_called_once()
@@ -206,12 +226,12 @@ class TestContextMenuCommands(unittest.TestCase):
         test_response = "Fieldbus structure data"
         self.window.current_token = self.mock_token
         
-        # Simulate command completion
-        self.window.on_telnet_command_finished(test_response, automatic=True)
+        # Simulate command completion through commander service
+        self.window.commander_service._log_command_result("test command", test_response, True, self.mock_token)
         
         # Verify logging
         self.window.log_writer.append_to_log.assert_called_with(
-            "123", test_response, protocol="FBC"
+            "123", "test command\nFieldbus structure data", protocol="FBC"
         )
 
     def test_invalid_node_logging(self):
@@ -219,13 +239,13 @@ class TestContextMenuCommands(unittest.TestCase):
         # Mock the FBC service's get_token method to raise ValueError for invalid node
         self.mock_fbc_service.get_token.side_effect = ValueError("Node INVALID_NODE not found")
         
-        with patch.object(self.window.node_tree_presenter, 'status_message_signal') as mock_signal:
+        with patch.object(self.window.commander_service, 'status_message') as mock_signal:
             self.window.process_fieldbus_command("123", "INVALID_NODE")
             mock_signal.emit.assert_called_with("Node INVALID_NODE not found", 3000)
 
     def test_command_error_handling(self):
         """Test error handling during command execution"""
-        with patch.object(self.window.node_tree_presenter, 'status_message_signal') as mock_signal:
+        with patch.object(self.window.commander_service, 'status_message') as mock_signal:
             # Mock the node manager to return our test node
             self.window.node_manager.get_node.return_value = self.mock_node
             

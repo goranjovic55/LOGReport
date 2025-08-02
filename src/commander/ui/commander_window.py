@@ -3,6 +3,7 @@ from ..services.fbc_command_service import FbcCommandService
 from ..services.rpc_command_service import RpcCommandService
 from ..services.context_menu_filter import ContextMenuFilterService
 from ..services.context_menu_service import ContextMenuService
+from ..services.commander_service import CommanderService
 from ..presenters.node_tree_presenter import NodeTreePresenter
 from .node_tree_view import NodeTreeView
 import sys
@@ -86,13 +87,11 @@ class CommanderWindow(QMainWindow):
 
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
-        # Delegate to presenter
-        self.node_tree_presenter.process_fieldbus_command(token_id, node_name)
+        self.commander_service.process_fieldbus_command(token_id, node_name)
             
     def process_rpc_command(self, node_name, token_id, action_type):
         """Process RPC commands with token validation and auto-execute"""
-        # Delegate to presenter
-        self.node_tree_presenter.process_rpc_command(node_name, token_id, action_type)
+        self.commander_service.process_rpc_command(node_name, token_id, action_type)
             
     def __init__(self):
         super().__init__()
@@ -133,21 +132,22 @@ class CommanderWindow(QMainWindow):
         # Core components
         self.log_writer = LogWriter(self.node_manager)
         
-        # Initialize RPC Command Service
-        self.rpc_service = RpcCommandService(self.node_manager, self.command_queue, self)
-        self.rpc_service.set_command_text.connect(self.set_cmd_input_text_signal)
-        self.rpc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
-        self.rpc_service.focus_command_input.connect(self.set_cmd_focus_signal)
-        self.rpc_service.status_message.connect(self.status_message_signal)
-        self.rpc_service.report_error.connect(lambda msg: self._report_error("RPC Service Error", Exception(msg)))
-        
-        # Initialize FBC Command Service
-        self.fbc_service = FbcCommandService(self.node_manager, self.command_queue, self.log_writer, self)
-        self.fbc_service.set_command_text.connect(self.set_cmd_input_text_signal)
-        self.fbc_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
-        self.fbc_service.focus_command_input.connect(self.set_cmd_focus_signal)
-        self.fbc_service.status_message.connect(self.status_message_signal)
-        self.fbc_service.report_error.connect(lambda msg: self._report_error("FBC Service Error", Exception(msg)))
+        # Initialize Commander Service
+        self.commander_service = CommanderService(
+            self.node_manager,
+            self.session_manager,
+            self.command_queue,
+            self.log_writer,
+            self.fbc_service,
+            self.rpc_service
+        )
+        self.commander_service.set_cmd_input_text.connect(self.set_cmd_input_text_signal)
+        self.commander_service.switch_to_telnet_tab.connect(self.switch_to_telnet_tab_signal)
+        self.commander_service.focus_command_input.connect(self.set_cmd_focus_signal)
+        self.commander_service.status_message.connect(self.status_message_signal)
+        self.commander_service.report_error.connect(lambda msg: self._report_error("Commander Service Error", Exception(msg)))
+        self.commander_service.command_finished.connect(self.on_telnet_command_finished)
+        self.commander_service.queue_processed.connect(self.on_queue_processed)
         
         # Dark theme with grey/neutral accents
         self.setStyleSheet("""
