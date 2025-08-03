@@ -52,6 +52,7 @@ class CommanderService(QObject):
         
         self.command_queue.command_completed.connect(self._handle_queued_command_result)
         self.command_queue.command_completed.connect(self._log_command_result)
+        self.command_queue.progress_updated.connect(self.queue_processed)
         
     def process_fieldbus_command(self, token_id, node_name):
         """Process fieldbus command with optimized error handling"""
@@ -96,3 +97,24 @@ class CommanderService(QObject):
     def _log_command_result(self, command: str, result: str, success: bool, token=None):
         """Log command results to the appropriate log file"""
         self.logging_service.log_command_result(command, result, success, token)
+    
+    def log_telnet_command_finished(self, response: str, automatic: bool, current_token,
+                                   node_manager, status_message_signal, log_writer,
+                                   cmd_input=None, execute_btn=None):
+        """
+        Handle logging when a telnet command finishes execution.
+        
+        Args:
+            response: Command response text
+            automatic: True if command was triggered automatically
+            current_token: Current token being processed
+            node_manager: Node manager instance
+            status_message_signal: Signal for status messages
+            log_writer: Log writer instance
+            cmd_input: Command input widget (for manual commands)
+            execute_btn: Execute button widget (for manual commands)
+        """
+        self.logging_service.log_telnet_command_finished(
+            response, automatic, current_token, node_manager,
+            status_message_signal, log_writer, cmd_input, execute_btn
+        )

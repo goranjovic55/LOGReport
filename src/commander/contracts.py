@@ -6,6 +6,7 @@ These interfaces define the contract between the View and Presenter layers.
 from abc import ABC, abstractmethod
 from typing import Optional
 from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QTreeWidgetItem, QTabWidget
 
 
 class ICommanderView(ABC):
@@ -114,11 +115,47 @@ class ICommanderPresenter(ABC):
         pass
     
     @abstractmethod
-    def on_node_selected(self, item) -> None:
+    def on_node_selected(self, item: QTreeWidgetItem, current_token=None) -> None:
         """
         Handle node/token selection in the view.
         
         Args:
             item: Selected item from the view
+            current_token: Current token if available
+        """
+        pass
+    
+    @abstractmethod
+    def copy_to_log(self, selected_items, session_tabs: QTabWidget) -> None:
+        """
+        Copies current session content to selected token or log file.
+        
+        Args:
+            selected_items: Selected items from the view
+            session_tabs: Session tabs from the view
+        """
+        pass
+    
+    @abstractmethod
+    def clear_terminal(self) -> None:
+        """Clear the terminal display."""
+        pass
+    
+    @abstractmethod
+    def clear_node_log(self, selected_items) -> None:
+        """Clear the currently selected node's log file."""
+        pass
+    
+    @abstractmethod
+    def open_log_file(self, item: QTreeWidgetItem, column: int) -> bool:
+        """
+        Opens log file when double-clicked in tree view.
+        
+        Args:
+            item: The item that was double-clicked
+            column: The column that was clicked
+            
+        Returns:
+            bool: True if file was opened successfully, False otherwise
         """
         pass
