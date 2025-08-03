@@ -106,6 +106,17 @@ class CommandQueue:
 - 25% reduction in memory usage during peak loads
 - Predictable backpressure handling
 
+## 2025-08-03: CommanderWindow MVP Refactoring
+- **Before**: Monolithic 587-line `commander_window.py` violating separation of concerns
+- **After**: 
+  * Model: `commander_model.py` (data state management)
+  * View: `commander_view.py` (UI components only)
+  * Presenter: `commander_presenter.py` (UI logic coordination)
+- **Impact**: 
+  * Updated dependencies in `gui.py` and service classes
+  * All components now under 300 lines
+- **Validation**: Passed `test_commander.py` suite
+    
 ## Phase 3: Incremental Extraction Process
 
 ### Step 1: Identify Extractable Components

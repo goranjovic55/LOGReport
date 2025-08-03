@@ -29,7 +29,7 @@ The Commander module is responsible for managing network commands and sessions i
 - Coordinates between View and Model components
 - Contains no direct UI code (no DOM manipulation)
 
-#### CommanderPresenter (if exists)
+#### CommanderPresenter
 - Manages overall application state and UI logic
 - Coordinates between different UI components
 - Handles global UI events and state changes
@@ -110,7 +110,7 @@ The Commander module is responsible for managing network commands and sessions i
 This module follows the MVP (Model-View-Presenter) pattern as defined in the project standards:
 
 1. **Model**: Handles data state (`NodeManager`, `CommandQueue`, etc.)
-2. **View**: Manages UI rendering (`NodeTreeView`, UI components in `CommanderWindow`)
+2. **View**: Manages UI rendering (`NodeTreeView`, UI components in `CommanderWindow`) 
 3. **Presenter**: Encapsulates UI logic (`NodeTreePresenter`, `CommanderPresenter`)
 
 The implementation ensures:
@@ -118,3 +118,11 @@ The implementation ensures:
 - Presenters have no direct DOM or UI code
 - Clear separation of concerns between components
 - Testable and maintainable code structure
+
+### Architecture
+```mermaid
+graph LR
+A[Model] -->|Notifies| B[Presenter]
+B -->|Updates| C[View]
+C -->|User Events| B
+```
