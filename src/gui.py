@@ -18,7 +18,7 @@ class LogReportGUI(QMainWindow):
         # Configure logging
         import logging
         from pathlib import Path
-        
+
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         formatter = logging.Formatter(log_format)
         
@@ -190,14 +190,14 @@ class LogReportGUI(QMainWindow):
         dialog.exec()
         
     def open_commander(self):
-        from commander.commander_window import CommanderWindow
+        from commander.ui.commander_window import CommanderWindow
         self.commander = CommanderWindow()
         self.commander.show()
         
     def _style_controls(self):
         self.setStyleSheet("""
             QWidget {
-                font family: Segoe UI;
+                font-family: Segoe UI;
                 font-size: 10pt;
             }
             QMainWindow {
@@ -303,7 +303,7 @@ class LogReportGUI(QMainWindow):
             self._generate_report(self.processed_logs)
         else:
             self.status_bar.showMessage("No logs processed yet")
-
+        
     def _generate_report(self, logs):
         """Handle full report generation flow"""
         if not logs:
@@ -371,6 +371,7 @@ class LogReportGUI(QMainWindow):
             self.progress.setRange(0, 0)  # Indeterminate mode
             self.status_bar.showMessage(message)
         self.setEnabled(not visible)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
