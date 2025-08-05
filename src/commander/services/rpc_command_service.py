@@ -42,18 +42,19 @@ class RpcCommandService(QObject):
             if hasattr(self.parent(), 'log_writer'):
                 log_writer = self.parent().log_writer
                 
-                # Check if log is already initialized for this token
-                if token.token_id not in log_writer.loggers:
+                # Check if log is already initialized for this token using composite key
+                key = (token.token_id, token.token_type.lower())
+                if key not in log_writer.loggers:
                     # Get node from node manager
                     node = self.node_manager.get_node_by_token(token)
                     if not node:
                         # Fallback to creating a temporary node with token's name
                         from ..models import Node
                         node = Node(name=token.name, ip_address=token.ip_address)
-                    
+                
                     # Generate log path using shared utility
                     log_path = log_writer.get_node_log_path(node, token.token_id, token.token_type.lower())
-                    
+                
                     # Open log file
                     log_writer.open_log(node.name, node.ip_address, token, log_path)
                     self.logger.debug(f"Initialized log file for token {token.token_id} at {log_path}")
@@ -85,6 +86,7 @@ class RpcCommandService(QObject):
         try:
             token = self.get_token(node_name, token_id)
             self.logger.debug(f"RpcCommandService.queue_rpc_command: Retrieved token - ID: {token.token_id}, Type: {token.token_type}, Node: {token.name}, IP: {token.ip_address}")
+
             
             # Ensure log file is initialized before queuing command
             self._initialize_log_file(token)

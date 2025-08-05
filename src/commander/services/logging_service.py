@@ -111,8 +111,8 @@ class LoggingService:
             if execute_btn:
                 execute_btn.setEnabled(True)
             if cmd_input:
-                cmd_input.clear()
-                
+                cmd_input.clear()                
+            
             # Only write to log for manual commands when explicitly requested
             if current_token and response.strip():
                 try:
@@ -120,11 +120,13 @@ class LoggingService:
                     node = node_manager.get_node_by_token(current_token)
                     if node:
                         node_ip = node.ip_address.replace('.', '-') if node.ip_address else "unknown-ip"
-                        log_path = log_writer.log_paths.get(current_token.token_id)
+                        # Use composite key (token_id, protocol) to find log path
+                        key = (current_token.token_id, current_token.token_type.lower())
+                        log_path = log_writer.log_paths.get(key)
                         if not log_path:
                             logging.debug(f"Opening new log for token {current_token.token_id}")
                             log_path = log_writer.open_log(node.name, node_ip, current_token, log_writer.get_log_path(node.name, node_ip, current_token))
-                            
+                        
                         log_writer.append_to_log(current_token.token_id, response, protocol=current_token.token_type)
                         logging.info(f"Successfully appended to log: {os.path.basename(log_path)}")
                         if status_message_signal:

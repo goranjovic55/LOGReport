@@ -22,6 +22,7 @@ class FbcCommandService(QObject):
         self.log_writer = log_writer
         self.logger = logging.getLogger(__name__)
         
+    
     def generate_fieldbus_command(self, token_id: str) -> str:
         """Generate FBC command text for a token ID"""
         normalized_token = self.normalize_token(token_id)
@@ -40,8 +41,10 @@ class FbcCommandService(QObject):
             if log_writer is None and hasattr(self.parent(), 'log_writer'):
                 log_writer = self.parent().log_writer
                 
-                # Check if log is already initialized for this token
-                if token.token_id not in log_writer.loggers:
+            # Check if log is already initialized for this token using composite key
+            if log_writer is not None:
+                key = (token.token_id, token.token_type.lower())
+                if key not in log_writer.loggers:
                     # Get node from node manager
                     node = self.node_manager.get_node_by_token(token)
                     if not node:
@@ -72,16 +75,11 @@ class FbcCommandService(QObject):
                 # Only return token if it's an FBC token
                 if token.token_type == "FBC":
                     return token
-        
+            
         # Create temporary FBC token if not found
         # Extract base node name (before space) for directory path consistency with FBC pattern
         base_node_name = node_name.split()[0] if " " in node_name else node_name
-        return NodeToken(
-            token_id=token_id,
-            token_type="FBC",
-            name=base_node_name,
-            ip_address="0.0.0.0"
-        )
+        return NodeToken(token_id=token_id, token_type="FBC", name=base_node_name, ip_address="0.0.0.0")
     
     def queue_fieldbus_command(self, node_name: str, token_id: str, telnet_client=None):
         """Queue FBC command for execution with optional telnet client"""
@@ -104,10 +102,10 @@ class FbcCommandService(QObject):
             self.focus_command_input.emit()
             self.status_message.emit(f"Queued FBC command for token {token_id}", 3000)
             
-            self.logger.info(f"FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: '{command}', Token: {token.token_id}")
+            self.logger.info(f"FbcCommandService.queue_fieldbus_command: Adding command to queue - Command: '{command}', Token: {token.token_id}",)
             self.command_queue.add_command(command, token, telnet_client)
             self.logger.info("FbcCommandService.queue_fieldbus_command: Command added to queue")
         except Exception as e:
-            self.logger.error(f"Error queuing FBC command: {str(e)}", exc_info=True)
+            self.logger.error(f"Error queuing FBC command: {str(e)}", exc_info=False)
             self.report_error.emit(f"Error queuing command: {str(e)}")
             self.status_message.emit(f"Error queuing command: {str(e)}", 5000)
