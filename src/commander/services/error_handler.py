@@ -3,8 +3,9 @@ Error Handler Service - Handles error reporting and logging
 """
 import logging
 import traceback
-from typing import Optional
+from typing import Optional, Dict, Any
 from PyQt6.QtCore import QObject, pyqtSignal
+from .error_reporting.interface import StructuredError
 
 
 class ErrorHandler(QObject):
@@ -23,24 +24,60 @@ class ErrorHandler(QObject):
         super().__init__()
         logging.debug("ErrorHandler initialized")
     
-    def report_error(self, message: str, exception: Optional[Exception] = None, duration: Optional[int] = None):
+    def report_error(self, message: str, exception: Optional[Exception] = None, duration: Optional[int] = None,
+                    token_context: Optional[Dict[str, Any]] = None):
         """
-        Report an error with logging and status bar updates.
+        Report an error with standardized logging and status bar updates.
         
         Args:
             message: Error message to display
             exception: Optional exception that occurred
             duration: Duration to display message in milliseconds (None for default)
+            token_context: Optional context about the token being processed
         """
-        duration = duration or self.STATUS_MSG_MEDIUM
-        error_msg = f"{message}: {str(exception)}" if exception else message
-        logging.error(error_msg)
+        # Create structured error
+        structured_error = StructuredError(
+            code="GENERIC_ERROR",
+            message=message,
+            exception=exception,
+            severity="ERROR",
+            timestamp=time.time(),
+            token_context=token_context
+        )
         
-        # Log full traceback for exceptions
+        # Format error message with token context if available
+        error_msg = self._format_error_message(structured_error)
+        
+        # Log the error
         if exception:
-            logging.error(f"Exception traceback: {traceback.format_exc()}")
+            logging.error(error_msg, exc_info=True)
+        else:
+            logging.error(error_msg)
         
-        self.error_reported.emit(error_msg, duration)
+        # Emit signal for UI updates
+        self.error_reported.emit(error_msg, duration or self.STATUS_MSG_MEDIUM)
+        return structured_error
+
+    def _format_error_message(self, error: StructuredError) -> str:
+        """Format error message with standardized structure"""
+        base_msg = f"[{error.severity}] {error.message}"
+        
+        if error.exception:
+            base_msg += f": {str(error.exception)}"
+            
+        if error.token_context:
+            context_parts = []
+            if "token_id" in error.token_context:
+                context_parts.append(f"Token ID: {error.token_context['token_id']}")
+            if "node_name" in error.token_context:
+                context_parts.append(f"Node: {error.token_context['node_name']}")
+            if "token_type" in error.token_context:
+                context_parts.append(f"Type: {error.token_context['token_type']}")
+                
+            if context_parts:
+                base_msg += " | " + ", ".join(context_parts)
+                
+        return base_msg
     
     def handle_connection_error(self, error: Exception):
         """
@@ -51,9 +88,19 @@ class ErrorHandler(QObject):
         """
         error_type = type(error).__name__
         if error_type in ["ConnectionRefusedError", "TimeoutError", "socket.timeout"]:
-            self.report_error("Connection error", error, self.STATUS_MSG_MEDIUM)
+            return self.report_error("Connection error", error, self.STATUS_MSG_MEDIUM)
         else:
-            self.report_error("Unexpected connection error", error, self.STATUS_MSG_MEDIUM)
+            return self.report_error("Unexpected connection error", error, self.STATUS_MSG_MEDIUM)
+    
+    def handle_circuit_breaker_triggered(self, token_context: Dict[str, Any]):
+        """
+        Handle circuit breaker activation with token-specific context.
+        
+        Args:
+            token_context: Context about the token that triggered the circuit breaker
+        """
+        message = "Circuit breaker activated to prevent system overload"
+        return self.report_error(message, None, self.STATUS_MSG_LONG, token_context)
     
     def handle_telnet_error(self, error: Exception):
         """
@@ -64,6 +111,39 @@ class ErrorHandler(QObject):
         """
         self.report_error("Telnet command failed", error, self.STATUS_MSG_MEDIUM)
         logging.error(f"Telnet command failed", exc_info=True)
+        return self.report_error("Telnet command failed", error, self.STATUS_MSG_MEDIUM)
+    
+    def validate_telnet_client_reuse(self, client, token_context: Dict[str, Any]):
+        """
+        Validate Telnet client before reuse in error scenarios.
+        
+        Args:
+            client: Telnet client to validate
+            token_context: Context about the token being processed
+            
+        Returns:
+            bool: True if client is valid for reuse, False otherwise
+        """
+        if not client:
+            error = ValueError("Telnet client is None")
+            self.report_error("Cannot reuse invalid Telnet client", error,
+                             self.STATUS_MSG_SHORT, token_context)
+            return False
+            
+        try:
+            # Test basic connection
+            client.write(b"\n")
+            response = client.read_until(b">", 1)
+            if b"error" in response.lower():
+                error = ConnectionError("Client in error state")
+                self.report_error("Telnet client in error state", error,
+                                 self.STATUS_MSG_SHORT, token_context)
+                return False
+            return True
+        except Exception as e:
+            self.report_error("Telnet client validation failed", e,
+                             self.STATUS_MSG_SHORT, token_context)
+            return False
     
     def handle_file_error(self, error: Exception, file_path: str):
         """
