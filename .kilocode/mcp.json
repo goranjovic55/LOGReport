@@ -1,5 +1,22 @@
 {
   "mcpServers": {
+    "firecrawl_mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp@latest"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "your_api_key_here"
+      },
+      "alwaysAllow": [
+        "document_search",
+        "web_search",
+        "structured_extraction",
+        "deep_research"
+      ],
+      "disabled": false
+    },
     "project_memory": {
       "command": "npx",
       "args": [
@@ -19,8 +36,7 @@
         "memory",
         "add_observations",
         "read_graph",
-        "search_nodes",
-        "validate_json_schema"
+        "search_nodes"
       ],
       "disabled": false
     },
@@ -41,10 +57,8 @@
         "docs-semantic-search",
         "folder-tree-structure",
         "get-usage-dependency-links",
-        "list-graphs",
         "get-code",
-        "get_usage_dependency_links",
-        "analyze_codebase"
+        "get_usage_dependency_links"
       ],
       "disabled": false
     }

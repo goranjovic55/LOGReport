@@ -2,3 +2,42 @@
 {"type":"entity","name":"qtimer_optimization_pattern","entityType":"optimization_pattern","observations":["Pattern: Iterative QTimer approach for command processing","Prevents stack overflow in recursive operations","Improves memory management by avoiding deep call stacks","Enables better progress tracking through iterative steps"]}
 {"type":"entity","name":"test_global_entity","entityType":"test","observations":["Testing global_memory server"]}
 {"type":"entity","name":"SequentialTokenProcessingPattern","entityType":"ArchitecturalPattern","observations":["Pattern: Sequential fan-out using existing single-operation pipeline with isolated logging","Applicability: Batch processing of discrete items through existing command pipelines","Implementation: Iterate through tokens, execute each through existing command service, preserve per-item context"]}
+{"type":"entity","name":"Architecture Patterns","entityType":"PatternCluster","observations":["Purpose: MVP implementation patterns","Minimum node requirement: 3","Relationship types: implements, depends_on, extends","Canonical naming convention: MVP_*_Pattern","cluster_type: semantic","min_nodes: 3","last_updated: 2025-08-08T13:49:20.956Z"]}
+{"type":"entity","name":"Service Patterns","entityType":"PatternCluster","observations":["Purpose: Business logic and service layer patterns","Minimum node requirement: 3","Relationship types: implements, depends_on, extends","Canonical naming convention: Service_*_Pattern","cluster_type: semantic","min_nodes: 3","last_updated: 2025-08-08T13:49:20.956Z"]}
+{"type":"entity","name":"Error Handling Patterns","entityType":"PatternCluster","observations":["Purpose: Error delegation and reporting patterns","Minimum node requirement: 3","Relationship types: implements, depends_on, extends","Canonical naming convention: Error_*_Pattern","cluster_type: semantic","min_nodes: 3","last_updated: 2025-08-08T13:49:20.956Z"]}
+{"type":"entity","name":"MVP_Presenter_Pattern","entityType":"DesignPattern","observations":["Pattern for implementing Presenter in MVP architecture","Defined in: src/commander/presenters/*.py"]}
+{"type":"entity","name":"MVP_View_Pattern","entityType":"DesignPattern","observations":["Pattern for implementing View in MVP architecture","Defined in: src/commander/ui/*.py"]}
+{"type":"entity","name":"MVP_Model_Pattern","entityType":"DesignPattern","observations":["Pattern for implementing Model in MVP architecture","Defined in: src/commander/models.py"]}
+{"type":"entity","name":"Command_Service_Pattern","entityType":"DesignPattern","observations":["Pattern for command processing services","Defined in: src/commander/services/*.py"]}
+{"type":"entity","name":"Error_Reporting_Service_Pattern","entityType":"DesignPattern","observations":["Pattern for error reporting services","Defined in: src/commander/services/error_reporting/*.py"]}
+{"type":"entity","name":"Configuration_Service_Pattern","entityType":"DesignPattern","observations":["Pattern for configuration services","Defined in: src/commander/services/context_menu_filter.py"]}
+{"type":"entity","name":"Delegation_Pattern","entityType":"DesignPattern","observations":["Pattern for error delegation","Defined in: src/commander/services/error_reporting/delegation_pattern.md"]}
+{"type":"entity","name":"Impact_Analysis_Pattern","entityType":"DesignPattern","observations":["Pattern for impact analysis of errors","Defined in: src/commander/services/error_reporting/impact_analysis.md"]}
+{"type":"entity","name":"Reporter_Interface_Pattern","entityType":"DesignPattern","observations":["Pattern for reporter interfaces","Defined in: src/commander/services/error_reporting/interface.py"]}
+{"type":"entity","name":"Miscellaneous Patterns","entityType":"PatternCluster","observations":["Purpose: Catch-all for patterns that don't fit other clusters","Minimum node requirement: 1","Relationship types: belongs_to","Canonical naming convention: Misc_*_Pattern","cluster_type: semantic","min_nodes: 1","last_updated: 2025-08-08T13:49:20.956Z"]}
+{"type":"entity","name":"MVP Presenter Pattern","entityType":"Architecture Pattern","observations":["Separates UI logic from business logic","Promoted from project_memory by analyze_user"]}
+{"type":"entity","name":"Service Layer Pattern","entityType":"Architecture Pattern","observations":["Encapsulates business logic","Promoted from project_memory by analyze_user"]}
+{"type":"entity","name":"Context Menu Filtering System","entityType":"UI Pattern","observations":["Dynamic context menu filtering based on node types","Promoted from project_memory by analyze_user"]}
+{"type":"entity","name":"Architecture Patterns Cluster","entityType":"Cluster","observations":["Grouping of architecture patterns","Created by analyze_user"]}
+{"type":"entity","name":"UI Patterns Cluster","entityType":"Cluster","observations":["Grouping of UI patterns","Created by analyze_user"]}
+{"type":"entity","name":"global_snapshot_20250808","entityType":"Snapshot","observations":["Global memory snapshot created at 2025-08-08T15:12:24Z","Contains cross-project knowledge graph","Version: 1.0","Schema: GlobalSchemaV1","Includes reusable patterns from project memory"]}
+{"type":"relation","from":"MVP_Presenter_Pattern","to":"Architecture Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"MVP_View_Pattern","to":"Architecture Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"MVP_Model_Pattern","to":"Architecture Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"Command_Service_Pattern","to":"Service Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"Error_Reporting_Service_Pattern","to":"Service Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"Configuration_Service_Pattern","to":"Service Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"Delegation_Pattern","to":"Error Handling Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"Impact_Analysis_Pattern","to":"Error Handling Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"Reporter_Interface_Pattern","to":"Error Handling Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"MVP_Presenter_Pattern","to":"MVP_Model_Pattern","relationType":"depends_on"}
+{"type":"relation","from":"MVP_View_Pattern","to":"MVP_Presenter_Pattern","relationType":"depends_on"}
+{"type":"relation","from":"Service Patterns","to":"Architecture Patterns","relationType":"implements"}
+{"type":"relation","from":"Error Handling Patterns","to":"Service Patterns","relationType":"extends"}
+{"type":"relation","from":"CompositeKeyPattern","to":"Service Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"qtimer_optimization_pattern","to":"Service Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"SequentialTokenProcessingPattern","to":"Architecture Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"test_global_entity","to":"Miscellaneous Patterns","relationType":"belongs_to"}
+{"type":"relation","from":"MVP Presenter Pattern","to":"Architecture Patterns Cluster","relationType":"belongs_to"}
+{"type":"relation","from":"Service Layer Pattern","to":"Architecture Patterns Cluster","relationType":"belongs_to"}
+{"type":"relation","from":"Context Menu Filtering System","to":"UI Patterns Cluster","relationType":"belongs_to"}
