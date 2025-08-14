@@ -1,6 +1,6 @@
 """
 Sequential Command Processor - Handles memory-optimized, mode-adaptive iterative processing
- of FBC/RPC tokens with proper resource management.
+of FBC/RPC tokens with proper resource management.
 """
 
 import logging
@@ -21,22 +21,18 @@ from ..services.rpc_command_service import RpcCommandService
 from ..session_manager import SessionManager
 
 
-
 class SequentialCommandProcessor(QObject):
-    """
-    Processor for sequential execution of FBC/RPC commands with resource management.
-    """
+    """Processor for sequential execution of FBC/RPC commands with resource management."""
 
-
-    
     # Signals for UI updates
     status_message = pyqtSignal(str, int)  # message, duration
     progress_updated = pyqtSignal(int, int)  # current, total
     processing_finished = pyqtSignal(int, int)  # success_count, total_count
-    
+
     def __init__(self, command_queue: CommandQueue, fbc_service: FbcCommandService,
                  rpc_service: RpcCommandService, session_manager: SessionManager,
-                 logging_service, parent=None):
+                 logging_service, parent=None) -> None:
+        """Initialization method."""
         self._error_messages = []  # Initialize error collection
         super().__init__(parent)
         self.command_queue = command_queue
@@ -55,87 +51,12 @@ class SequentialCommandProcessor(QObject):
         self._completed_commands = 0
         self._success_count = 0
         self._current_token_index = 0
-        self._tokens = []
-        self._node_name = ''
+        self._tokens = []  # Use list instead
+        self._node_name = ""  # Store node name as string
         self._telnet_client = None
-        self._error_messages = []  # Reset error collection for each run
+        self._batch_id = None  # Store batch ID
 
-
-    def process_fbc_commands(self, node_name: str, tokens: List[NodeToken], 
-                           telnet_client=None) -> None:
-        """
-        Process FBC commands sequentially with resource management.
-
-        Args:
-            node_name: Name of the node containing the tokens
-            tokens: List of FBC tokens to process
-            telnet_client: Optional telnet client to reuse
-        """
-        if self._is_processing:
-            self.logger.warning("SequentialCommandProcessor: Already processing commands")
-            self.status_message.emit("Already processing commands", 3000)
-            return
-            
-        self._is_processing = True
-        self._total_commands = len(tokens)
-        self._completed_commands = 0
-        self._success_count = 0
-        self._current_token_index = 0
-        self._tokens = list(tokens)  # Create a copy to avoid external modifications
-        self._node_name = node_name
-        self._telnet_client = telnet_client
-            
-        if not tokens:
-            self.logger.info("SequentialCommandProcessor: No FBC tokens to process")
-            self._finish_processing()
-            return
-            
-        self.status_message.emit(f"Processing {len(tokens)} FBC commands...", 0)
-        self.logger.info(f"SequentialCommandProcessor: Starting processing of {len(tokens)} FBC commands for node {node_name}")
-
-        # Start processing the first token
-        self._process_next_token()
-
-
-    def process_rpc_commands(self, node_name: str, tokens: List[NodeToken], 
-                           action: str = "print", telnet_client=None) -> None:
-        """
-        Process RPC commands sequentially with resource management.
-
-        Args:
-            node_name: Name of the node containing the tokens
-            tokens: List of RPC tokens to process
-            action: Action to perform (print, clear)
-            telnet_client: Optional telnet client to reuse
-        """
-        if self._is_processing:
-            self.logger.warning("SequentialCommandProcessor: Already processing commands")
-            self.status_message.emit("Already processing commands", 3000)
-            return
-            
-        self._is_processing = True
-        self._total_commands = len(tokens)
-        self._completed_commands = 0
-        self._success_count = 0
-        self._current_token_index = 0
-        self._tokens = list(tokens)  # Create a copy to avoid external modifications
-        self._node_name = node_name
-        self._telnet_client = telnet_client
-        self._action = action
-            
-        if not tokens:
-            self.logger.info("SequentialCommandProcessor: No RPC tokens to process")
-            self._finish_processing()
-            return
-            
-        self.status_message.emit(f"Processing {len(tokens)} RPC commands...", 0)
-        self.logger.info(f"SequentialCommandProcessor: Starting processing of {len(tokens)} RPC commands for node {node_name}")
-
-        # Start processing the first token
-        self._process_next_token()
-
-
-    def process_tokens_sequentially(self, node_name: str, tokens: List[NodeToken], 
+    def process_tokens_sequentially(self, node_name: str, tokens: List[NodeToken],
                                   action: str = "print") -> None:
         """
         Process multiple tokens sequentially with individual context and error isolation.
@@ -173,15 +94,14 @@ class SequentialCommandProcessor(QObject):
             ...     tokens=[
             ...         NodeToken(token_id="162", token_type="FBC"),
             ...         NodeToken(token_id="163", token_type="RPC")
-            ...     ]
+            ...     ],
             ... )
             # Processes 162_FBC.log then 163_RPC.log with individual contexts
 
         See Also:
             - [`token_processing.md`](docs/token_processing.md) for workflow documentation
             - [`ContextMenuService._handle_token_command()`](src/commander/services/context_menu_service.py:1) for UI integration
-        """        
-        
+        """
         if self._is_processing:
             self.logger.warning("SequentialCommandProcessor: Already processing commands")
             self.status_message.emit("Already processing commands", 3000)
@@ -197,7 +117,7 @@ class SequentialCommandProcessor(QObject):
         self._telnet_client = None
         self._action = action
         self._batch_id = self._generate_batch_id()  # Add batch ID for logging
-        
+
         if not tokens:
             self.logger.info("SequentialCommandProcessor: No tokens to process")
             self._finish_processing()
@@ -212,38 +132,316 @@ class SequentialCommandProcessor(QObject):
             node_name=node_name,
             token_count=len(tokens)
         )
+                
+        # Add all commands to the queue with proper logging setup
+        for token in tokens:
+            try:                
+                # Prepare token context with logging (similar to _prepare_token_context)
+                from ..utils.token_utils import validate_ip_address
+                
+                # Normalize token according to protocol rules
+                normalized_token = self._normalize_token(token.token_id, token.token_type)
+                
+                # Extract and validate node IP
+                node_ip = token.node_ip if hasattr(token, 'node_ip') else None
+                if not node_ip or not validate_ip_address(node_ip):
+                    node_ip = "0.0.0.0"  # Default for invalid IPs
+                    self.logger.warning(f"Invalid node IP for token {token.token_id}, using default")
+                
+                # Generate unique log path and open log
+                log_path = self.logging_service.open_log_for_token(
+                    token_id=token.token_id,
+                    node_name=self._node_name,
+                    node_ip=node_ip,
+                    protocol=token.token_type,
+                    batch_id=self._batch_id
+                )
+                
+                # Write standardized header with token metadata
+                header = (
+                    f"Token Processing Header:\n"
+                    f"  Token ID: {token.token_id}\n"
+                    f"  Node: {self._node_name}\n"
+                    f"  Timestamp: {datetime.datetime.now().isoformat()}\n"
+                    f"  Protocol: {token.token_type}\n"
+                    f"  Batch ID: {self._batch_id}\n"
+                )
+                self.logging_service.log(header)
+                
+                # Prepare token based on type
+                if token.token_type == "FBC":
+                    # Prepare token (using same logic as FbcCommandService)
+                    node = self.fbc_service.node_manager.get_node(node_name)
+                    if not node:
+                        # Create temporary FBC token if node not found
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id, 
+                            token_type="FBC", 
+                            name=base_node_name, 
+                            ip_address=node_ip
+                        )
+                    else:
+                        # Try to find existing FBC token with matching ID
+                        token_formats = [token.token_id, str(int(token.token_id)) if token.token_id.isdigit() else token.token_id]
+                        found_token = None
+                        for fmt in token_formats:
+                            if tok := node.tokens.get(fmt):
+                                # Only return token if it's an FBC token
+                                if tok.token_type == "FBC":
+                                    found_token = tok
+                                    break
+                        
+                        if found_token:
+                            prepared_token = found_token
+                        else:
+                            # Create temporary FBC token if not found
+                            base_node_name = node_name.split()[0] if " " in node_name else node_name
+                            prepared_token = NodeToken(
+                                token_id=token.token_id, 
+                                token_type="FBC", 
+                                name=base_node_name, 
+                                ip_address=node_ip
+                            )
+                    
+                    # Generate command (using same logic as FbcCommandService)
+                    command = f"print from fbc io structure {normalized_token}0000"
+                    
+                    # Add command to queue
+                    self.command_queue.add_command(command, prepared_token, None)                    
+                elif token.token_type == "RPC":
+                    # Prepare token (using same logic as RpcCommandService)
+                    node = self.rpc_service.node_manager.get_node(node_name)
+                    if not node:
+                        # Create temporary RPC token if node not found
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id,
+                            token_type="RPC",
+                            name=base_node_name,
+                            ip_address="0.0.0.0",
+                            port=23,  # Default port for RPC 
+                            protocol="telnet"
+                        )
+                    else:
+                        # Create pure RPC token without inheriting FBC properties
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id,
+                            token_type="RPC",
+                            name=base_node_name,
+                            ip_address=node.ip_address,
+                            port=23,  # Default port for RPC 
+                            protocol="telnet"
+                        )
+                    
+                    # Generate command (using same logic as RpcCommandService)
+                    action_map = {
+                        "print": "print from fbc rupi counters",
+                        "clear": "clear fbc rupi counters"
+                    }
+                    command = f"{action_map[action]} {normalized_token}0000"
+                    
+                    # Add command to queue
+                    self.command_queue.add_command(command, prepared_token, None)
+                else: 
+                    self.logger.warning(f"SequentialCommandProcessor: Unknown token type {token.token_type} for token {token.token_id}")
+                    # Continue with other tokens
+            except Exception as e:
+                self.logger.error(f"Error preparing command for token {token.token_id}: {str(e)}")
+                # Continue with other tokens
 
-        # Start processing the first token (batch logging removed)
-        self._process_next_token()
+    def process_rpc_commands(self, node_name: str, tokens: List[NodeToken], 
+                           action: str = "print", telnet_client=None) -> None:
+        """
+        Process RPC commands sequentially with resource management.
 
+        Args:
+            node_name: Name of the node containing the tokens
+            tokens: List of RPC tokens to process
+            action: Action to perform (print, clear)
+            telnet_client: Optional telnet client to reuse
+        """        
+        if self._is_processing: 
+            self.logger.warning("SequentialCommandProcessor: Already processing commands")
+            self.status_message.emit("Already processing commands", 3000)
+            return
+            
+        self._is_processing = True
+        self._total_commands = len(tokens)
+        self._completed_commands = 0
+        self._success_count = 0
+        self._current_token_index = 0
+        self._tokens = list(tokens)  # Create a copy to avoid external modifications
+        self._node_name = node_name
+        self._telnet_client = telnet_client
+        self._action = action
+        self._batch_id = self._generate_batch_id()  # Add batch ID for logging
+        
+        if not tokens: 
+            self.logger.info("SequentialCommandProcessor: No RPC tokens to process")
+            self._finish_processing()
+            return
+        
+        self.status_message.emit(f"Processing {len(tokens)} RPC commands...", 0)
+        self.logger.info(f"SequentialCommandProcessor: Starting processing of {len(tokens)} RPC commands for node {node_name}")
 
-    def process_all_fbc_subgroup_commands(self, tokens: List[NodeToken], commandSpec: dict, 
+        # Add all RPC commands to the queue
+        for token in tokens:
+            try:
+                # Prepare token (using same logic as RpcCommandService)
+                node = self.rpc_service.node_manager.get_node(node_name)
+                if not node:
+                    # Create temporary RPC token if node not found
+                    base_node_name = node_name.split()[0] if " " in node_name else node_name
+                    prepared_token = NodeToken(
+                        token_id=token.token_id, 
+                        token_type="RPC",
+                        name=base_node_name, 
+                        ip_address="0.0.0.0",
+                        port=23,  # Default port for RPC 
+                        protocol="telnet"
+                    )
+                else:
+                    # Create pure RPC token without inheriting FBC properties
+                    base_node_name = node_name.split()[0] if " " in node_name else node_name
+                    prepared_token = NodeToken(
+                        token_id=token.token_id,
+                        token_type="RPC",
+                        name=base_node_name,
+                        ip_address=node.ip_address,
+                        port=23,  # Default port for RPC 
+                        protocol="telnet"
+                    )
+                
+                # Generate command (using same logic as RpcCommandService)
+                normalized_token = self.rpc_service.normalize_token(token.token_id)
+                action_map = {
+                    "print": "print from fbc rupi counters",
+                    "clear": "clear fbc rupi counters"
+                }
+                command = f"{action_map[action]} {normalized_token}0000"
+                
+                # Add command to queue
+                self.command_queue.add_command(command, prepared_token, telnet_client)
+            except Exception as e:
+                self.logger.error(f"Error preparing RPC command for token {token.token_id}: {str(e)}")
+                # Continue with other tokens
+
+    def process_fbc_commands(self, node_name: str, tokens: List[NodeToken], 
+                           telnet_client=None) -> None:
+        """
+        Process FBC commands sequentially with resource management.
+
+        Args:
+            node_name: Name of the node containing the tokens
+            tokens: List of FBC tokens to process
+            telnet_client: Optional telnet client to reuse
+        """        
+        if self._is_processing:
+            self.logger.warning("SequentialCommandProcessor: Already processing commands")
+            self.status_message.emit("Already processing commands", 3000)
+            return
+        
+        self._is_processing = True
+        self._total_commands = len(tokens)
+        self._completed_commands = 0
+        self._success_count = 0
+        self._current_token_index = 0
+        self._tokens = list(tokens)  # Create a copy to avoid external modifications
+        self._node_name = node_name
+        self._telnet_client = telnet_client
+        self._batch_id = self._generate_batch_id()  # Add batch ID for logging
+            
+        if not tokens:
+            self.logger.info("SequentialCommandProcessor: No FBC tokens to process")
+            self._finish_processing()
+            return
+            
+        self.status_message.emit(f"Processing {len(tokens)} FBC commands...", 0)
+        self.logger.info(f"SequentialCommandProcessor: Starting processing of {len(tokens)} FBC commands for node {node_name}")
+    
+        # Add all FBC commands to the queue
+        for token in tokens:  
+            try:        
+                # Prepare token (using same logic as FbcCommandService)
+                node = self.fbc_service.node_manager.get_node(node_name)
+                if not node:
+                    # Create temporary FBC token if node not found
+                    base_node_name = node_name.split()[0] if " " in node_name else node_name
+                    prepared_token = NodeToken(
+                        token_id=token.token_id, 
+                        token_type="FBC", 
+                        name=base_node_name, 
+                        ip_address="0.0.0.0"
+                    )
+                else:
+                    # Try to find existing FBC token with matching ID
+                    token_formats = [token.token_id, str(int(token.token_id)) if token.token_id.isdigit() else token.token_id]
+                    found_token = None
+                    for fmt in token_formats:
+                        if tok := node.tokens.get(fmt):
+                            # Only return token if it's an FBC token
+                            if tok.token_type == "FBC": 
+                                found_token = tok
+                                break
+                    
+                    if found_token:
+                        prepared_token = found_token
+                    else:
+                        # Create temporary FBC token if not found
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id, 
+                            token_type="FBC", 
+                            name=base_node_name, 
+                            ip_address="0.0.0.0"
+                        )
+                
+                # Generate command (using same logic as FbcCommandService)
+                normalized_token = self.fbc_service.normalize_token(token.token_id)
+                command = f"print from fbc io structure {normalized_token}0000"
+                
+                # Add command to queue
+                self.command_queue.add_command(command, prepared_token, telnet_client)
+            except Exception as e:
+                self.logger.error(f"Error preparing FBC command for token {token.token_id}: {str(e)}")
+                # Continue with other tokens
+
+    def process_all_fbc_subgroup_commands(self, tokens: List[NodeToken], command_spec: dict,
                                         options: dict = None) -> List[dict]:
-        """Process all FBC tokens sequentially with isolated logging"""
-        return self._process_batch_tokens(tokens, "FBC", commandSpec, options)
+        """
+        Process all FBC tokens sequentially with isolated logging
+        """
+        return self._process_batch_tokens(tokens, "FBC", command_spec, options)
 
-
-    def process_all_rpc_subgroup_commands(self, tokens: List[NodeToken], commandSpec: dict, 
+    def process_all_rpc_subgroup_commands(self, tokens: List[NodeToken], command_spec: dict,
                                         options: dict = None) -> List[dict]:
-        """Process all RPC tokens sequentially with isolated logging"""
-        return self._process_batch_tokens(tokens, "RPC", commandSpec, options)
+        """
+        Process all RPC tokens sequentially with isolated logging
+        """
+        return self._process_batch_tokens(tokens, "RPC", command_spec, options)
 
-
-    def _process_batch_tokens(self, tokens: List[NodeToken], protocol: str, 
-                            commandSpec: dict, options: dict) -> List[dict]:
+    def _process_batch_tokens(self, tokens: List[NodeToken], protocol: str,
+                            command_spec: dict, options: dict) -> List[dict]:
         """Internal batch processor with common logic"""
-        outcomes = []
+        results = []
         batch_id = self._generate_batch_id()
         for token in tokens:
-            token_outcome = {"token": token.token_id, "success": False, "error": None, "log_path": ""}
+            token_outcome = {
+                "token": token.token_id,
+                "success": False, 
+                "error": None, 
+                "log_path": "" 
+            }
             try: 
                 # Prepare context and open log
                 context = self._prepare_token_context(token, protocol, batch_id)
                 token_outcome["log_path"] = context["log_path"]
-                
                 # Execute token command
-                success, error = self._execute_token(protocol, context["normalized_token"], 
-                                                   commandSpec, options, batch_id)
+                success, error = self._execute_token(
+                    protocol, context["normalized_token"], 
+                    command_spec, options, batch_id)
                 token_outcome["success"] = success
                 token_outcome["error"] = error
             except Exception as e: 
@@ -254,14 +452,13 @@ class SequentialCommandProcessor(QObject):
                 self._release_telnet_client()
                 # Move on to next token
                 self._current_token_index += 1
-        return outcomes
-
+            results.append(token_outcome)
+        return results
 
     def _generate_batch_id(self) -> str:
         """Generate unique batch ID for logging"""
         import uuid
         return str(uuid.uuid4())[:8]
-
 
     def _prepare_token_context(self, token: NodeToken, protocol: str, batch_id: str) -> dict:
         """
@@ -271,26 +468,26 @@ class SequentialCommandProcessor(QObject):
             token: NodeToken object to process
             protocol: Token protocol (FBC/RPC)
             batch_id: Batch operation identifier
-            
+
         Returns:
             Context dictionary containing:
                 normalized_token: Formatted token
                 log_path: Path to token-specific log file
                 node_ip: Validated IP address
                 batch_id: Batch operation identifier
-        """        
+        """      
         from ..utils.token_utils import validate_ip_address
 
         try:
             # Normalize token according to protocol rules
             normalized_token = self._normalize_token(token.token_id, protocol)
-            
+
             # Extract and validate node IP
             node_ip = token.node_ip if hasattr(token, 'node_ip') else None
             if not node_ip or not validate_ip_address(node_ip):
                 node_ip = "0.0.0.0"  # Default for invalid IPs
                 self.logger.warning(f"Invalid node IP for token {token.token_id}, using default")
-            
+
             # Generate unique log path and open log
             log_path = self.logging_service.open_log_for_token(
                 token_id=token.token_id,
@@ -299,7 +496,7 @@ class SequentialCommandProcessor(QObject):
                 protocol=protocol,
                 batch_id=batch_id
             )
-            
+
             # Write standardized header with token metadata
             header = (
                 f"Token Processing Header:\n"
@@ -307,17 +504,16 @@ class SequentialCommandProcessor(QObject):
                 f"  Node: {self._node_name}\n"
                 f"  Timestamp: {datetime.datetime.now().isoformat()}\n"
                 f"  Protocol: {protocol}\n"
-                f"  Batch ID: {batch_id}\n"
+                f"  Batch ID: {batch_id}"
             )
             self.logging_service.log(header)
-            
+
             return {
                 "normalized_token": normalized_token,
                 "log_path": log_path,
                 "node_ip": node_ip,
                 "batch_id": batch_id
             }
-            
         except Exception as e:
             error_msg = f"Error preparing context for token {token.token_id}: {str(e)}"
             self.logger.error(error_msg)
@@ -328,14 +524,12 @@ class SequentialCommandProcessor(QObject):
                 "node_ip": "0.0.0.0",
                 "batch_id": batch_id,
                 "error": error_msg
-            )
-
+            }
 
     def _normalize_token(self, token: str, protocol: str) -> str:
         """Normalize token according to protocol rules"""
         from ..utils.token_utils import normalize_token
         return normalize_token(token, protocol)
-
 
     def _execute_token(self, token: NodeToken, context: dict) -> Tuple[bool, Optional[str]]:
         """
@@ -344,13 +538,13 @@ class SequentialCommandProcessor(QObject):
         This is the centralized entry point for all command execution, ensuring consistent
         behavior across FBC and RPC protocols. The method handles:
         - Protocol-specific command execution
-        - Resource management (Telnet client)
+        - Resource management (telnet client)
         - Error classification and reporting
         - Circuit breaker tracking
 
         Args:
             token: The token to execute
-            context: Context dictionary containing normalized token, log path, etc.
+            context: Context dictionary containing normalized_token, log_path, etc.
 
         Returns:
             Tuple of (success, error_message)
@@ -369,18 +563,18 @@ class SequentialCommandProcessor(QObject):
                     error_msg = f"Telnet connection failed for token {token.token_id}: {str(e)}"
                     self.logger.error(error_msg)
                     return False, error_msg
-                except CommandTimeoutError as e:
+                except CommandTimeoutError as e: 
                     error_msg = f"Command timed out for token {token.token_id}: {str(e)}"
                     self.logger.warning(error_msg)
                     return False, error_msg
-                    
+                
             elif token.token_type == "RPC":
                 # Execute RPC command
                 try:
                     self.rpc_service.queue_rpc_command(
                         self._node_name,
                         context["normalized_token"],
-                        context.get("action", "print"),
+                        context.get("action", "print"), 
                         telnet_client=None
                     )
                     return True, None
@@ -388,11 +582,11 @@ class SequentialCommandProcessor(QObject):
                     error_msg = f"RPC connection failed for token {token.token_id}: {str(e)}"
                     self.logger.error(error_msg)
                     return False, error_msg
-                except CommandTimeoutError as e:
+                except CommandTimeoutError as e: 
                     error_msg = f"Command timed out for token {token.token_id}: {str(e)}"
                     self.logger.warning(error_msg)
                     return False, error_msg
-                    
+                
             else:
                 error_msg = f"Unknown token type {token.token_type} for token {token.token_id}"
                 self.logger.warning(f"SequentialCommandProcessor: {error_msg}")
@@ -402,117 +596,6 @@ class SequentialCommandProcessor(QObject):
             error_msg = f"Unexpected error executing token {token.token_id}: {str(e)}"
             self.logger.exception(error_msg)  # Log full traceback
             return False, error_msg
-
-
-    def _process_next_token(self) -> None:
-        """
-        Process the next token in the sequence with true sequential execution.
-
-        This method has been restructured to implement true sequential execution:
-        1. Only processes one token at a time
-        2. Does NOT schedule the next token immediately
-        3. Relies entirely on command_completed signal to advance processing
-        4. Maintains proper state between tokens
-
-        The key change from the previous implementation is the removal of QTimer-based
-        scheduling. Instead, token advancement is now strictly controlled by the
-        command completion callback mechanism, ensuring:
-        - No race conditions between token processing
-        - Proper resource cleanup between commands
-        - Accurate progress reporting
-        - Reliable circuit breaker functionality
-        """
-        if not self._is_processing or self._current_token_index >= len(self._tokens):
-            self._finish_processing()
-            return
-            
-        token = self._tokens[self._current_token_index]
-        self.logger.debug(f"SequentialCommandProcessor: Processing token {self._current_token_index + 1}/{len(self._tokens)}: {token.token_id}")
-
-        try:
-            # Prepare token context with logging
-            context = self._prepare_token_context(token, token.token_type, self._batch_id)
-            if 'error' in context:
-                raise Exception(context['error'])
-                
-            self._current_log_path = context['log_path']
-            
-            # Execute token using centralized method
-            success, error = self._execute_token(token, context)
-            
-            if not success:
-                # Handle execution failure without advancing token index
-                self._handle_token_failure(token, error)
-                
-        except Exception as e:
-            # Handle preparation or execution failure
-            self._handle_token_failure(token, str(e))
-
-
-    def _handle_token_failure(self, token: NodeToken, error_msg: str) -> None:
-        """
-        Handle token processing failure with consistent error reporting.
-
-        This method centralizes error handling to ensure:
-        - Consistent logging format
-        - Proper resource cleanup
-        - Accurate error tracking
-        - Circuit breaker evaluation
-
-        Args:
-            token: The token that failed
-            error_msg: Error message describing the failure
-        """
-        self.logger.error(f"SequentialCommandProcessor: {error_msg}")
-        self.status_message.emit(error_msg, 5000)
-        log_entry = (
-            f"Token Processing Result:\n"
-            f"  Token ID: {token.token_id}\n"
-            f"  Token Type: {token.token_type}\n"
-            f"  Status: Failure\n"
-            f"  Error: {error_msg}\n"
-        )
-        self.logging_service.log(log_entry)
-        self._error_messages.append(error_msg)
-        
-        # Release resources
-        self._release_telnet_client()
-        
-        # Advance to next token (handled by circuit breaker check)
-        self._current_token_index += 1
-        self._check_circuit_breaker() 
-
-
-    def _check_circuit_breaker(self) -> None:
-        """
-        Check if circuit breaker should be triggered and advance token processing.
-
-        The circuit breaker prevents continued processing after multiple failures:
-        - Tracks consecutive failures
-        - Stops processing after 3 consecutive failures
-        - Provides clear error reporting
-        - Ensures proper cleanup
-
-        This implementation ensures the circuit breaker works correctly with the
-        new sequential execution model by:
-        - Evaluating after each token failure
-        - Only stopping when threshold is reached
-        - Allowing successful tokens to reset the counter
-        """
-        # Check if we've reached the end
-        if self._current_token_index >= len(self._tokens):
-            self._finish_processing()
-            return
-            
-        # Check circuit breaker condition (3 consecutive failures)
-        if len(self._error_messages) >= 3:
-            self.logger.error("Circuit breaker triggered after 3 consecutive failures")
-            self._finish_processing()
-            return
-            
-        # Process next token
-        self._process_next_token()
-
 
     def _on_command_completed(self, command: str, result: str, success: bool, token: NodeToken) -> None:
         """
@@ -541,33 +624,34 @@ class SequentialCommandProcessor(QObject):
             self._error_messages.append(f"Command failed: {result}")
             
         self.logger.debug(f"SequentialCommandProcessor: Command completed - Success: {success}, Token: {token.token_id}")
-        
-        # Add token-specific logging
-        log_entry = (
-            f"Token Processing Result:\n"
-            f"  Token ID: {token.token_id}\n"
-            f"  Token Type: {token.token_type}\n"
-            f"  Command Executed: {command}\n"
-            f"  Status: {'Success' if success else 'Failure'}\n"
-        )
-        if not success:
-            log_entry += f"  Error: {result}\n"
-        self.logging_service.log(log_entry)
-        
-        # Close token log
-        self.logging_service.close_log_for_token(
-            token_id=token.token_id,
-            protocol=token.token_type,
-            batch_id=self._batch_id
-        )
+            
+        # Add token-specific logging if we're in process_tokens_sequentially mode
+        if hasattr(self, '_batch_id'):
+            log_entry = (
+                f"Token Processing Result:\n"
+                f"  Token ID: {token.token_id}\n"
+                f"  Token Type: {token.token_type}\n"
+                f"  Command Executed: {command}\n"
+                f"  Status: {'Success' if success else 'Failure'}\n"
+            )
+            if not success:
+                log_entry += f"  Error: {result}\n"
+            self.logging_service.log(log_entry)
+            
+            # Close token log if we're in process_tokens_sequentially mode
+            if hasattr(self, '_batch_id'):
+                self.logging_service.close_log_for_token(
+                    token_id=token.token_id,
+                    protocol=token.token_type,
+                    batch_id=self._batch_id
+                )
         
         # Release telnet client after each command
         self._release_telnet_client()
-
-        # Advance to next token through circuit breaker check
-        self._current_token_index += 1
-        self._check_circuit_breaker()
-
+        
+        # Check if we're done processing
+        if self._completed_commands >= self._total_commands:
+            self._finish_processing()
 
     def _on_progress_updated(self, current: int, total: int) -> None:
         """
@@ -578,11 +662,10 @@ class SequentialCommandProcessor(QObject):
             total: Total number of commands
         """
 
-
     def _finish_processing(self) -> None:
-        """Finish processing and emit completion signals."""
+        """Finish processing and emit completion signals.""" 
         self._is_processing = False
-        
+
         # Report aggregated errors if any
         if self._error_messages:
             error_summary = f"Completed with {len(self._error_messages)} errors. See logs for details."
@@ -593,7 +676,7 @@ class SequentialCommandProcessor(QObject):
             self.status_message.emit(f"Finished processing {self._success_count}/{self._total_commands} commands", 3000)
             
         self.processing_finished.emit(self._success_count, self._total_commands)
-        
+            
         # End batch logging
         self.logging_service.end_batch_logging(
             batch_id=self._batch_id,
@@ -601,31 +684,25 @@ class SequentialCommandProcessor(QObject):
             success_count=self._success_count,
             total_count=self._total_commands
         )
-        
-        # Clean up resources at the right time
-        self._process_updatesCompleted = False
-        self._current_token = None
-
 
     def _perform_periodic_cleanup(self) -> None:
-        """Perform periodic cleanup to optimize memory usage."""
+        """Perform periodic cleanup to optimize memory usage.""" 
         # Process Qt events to prevent UI freezing
         from PyQt6.QtCore import QCoreApplication
         QCoreApplication.processEvents()
 
-
     def stop_processing(self) -> None:
-        """Stop processing commands."""
-        if self._is_processing:
+        """Stop processing commands.""" 
+        if self._is_processing:            
             self.logger.info("SequentialCommandProcessor: Stopping command processing")
-            self._is_processing = False
-            self.command_queue.clear_queue()
+            
+            self._is_processing = False            
+            self.command_queue.clear_queue()            
             self._finish_processing()
-
 
     def process_sequential_batch(self, tokens: List[NodeToken], 
                                 protocol: str, 
-                                commandSpec: dict) -> List[CommandResult]:
+                                command_spec: dict) -> List[CommandResult]:
         """
         Process tokens sequentially with isolated execution and logging
         
@@ -636,60 +713,124 @@ class SequentialCommandProcessor(QObject):
         
         Returns:
             List of CommandResult objects with individual token outcomes
-        """
+        """        
         results = []
         consecutive_failures = 0
         batch_id = self._generate_batch_id()
+        
+        # Set up processing state
+        self._is_processing = True
+        self._total_commands = len(tokens)
+        self._completed_commands = 0
+        self._success_count = 0
+        self._current_token_index = 0
+        self._tokens = list(tokens)
+        self._batch_id = batch_id
+        
         for i, token in enumerate(tokens):
             # Initialize log file for this token
             log_path = self.logging_service.open_log_for_token(
                 token.token_id, 
-                protocol, 
+                protocol,
                 batch_id
             )
-            
+
             try:
                 # Normalize token according to protocol rules
                 normalized_token = self._normalize_token(token.token_id, protocol)
-                
-                # Execute the token command
-                success, error = self._execute_token(
-                    protocol,
-                    normalized_token,
-                    commandSpec,
-                    None,  # options not used in this flow
-                    batch_id
-                )
-                
-                # Handle circuit breaker for failures
-                if not success:
-                    consecutive_failures += 1
-                    if consecutive_failures >= 3:
-                        self.logger.error("Circuit breaker triggered after 3 consecutive failures")
-                        # Create result for current token before breaking
-                        result = CommandResult(
-                            token=token.token_id,
-                            success=success,
-                            error=error,
-                            log_path=log_path
+
+                # Prepare token based on protocol
+                if protocol == "FBC":
+                    # Prepare token (using same logic as FbcCommandService)
+                    node_name = command_spec.get("node_name", "Unknown")
+                    node = self.fbc_service.node_manager.get_node(node_name)
+                    if not node:
+                        # Create temporary FBC token if node not found
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id, 
+                            token_type="FBC", 
+                            name=base_node_name, 
+                            ip_address="0.0.0.0"
                         )
-                        results.append(result)
-                        break
-                else:
-                    consecutive_failures = 0
+                    else:
+                        # Try to find existing FBC token with matching ID
+                        token_formats = [token.token_id, str(int(token.token_id)) if token.token_id.isdigit() else token.token_id]
+                        found_token = None
+                        for fmt in token_formats:
+                            if tok := node.tokens.get(fmt):
+                                # Only return token if it's an FBC token
+                                if tok.token_type == "FBC":
+                                    found_token = tok
+                                    break
+                        
+                        if found_token:
+                            prepared_token = found_token
+                        else:
+                            # Create temporary FBC token if not found
+                            base_node_name = node_name.split()[0] if " " in node_name else node_name
+                            prepared_token = NodeToken(
+                                token_id=token.token_id, 
+                                token_type="FBC", 
+                                name=base_node_name, 
+                                ip_address="0.0.0.0"
+                            )
                     
-                # Create result object
+                    # Generate command (using same logic as FbcCommandService)
+                    command = f"print from fbc io structure {normalized_token}0000"
+                    
+                    # Add command to queue
+                    self.command_queue.add_command(command, prepared_token, None)
+                    
+                elif protocol == "RPC":
+                    # Prepare token (using same logic as RpcCommandService)
+                    node_name = command_spec.get("node_name", "Unknown")
+                    node = self.rpc_service.node_manager.get_node(node_name)
+                    if not node:
+                        # Create temporary RPC token if node not found
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id,
+                            token_type="RPC",
+                            name=base_node_name,
+                            ip_address="0.0.0.0",
+                            port=23,  # Default port for RPC 
+                            protocol="telnet"
+                        )
+                    else:
+                        # Create pure RPC token without inheriting FBC properties
+                        base_node_name = node_name.split()[0] if " " in node_name else node_name
+                        prepared_token = NodeToken(
+                            token_id=token.token_id,
+                            token_type="RPC",
+                            name=base_node_name,
+                            ip_address=node.ip_address,
+                            port=23,  # Default port for RPC 
+                            protocol="telnet"
+                        )
+                    
+                    # Generate command (using same logic as RpcCommandService)
+                    action = command_spec.get("action", "print")
+                    action_map = {
+                        "print": "print from fbc rupi counters",
+                        "clear": "clear fbc rupi counters"
+                    }
+                    command = f"{action_map[action]} {normalized_token}0000"
+                    
+                    # Add command to queue
+                    self.command_queue.add_command(command, prepared_token, None)
+                
+                # Create result object placeholder
                 result = CommandResult(
                     token=token.token_id,
-                    success=success,
-                    error=error,
+                    success=False,  # Will be updated when command completes
+                    error=None,
                     log_path=log_path
                 )
                 results.append(result)
                 
                 # Emit progress signal
-                self.progress_updated.emit(i + 1, len(tokens))
-                
+                self.progress_updated.emit(i + 1, len(tokens))                
             except Exception as e:
                 # Handle token-specific error without aborting entire batch
                 error_msg = f"Error processing token {token.token_id}: {str(e)}"
@@ -707,9 +848,6 @@ class SequentialCommandProcessor(QObject):
                     break
                 
             finally:
-                # Close log for this token
-                self.logging_service.close_log_for_token(token.token_id, protocol, batch_id)
-                
                 # Clean up resources
                 self._release_telnet_client()
                 
@@ -717,7 +855,7 @@ class SequentialCommandProcessor(QObject):
                 if consecutive_failures >= 3:
                     self.logger.error("Circuit breaker triggered after 3 consecutive failures")
                     break
-                    
+                
                 # Perform periodic cleanup
                 if (i + 1) % 10 == 0:
                     self._perform_periodic_cleanup()
@@ -726,5 +864,5 @@ class SequentialCommandProcessor(QObject):
             if consecutive_failures >= 3:
                 self.logger.error("Circuit breaker triggered after 3 consecutive failures")
                 break
-                
+            
         return results

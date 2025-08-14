@@ -53,12 +53,12 @@
       },
       "alwaysAllow": [
         "find-direct-connections",
-        "nodes-semantic-search",
         "docs-semantic-search",
         "folder-tree-structure",
         "get-usage-dependency-links",
         "get-code",
-        "get_usage_dependency_links"
+        "get_usage_dependency_links",
+        "find_direct_connections"
       ],
       "disabled": false
     }

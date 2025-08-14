@@ -142,6 +142,11 @@
 {"type":"entity","name":"UI Components Cluster","entityType":"Cluster","observations":["Grouping of UI-related entities","Created by analyze_user"]}
 {"type":"entity","name":"Core Services Cluster","entityType":"Cluster","observations":["Grouping of core service entities","Created by analyze_user"]}
 {"type":"entity","name":"memory_snapshot_20250808","entityType":"Snapshot","observations":["Project memory snapshot created at 2025-08-08T15:12:00Z","Contains consolidated project knowledge graph","Version: 2.1","Schema: MemorySchemaV2"]}
+{"type":"entity","name":"SequentialCommandProcessor","entityType":"ServiceClass","observations":["Responsible for executing commands in strict sequential order","Located in src/commander/services/sequential_command_processor.py"]}
+{"type":"entity","name":"TokenProcessingFix","entityType":"SolutionPattern","observations":["Resolved sequential execution issue in command processing","Ensures commands are processed in strict order without overlapping","Implemented using a thread-safe queue and locking mechanism","Solution involves a dedicated processing thread that consumes from a queue","Uses threading.Lock to prevent concurrent access to critical sections","Pattern can be applied to any sequential processing requirement in the system","Key components: Queue, Lock, and a while loop in the processing thread"]}
+{"type":"entity","name":"CommandQueue","entityType":"class","observations":["Core component handling command processing","Originally had issues processing multiple tokens sequentially","Core implementation in src/commander/command_queue.py","Uses queue.Queue for thread-safe operations","Supports both synchronous and asynchronous command execution"]}
+{"type":"entity","name":"BatchProcessingFix","entityType":"solution_pattern","observations":["Fixed CommandQueue's token processing limitation","Implemented batch processing mechanism for multiple tokens","Key solution: Added batch collection buffer and timer-based processing trigger","Prevents token processing starvation by handling groups of commands"]}
+{"type":"entity","name":"UnifiedCommandExecution","entityType":"ArchitecturalPattern","observations":["Unified architecture for command execution","Treats batch processing as sequential commands in a queue","Uses CommandQueue abstraction for both single and batch commands","Simplifies execution flow by reusing single command infrastructure","Implemented in src/commander/command_queue.py","Used by SequentialCommandProcessor in src/commander/services/sequential_command_processor.py","Promotes consistency between single and batch command handling"]}
 {"type":"relation","from":"SessionEvent","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Class","to":"EntityType","relationType":"IS_A"}
 {"type":"relation","from":"Task","to":"EntityType","relationType":"IS_A"}
@@ -423,3 +428,8 @@
 {"type":"relation","from":"CommandProcessingSystem","to":"Core Services Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"LogWriter","to":"Core Services Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"SessionManager","to":"Core Services Cluster","relationType":"belongs_to"}
+{"type":"relation","from":"TokenProcessingFix","to":"SequentialCommandProcessor","relationType":"implemented_in"}
+{"type":"relation","from":"CommandQueue","to":"BatchProcessingFix","relationType":"fixed_by"}
+{"type":"relation","from":"BatchProcessingFix","to":"command_queue.py:CommandQueue.process_batch","relationType":"implemented_in"}
+{"type":"relation","from":"UnifiedCommandExecution","to":"CommandQueue","relationType":"uses"}
+{"type":"relation","from":"CommandQueue","to":"UnifiedCommandExecution","relationType":"implements"}

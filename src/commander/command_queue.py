@@ -7,30 +7,20 @@ from .services.threading_service import ThreadingService
 import logging
 import socket
 import time
-
-logger = logging.getLogger(__name__)
-
-def log_with_exc_info(msg, *args, **kwargs):
-    exc_info = kwargs.pop('exc_info', None)
-    if exc_info is None and 'exc' in kwargs:
-        exc_info = kwargs.pop('exc')
-    logger.log(msg, *args, exc_info=exc_info, **kwargs)
+import traceback
 
 @dataclass
 class QueuedCommand:
-    """Represents a command in the execution queue"""
     command: str
     token: NodeToken
-    status: str = 'pending'  # pending|processing|completed|failed
-    telnet_client: object = None   # Optional active telnet client to use
+    telnet_client: object = None
+    status: str = 'pending'  # pending, processing, completed, failed
 
 class CommandWorkerSignals(QObject):
-    finished = pyqtSignal(object, str)  # Emits (worker, result)
-    command_completed = pyqtSignal(str, str, bool, object)  # Emits (command, result, success, token)
+    finished = pyqtSignal(object, str)  # worker, result
+    command_completed = pyqtSignal(str, str, bool, object)  # command, result, success, token
 
 class CommandWorker(QRunnable):
-    """Worker for executing a single command in a thread"""
-    
     def __init__(self, command: str, token: NodeToken, telnet_session=None):
         super().__init__()
         self.command = command
@@ -159,8 +149,6 @@ class CommandWorker(QRunnable):
             self.signals.command_completed.emit(self.command, result_str, self.success, self.token)
 
 class CommandQueue(QObject):
-    """Manages a queue of commands to execute with progress tracking"""
-    
     command_completed = pyqtSignal(str, str, bool, object)  # command, result, success, token
     progress_updated = pyqtSignal(int, int)    # current, total
     
@@ -199,8 +187,8 @@ class CommandQueue(QObject):
         logging.debug(f"CommandQueue.add_command: Current queue size: {len(self.queue)}")
         logging.debug(f"CommandQueue.add_command: QueuedCommand object created: {qc}")
         
-        # Start processing if not already running and queue has commands
-        if not self.is_processing and len(self.queue) > 0:
+        # Start processing if queue has commands
+        if len(self.queue) > 0:
             self.start_processing()
         
     def start_processing(self):
@@ -216,6 +204,7 @@ class CommandQueue(QObject):
                 
             self._is_processing = True
             logging.info(f"CommandQueue.start_processing: Starting processing of {len(self.queue)} commands (state locked)")
+            
         logging.debug(f"CommandQueue.start_processing: Queue contents: {[qc.command for qc in self.queue]}")
         logging.debug(f"CommandQueue.start_processing: Thread pool status - active threads: {self.thread_pool.activeThreadCount()}, max threads: {self.thread_pool.maxThreadCount()}")
         
