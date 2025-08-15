@@ -18,6 +18,12 @@ This file contains a list of pending tasks and improvements for the LOGReport pr
 - [x] Logging: Standardize error logging format across services with consistent message structure and severity levels, implement structured logging for command execution
 - [x] Exception Handling Refactoring: Implement exception chaining for command execution errors to preserve original error context, add detailed error context for network operations
 - [x] Logging Standardization: Standardize error logging format across services with consistent message structure and severity levels, add command execution tracing
+- [x] Documentation: Update CHANGELOG with memory consolidation optimizations
+- [ ] Memory Management: Verify entity relationships in memory graph, promote reusable patterns to global memory, implement automated memory validation checks, create pattern versioning system
+- [x] Update README.md about proper service layer usage for batch operations
+- [x] Fix command queue re-execution issue by modifying start_processing() to only process pending commands and implementing queue cleanup in _handle_worker_finished() to remove completed commands
+- [x] Fix log file initialization for context menu actions by ensuring command queue properly passes token information with completion signals and commander window handles command completion with token information
+
 ## Optimization Backlog
 
 ### High Priority
@@ -39,7 +45,7 @@ This file contains a list of pending tasks and improvements for the LOGReport pr
 - [x] Finalize memory updates with proper session closure and traceability
 - [x] Fix batch token processing in context menus by replacing hardcoded command generation with service method calls
 - [x] Document architectural pattern for service layer usage in batch operations, including why service layer is critical and how to identify similar issues
-- [x] Create/update documentation in .docs/ about context menu implementation patterns\
+- [x] Create/update documentation in .docs/ about context menu implementation patterns
 - [x] Update README.md about proper service layer usage for batch operations
 - [x] Fix command queue re-execution issue by modifying start_processing() to only process pending commands and implementing queue cleanup in _handle_worker_finished() to remove completed commands
 - [x] Fix log file initialization for context menu actions by ensuring command queue properly passes token information with completion signals and commander window handles command completion with token information
@@ -51,3 +57,6 @@ This file contains a list of pending tasks and improvements for the LOGReport pr
 - [x] Add versioned memory schema with state chaining for consistency validation
 - [x] Implement validation checkpoint for memory operations
 - [x] Document memory consolidation workflow in architecture documentation
+- [x] Memory graph optimization: 10.1% entity reduction
+- [x] Promote reusable patterns to global memory
+- [x] Update architecture documentation
