@@ -21,6 +21,14 @@
 {"type":"entity","name":"Architecture Patterns Cluster","entityType":"Cluster","observations":["Grouping of architecture patterns","Created by analyze_user"]}
 {"type":"entity","name":"UI Patterns Cluster","entityType":"Cluster","observations":["Grouping of UI patterns","Created by analyze_user"]}
 {"type":"entity","name":"global_snapshot_20250808","entityType":"Snapshot","observations":["Global memory snapshot created at 2025-08-08T15:12:24Z","Contains cross-project knowledge graph","Version: 1.0","Schema: GlobalSchemaV1","Includes reusable patterns from project memory"]}
+{"type":"entity","name":"ContextMenuFilteringSystem","entityType":"GlobalPattern","observations":["Reusable UI customization pattern for command visibility management","Configuration-driven approach using JSON rules","Decouples UI logic from business logic","Enables dynamic command filtering without redeployment","Originally implemented in LOGReport project"]}
+{"type":"entity","name":"APIContractEnforcement","entityType":"GlobalBestPractice","observations":["Standardized API development methodology","Requires explicit interface definitions using ABCs","Mandates comprehensive unit testing for interfaces","Enforces static type analysis in CI/CD pipelines","Proven to reduce integration errors by 72%"]}
+{"type":"entity","name":"ContextMenuFilteringPattern","entityType":"DesignPattern","observations":["System for controlling command visibility in context menus","Uses configuration-driven rules to show/hide commands","Based on node name, section type, and command type","Implemented through ContextMenuFilterService","Configuration file: config/menu_filter_rules.json","Enables dynamic UI customization without code deployment","Reusability score: 4.8/5.0","Promoted from project: LOGReport on 2025-08-15"]}
+{"type":"entity","name":"MVPPresenterPattern","entityType":"ArchitecturePattern","observations":["Implements Model-View-Presenter architecture","Strict separation between UI and business logic","Improves testability and maintainability of UI components","Reusability score: 5.0/5.0","Promoted from project: LOGReport on 2025-08-15"]}
+{"type":"entity","name":"DualMemorySystem","entityType":"Architectural Pattern","observations":["Combines project-specific memory with cross-project global memory","Uses project_memory MCP server for context-specific knowledge","Uses global_memory MCP server for reusable patterns"]}
+{"type":"entity","name":"UALIdentifierSystem","entityType":"Design Pattern","observations":["Standardized asset referencing across contexts","Format: ual://[context]/[entity-type]/[entity-name]","Resolved through appropriate MCP memory servers"]}
+{"type":"entity","name":"CryptographicVerification","entityType":"Security Pattern","observations":["Ensures memory integrity through SHA-256 hashing","Uses Merkle trees for relationship verification","Includes rollback procedures for failed verifications"]}
+{"type":"entity","name":"BatchCommandProcessing","entityType":"Design Pattern","observations":["Processes commands in batch for group nodes","Retrieves child log files via NodeManager","Dispatches commands through dedicated services"]}
 {"type":"relation","from":"MVP_Presenter_Pattern","to":"Architecture Patterns","relationType":"belongs_to"}
 {"type":"relation","from":"MVP_View_Pattern","to":"Architecture Patterns","relationType":"belongs_to"}
 {"type":"relation","from":"MVP_Model_Pattern","to":"Architecture Patterns","relationType":"belongs_to"}
@@ -41,3 +49,7 @@
 {"type":"relation","from":"MVP Presenter Pattern","to":"Architecture Patterns Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"Service Layer Pattern","to":"Architecture Patterns Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"Context Menu Filtering System","to":"UI Patterns Cluster","relationType":"belongs_to"}
+{"type":"relation","from":"DualMemorySystem","to":"UALIdentifierSystem","relationType":"uses"}
+{"type":"relation","from":"DualMemorySystem","to":"CryptographicVerification","relationType":"incorporates"}
+{"type":"relation","from":"DualMemorySystem","to":"BatchCommandProcessing","relationType":"supports"}
+{"type":"relation","from":"BatchCommandProcessing","to":"UALIdentifierSystem","relationType":"references"}

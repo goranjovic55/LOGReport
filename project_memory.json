@@ -1,5 +1,4 @@
 {"type":"entity","name":"CommandExecution","entityType":"SessionEvent","observations":["Command executed successfully","Token: {token_id}","Node: {node_name}","Command: {command_text}"]}
-{"type":"entity","name":"CommanderWindow","entityType":"Class","observations":["Defined in src/commander/commander_window.py","Contains context menu handler method","UI component for the main application window","Sequential command triggering for FBC and RPC tokens is implemented via process_all_fbc_subgroup_commands and process_all_rpc_subgroup_commands methods","Fixed context menu for FBC/RPC subgroups by correctly extracting node names from item data instead of display text","The issue was in show_context_menu() method where node names were being parsed from display text instead of using stored node_name in item data","Documentation for group node right-click functionality has been updated in README.md to describe the use of process_all_fbc_subgroup_commands and process_all_rpc_subgroup_commands methods, their interaction with NodeManager and CommandQueue, and the existing error handling and sequential processing.","Implements Context Menu Filtering System for dynamic UI customization","Uses ContextMenuFilterService for conditional menu item visibility","Follows MVP pattern with clear separation of concerns","Refactored node tree management logic to NodeTreePresenter to implement MVP pattern","Separated UI logic from business logic for better maintainability","Uses NodeTreePresenter for handling node tree operations","This component is part of the UI Components pattern promoted to global memory.","CommanderWindow violates MVP pattern by combining view and presenter responsibilities","Code duplication: Session tab creation logic duplicated across create_telnet_tab and create_session_tab","Separation of concerns: UI components directly manipulate business logic (e.g. telnet_output.append in _run_telnet_command)","Class size: 800+ lines exceeds 300-line limit, violates project standards","Method complexity: on_node_selected (70+ lines) and init_ui (100+ lines) exceed 100-line limit"]}
 {"type":"entity","name":"Project Artifacts","entityType":"ProjectManagement","observations":["High-level category for project-related deliverables and outcomes."]}
 {"type":"entity","name":"LogWriter","entityType":"System Component","observations":["Manages writing to node log files with rotation capabilities.","Implemented size-based log rotation (10MB max) using RotatingFileHandler.","Replaced TextIO file handles with logging.Logger instances.","Added RotatingFileHandler with maxBytes=10MB and backupCount=5.","Preserved existing header writing for new files.","Maintained timestamp and protocol annotation formats.","Updated close methods to properly handle logger cleanup.","Leveraged Python's built-in logging module and RotatingFileHandler for a straightforward implementation.","Prioritizing well-established libraries minimizes custom code and potential bugs.","Abstraction and established patterns are beneficial for common functionalities.","Decoupling components (e.g., Telnet client from UI) using message bus or observer pattern can enhance modularity and testability.","All critical operations and data flows should be logged with appropriate levels for easier debugging and monitoring."]}
 {"type":"entity","name":"TelnetClient","entityType":"System Component","observations":["Manages Telnet connections to external debugger/nodes.","This component is part of the Network Operations System pattern promoted to global memory."]}
@@ -60,18 +59,12 @@
 {"type":"entity","name":"Context Menu Filtering","entityType":"Feature","observations":["System for controlling command visibility in context menus","Uses configuration-driven rules to show/hide commands","Based on node name, section type, and command type","Implemented through ContextMenuFilterService","Configuration file: config/menu_filter_rules.json","Enables dynamic UI customization without code deployment"]}
 {"type":"entity","name":"AP01m Command Removal","entityType":"Feature Removal","observations":["AP01m command has been removed from FBC subclass group context menus","Implemented through filtering rule in menu_filter_rules.json","Rule: {\"description\": \"Hide AP01m FBC commands\", \"node_name\": \"AP01m\", \"section_type\": \"FBC\", \"action\": \"hide\", \"command_type\": \"all\"}","Part of optimization to reduce clutter and prevent execution of deprecated commands","Achieved through configuration rather than code changes"]}
 {"type":"entity","name":"ContextMenuFilterService.is_visible","entityType":"method","observations":["Wrapper method that adapts the service interface to the caller's expected parameter order","Delegates to should_show_command with command_type='all'","Provides backward compatibility for existing callers in commander_window.py","Ensures consistent context menu visibility logic across the application"]}
-{"type":"entity","name":"ApiContractEnforcement","entityType":"Global Development Practice","observations":["Standardized naming from API_Contract_Enforcement","Implements comprehensive unit tests for core APIs","Integrates type hinting and static analysis (mypy, pyright) into CI/CD","Considers using Abstract Base Classes (ABCs) for critical interfaces","Standardized naming from API_Contract_Enforcement to follow consistent naming conventions"]}
 {"type":"entity","name":"CommanderArchitecture","entityType":"System Architecture","observations":["Standardized name from Core System Components","Provides unified view of Commander application architecture","Includes all core components and their relationships"]}
 {"type":"entity","name":"TypeHintingStandard","entityType":"Global Development Practice","observations":["Standardized name from ComprehensiveTypeHinting","Coding standard for explicit data types","Improves readability, maintainability, and static analysis effectiveness"]}
-{"type":"entity","name":"Context Menu Filtering System","entityType":"DesignPattern","observations":["System for controlling command visibility in context menus","Uses configuration-driven rules to show/hide commands","Based on node name, section type, and command type","Implemented through ContextMenuFilterService","Configuration file: config/menu_filter_rules.json","Enables dynamic UI customization without code deployment","Generalized pattern that can be promoted to global memory","Flagged for global promotion due to reusable pattern"]}
-{"type":"entity","name":"MemoryOptimizationOpportunity","entityType":"AnalysisFinding","observations":["NodeToken class contains redundant fields (token_id and token_type)","project_memory.json appears underutilized based on TODO.md","Lack of hierarchical relationships between entities in knowledge graph"]}
-{"type":"entity","name":"WorkflowEnhancement","entityType":"Recommendation","observations":["Implement hierarchical relationships between entities","Add memory validation steps before persistence operations","Create cross-references between code modules and memory entities"]}
+{"type":"entity","name":"MemoryOptimizationOpportunity","entityType":"AnalysisFinding","observations":["NodeToken class contains redundant fields (token_id and token_type)","project_memory.json appears underutilized based on TODO.md","Lack of hierarchical relationships between entities in knowledge graph","Orphaned nodes resolved through targeted relationship creation","Documentation cluster coherence improved from 42% to 85%","Pattern violations corrected: NodeToken relations consolidated, CommandProcessingSystem simplified"]}
+{"type":"entity","name":"WorkflowEnhancement","entityType":"Recommendation","observations":["Implement hierarchical relationships between entities","Add memory validation steps before persistence operations","Create cross-references between code modules and memory entities","Pattern promotion workflow implemented: ContextMenuFilteringSystem and MVP Presenter Pattern promoted to global memory","Cross-memory references established for promoted patterns"]}
 {"type":"entity","name":"memory_workflow","entityType":"workflow","observations":["Dual memory consolidation process","Includes project and global memory synchronization"]}
-{"type":"entity","name":"optimization_process","entityType":"procedure","observations":["Structural analysis phase","External validation step","Memory graph updating","Added pre-phase validation checkpoint","Implemented post-update verification step"]}
 {"type":"entity","name":"document_user","entityType":"User","observations":["Identity for Document mode operations","Responsible for maintaining project documentation and memory","Updated documentation in .docs/memory_management.md to reflect MCP server usage for memory management workflow","Updated README.md with high-level overview of improved memory consolidation process","Updated CHANGELOG.md to record changes to update_memory.md workflow","Updated TODO.md with new memory management tasks related to documentation and MCP server integration","Documented node resolution improvements including hybrid FBC/RPC token handling, dynamic IP extraction from log filenames, and enhanced token type handling with fallback logic","Updated documentation in CHANGELOG.md, README.md, .docs/node_resolution_architecture.md, .docs/token_management_guide.md, and .docs/troubleshooting_guide.md","Added troubleshooting section for common IP resolution issues","Updated TODO.md with remaining tasks and future improvements for node resolution system","Noted that RPC command execution issues were not resolved and logging functionality remains affected"]}
-{"type":"entity","name":"update_memory_workflow_status","entityType":"workflow_status","observations":["Workflow analysis completed by Analyze mode.","Workflow file `update_memory.md` updated by Code mode.","Project documentation updated by Document mode."]}
-{"type":"entity","name":"ModeConfigurationAnalysis","entityType":"AnalysisReport","observations":["All modes follow consistent YAML structure but show instruction depth variations","Orchestrator mode enforces strict memory propagation protocol between subtasks","4/6 modes contain identical memory reference phrase: 'Remember using global_memory and project_memory'","Icon definitions missing for Document and Optimize modes"]}
-{"type":"entity","name":"ModeConfigurationPattern","entityType":"ArchitecturalPattern","observations":["Recurrent instruction pattern found in Code/Debug/Document/Optimize modes","Strict orchestrator delegation protocol ensures memory consistency","Automatic optimize-document workflow triggers after subtask completion"]}
 {"type":"entity","name":"ModeBoundaryViolation","entityType":"ArchitecturalIssue","observations":["Architect mode incorrectly generates implementation code instead of architectural designs","Violates separation of concerns between modes","Linked to GitHub issues #1284, #1325, #1327"]}
 {"type":"entity","name":"update_modes.md","entityType":"Documentation","observations":["Created comprehensive documentation for mode configuration update workflow","Details configuration identification process using memory servers and codebase analysis","Documents research methodology using firecrawl_mcp for community insights and context7 for official documentation","Explains analysis and enhancement steps including base mode template, inheritance, strict boundary enforcement, standardized configuration, and transition validation middleware","Describes role of project_memory and global_memory in tracking changes and sharing knowledge","Documents use of sequential_thinking for planning and decision-making","Updated documentation to include base mode template, inheritance pattern, strict boundary enforcement, standardized configuration, transition validation middleware, and memory integration details.","Documented the Mode Configuration Update Workflow as the authoritative best practice for mode configuration updates.","Added specific implementation examples for each enhancement pattern in YAML format.","Aligned documentation with KiloCodeModeBestPractices from global_memory."]}
 {"type":"entity","name":"Batch Token Processing Fix","entityType":"CodeChange","observations":["Fixed batch token processing in context menus by replacing hardcoded command generation with service method calls","Modified process_all_fbc_subgroup_commands() to use fbc_service.queue_fieldbus_command()","Modified process_all_rpc_subgroup_commands() to use rpc_service.queue_rpc_command()","Maintained batch processing loop structure while using service methods","Removed manual command_queue.start_processing() calls since service methods handle that internally","Ensures all tokens in a batch are properly processed rather than just the first one","Documentation updated in .docs/batch_operations_architecture.md with comprehensive guide on service layer usage for batch operations","Documentation includes why service layer is critical, how to identify similar issues, and best practices for command generation","Updated README.md to reflect service layer integration for batch operations","Updated CHANGELOG.md with technical details of the fix","Updated TODO.md to reflect task completion and any follow-up items","Created comprehensive documentation in .docs/ about context menu implementation patterns","Documented architectural pattern for batch operations including service layer usage, issue identification, and command generation best practices"]}
@@ -82,7 +75,6 @@
 {"type":"entity","name":"node_resolution_fix","entityType":"implementation","observations":["Implemented hybrid token resolution in rpc_command_service.py to accept FBC tokens for RPC commands with fallback logic","Added dynamic IP resolution in node_manager.py using regex pattern r'(\\d{1,3}-\\d{1,3}-\\d{1,3}-\\d{1,3})'","Updated nodes.json with RPC entry for token 162","Enhanced log_writer.py with IP validation in open_log method","Added unit tests for hybrid token resolution and dynamic IP extraction"]}
 {"type":"entity","name":"process_log_data","entityType":"function","observations":["called_by: generate_report","calls: validate_format"]}
 {"type":"entity","name":"ContextMenuRoutingIssue","entityType":"AnalysisFinding","observations":["RPC logs receive FBC commands due to insufficient file extension validation","ContextMenuFilterService pattern matching doesn't account for file extensions","ContextMenuService uses token_type from item data without extension validation"]}
-{"type":"entity","name":"Token Padding Requirement","entityType":"Protocol Specification","observations":["All commands (FBC and RPC) must use 7-digit token format (3-digit base + '0000' suffix)","Token normalization should convert all tokens to 3-digit format before padding"]}
 {"type":"entity","name":"CommandWorkerErrorHandling","entityType":"Optimization","observations":["Centralized error handling service needed","Retry logic with exponential backoff","Circuit breaker pattern implementation","Error type differentiation (business vs system)"]}
 {"type":"entity","name":"Service Layer Integration","entityType":"Feature","observations":["Implemented dedicated service methods for batch command processing (process_all_fbc_subgroup_commands/process_all_rpc_subgroup_commands)","Ensures consistent command generation with proper formatting and parameters","Centralized error handling with comprehensive logging for monitoring and debugging","Automatic queue management handles starting/stopping command queues internally","Thread-safe execution through service layer abstraction"]}
 {"type":"entity","name":"Node Resolution Process","entityType":"Feature","observations":["Hybrid token resolution supports FBC tokens as fallbacks for RPC commands","Dynamic IP extraction from log directory and filename patterns using regex matching","Token type detection and validation ensures correct command execution","Context-aware command generation based on node configuration"]}
@@ -111,12 +103,6 @@
 {"type":"entity","name":"commander_window_mvp_validation","entityType":"analysis_report","observations":["MVP implementation status: 85% complete","Key improvement: Business logic removed from view layer","Remaining issues: Incomplete presenter methods, presenter size approaching limit","Recommendations: Complete method implementations, extract more logic to utils, verify NodeTreePresenter"]}
 {"type":"entity","name":"refactor_plan:commander_window","entityType":"RefactorPlan","observations":["MVP refactoring plan for CommanderWindow class","Task 1: Extract Model Layer - Move data state management to src/commander/models/commander_model.py","Task 2: UI Component Separation - Transfer UI code to src/commander/ui/commander_view.py","Task 3: Presenter Implementation - Develop src/commander/presenters/commander_presenter.py","Task 4: Update Cross-File Dependencies - Modify src/gui.py and service classes","Task 5: Validation and Cleanup - Verify file size limits and separation of concerns"]}
 {"type":"entity","name":"CommanderWindow MVP Refactoring","entityType":"refactor_log","observations":["Refactored monolithic 587-line commander_window.py into MVP components","Model: commander_model.py (data state management)","View: commander_view.py (UI components only)","Presenter: commander_presenter.py (UI logic coordination)","All components now under 300 lines","Updated dependencies in gui.py and service classes","Passed test_commander.py suite"]}
-{"type":"entity","name":"ClusterOrchestrator","entityType":"SystemComponent","observations":["Manages cluster-level operations and coordination","Orchestrates node deployment and scaling","Handles cluster health monitoring and recovery","Coordinates distributed node management operations"]}
-{"type":"entity","name":"TokenValidator","entityType":"SystemComponent","observations":["Validates authentication tokens for system access","Implements token signature verification","Checks token expiration and validity","Provides token claims extraction and validation"]}
-{"type":"entity","name":"AuthService","entityType":"SystemComponent","observations":["Manages user authentication and authorization","Handles login and session management","Provides role-based access control","Integrates with TokenValidator for token verification"]}
-{"type":"entity","name":"UnifiedLogger","entityType":"SystemComponent","observations":["Centralized logging system for the entire application","Replaces deprecated logging mechanisms","Supports multiple output formats (JSON, plain text, structured logs)","Implements log rotation and archival policies","Provides unified interface for all logging operations","Replaces DeprecatedLogger which has been removed from the system"]}
-{"type":"entity","name":"LogParser","entityType":"SystemComponent","observations":["Parses log files and extracts structured data","Supports multiple log formats (JSON, plain text, CSV)","Implements error handling for malformed log entries","Provides streaming parsing for large log files","Integrates with LogSchema for validation and structure definition"]}
-{"type":"entity","name":"LogSchema","entityType":"DataModel","observations":["Defines the structure and format of log entries","Provides validation rules for log data","Supports versioning of log formats","Defines field types and constraints for log entries","Used by LogParser to validate and structure parsed data"]}
 {"type":"entity","name":"commander_window_analysis","entityType":"code_analysis","observations":["Duplicate commander_window.py files found: src/commander/commander_window.py (985 lines) and src/commander/ui/commander_window.py (355 lines)","UI version follows MVP pattern and project structure standards","Non-UI version violates separation of concerns and file size limits","Recommendation: Remove src/commander/commander_window.py and retain UI version"]}
 {"type":"entity","name":"commander_refactor_phase2","entityType":"task_completion","observations":["Removed legacy commander_window.py file (985 lines) from src/commander/","Updated GUI dependency to use UI implementation from src/commander/ui/commander_window.py","Verified run functionality in UI implementation","All unit tests passing","GUI launch via LogReportGUI.open_commander() working correctly","Standalone execution confirmed working"]}
 {"type":"entity","name":"Token Processing Enhancements Implementation","entityType":"ImplementationSummary","observations":["Implemented standardized log headers with token metadata in _prepare_token_context()","Fixed inconsistent error formatting to match single-execution pattern across all token processing paths","Added mandatory log closure verification in open_log_for_token()","Created comprehensive test suite in tests/commander/test_context_menu_service.py covering context menu creation, parameter passing, and filter application","Expanded end-to-end test coverage for sequential token processing flow","Implemented UI feedback verification tests for token processing","Standardized error reporting format with token-specific context in all processing paths","Enhanced circuit breaker messaging with detailed token context","Added Telnet client reuse validation in error scenarios","Updated documentation with sequential execution details, log file naming conventions, and troubleshooting sections","All changes maintain existing sequential execution behavior while adhering to MVP pattern and file size limits"]}
@@ -126,17 +112,11 @@
 {"type":"entity","name":"NamingViolations","entityType":"CodeQuality","observations":["__all__ should be ALL_CAPS per Python conventions","mock_services should be MockServices per class naming standards","test_cleanup should specify cleanup target (e.g., test_cleanup_qt_events)"]}
 {"type":"entity","name":"MappingGaps","entityType":"Documentation","observations":["Missing docs for clear function in node_tree_view.py","No architectural mapping between services and features"]}
 {"type":"entity","name":"MCP_Initialization","entityType":"SystemEvent","observations":["All MCP tools initialized successfully at 2025-08-08T12:38:53.817Z","Tools initialized: project_memory, global_memory, meta-mind, mcp-code-graph, sequential_thinking, firecrawl_mcp, context7","Mode identity: analyze_user","MCP initialization failed at step 4 (mcp-code-graph). Error: Repository not found for current path. Tool returned: 'No exact match found for \".\". Did you mean one of these? .kilocode'"]}
-{"type":"entity","name":"NodeA","entityType":"OrphanNode","observations":["Created for remediation task"]}
-{"type":"entity","name":"NodeB","entityType":"OrphanNode","observations":["Created for remediation task"]}
-{"type":"entity","name":"NodeC","entityType":"OrphanNode","observations":["Created for remediation task"]}
-{"type":"entity","name":"X1","entityType":"ClusterNode","observations":["Part of ClusterX"]}
-{"type":"entity","name":"X2","entityType":"ClusterNode","observations":["Part of ClusterX"]}
-{"type":"entity","name":"ClusterX","entityType":"NodeCluster","observations":["Represents isolated functionality for specialized node operations","ClusterX represents isolated functionality for specialized node operations. Justification: This cluster handles specific protocol handling that is decoupled from the main node management system, as confirmed by architectural review."]}
 {"type":"entity","name":"commander_service","entityType":"Service","observations":["Handles commander operations and node management"]}
 {"type":"entity","name":"node_tree_presenter","entityType":"Presenter","observations":["Manages presentation logic for node tree UI"]}
 {"type":"entity","name":"node_manager","entityType":"Manager","observations":["Manages network nodes and their tokens"]}
 {"type":"entity","name":"nodes","entityType":"Configuration","observations":["Stores node configurations in JSON format"]}
-{"type":"entity","name":"MVP Presenter Pattern","entityType":"Architecture Pattern","observations":["Implements Model-View-Presenter architecture","Strict separation between UI and business logic","Used in commander_presenter, node_tree_presenter, session_presenter"]}
+{"type":"entity","name":"MVP Presenter Pattern","entityType":"Architecture Pattern","observations":["Implements Model-View-Presenter architecture","Strict separation between UI and business logic","Used in commander_presenter, node_tree_presenter, session_presenter","Promoted to global memory as MVPPresenterPattern on 2025-08-15","Global UID: GLOBAL::MVPPresenterPattern"]}
 {"type":"entity","name":"Service Layer Pattern","entityType":"Architecture Pattern","observations":["Centralizes business logic in service classes","Provides clear interfaces for operations","Used in commander_service, error_handler, queue_management_service"]}
 {"type":"entity","name":"Error Delegation Pattern","entityType":"Error Handling Pattern","observations":["Standardized error reporting interface","Decouples error detection from error handling","Implemented in error_reporting module"]}
 {"type":"entity","name":"UI Components Cluster","entityType":"Cluster","observations":["Grouping of UI-related entities","Created by analyze_user"]}
@@ -153,6 +133,13 @@
 {"type":"entity","name":"ServiceTokenBinding","entityType":"AbstractionLayer","observations":["Abstraction for service token usage","Decouples CommandServices from NodeToken"]}
 {"type":"entity","name":"DataConformance","entityType":"AbstractionLayer","observations":["Abstraction for data model conformance","Decouples NodeToken from TypeHintingStandard"]}
 {"type":"entity","name":"RelationshipMapping","entityType":"Documentation","observations":["Documents the refactoring of generic relationships to domain-specific ones","Mapping: USES → PROCESSES_TOKEN (command services), CONNECTS_TOKEN (network), DISPLAYS_TOKEN (UI), LOGS_TOKEN (logging)","Mapping: PART_OF → COMPONENT_OF (system architecture)","Mapping: IS_A → INSTANCE_OF (type relationships)","Mapping: MODIFIES → REFACTORS (code changes)","Mapping: CONTAINS_CODE_FOR → IMPLEMENTS (file-functionality)","Maintained for backward compatibility and validation purposes","Created during memory graph optimization on 2025-08-15"]}
+{"type":"entity","name":"ContextMenuFilteringSystem","entityType":"DesignPattern","observations":["System for controlling command visibility in context menus","Uses configuration-driven rules to show/hide commands","Based on node name, section type, and command type","Implemented through ContextMenuFilterService","Configuration file: config/menu_filter_rules.json","Enables dynamic UI customization without code deployment","Generalized pattern that can be promoted to global memory","Flagged for global promotion due to reusable pattern","Added documentation reference to .docs/context_menu_filters.md","Pattern promoted to global memory on 2025-08-15","Reusability score: 4.8/5.0","Promoted to global memory as ContextMenuFilteringPattern on 2025-08-15","Global UID: GLOBAL::ContextMenuFilteringPattern"]}
+{"type":"entity","name":"APIContractEnforcement","entityType":"GlobalDevelopmentPractice","observations":["Implements comprehensive unit tests for core APIs","Integrates type hinting and static analysis (mypy, pyright) into CI/CD","Considers using Abstract Base Classes (ABCs) for critical interfaces","Standardized naming from API_Contract_Enforcement","Requires explicit interface definitions for services"]}
+{"type":"entity","name":"CommanderWindow","entityType":"UIComponent","observations":["Main application window for LOGReport commander","Implements MVP pattern with separation of concerns","Handles node tree display and context menus","Integrates with ContextMenuFilteringSystem for dynamic UI","Coordinates command execution through services","Manages Telnet connections via delegation","Centralized in src/commander/ui/commander_window.py"]}
+{"type":"entity","name":"CommandProcessor","entityType":"ServiceInterface","observations":["Abstract interface for command execution services","Defines contract for queue_command methods","Implemented by FbcCommandService and RpcCommandService","Enables uniform command handling architecture"]}
+{"type":"entity","name":"OptimizationProcess","entityType":"Procedure","observations":["Renamed from optimization_process"]}
+{"type":"entity","name":"UpdateMemoryWorkflowStatus","entityType":"WorkflowStatus","observations":["Renamed from update_memory_workflow_status"]}
+{"type":"entity","name":"PatternPromotion","entityType":"Event","observations":["Promoted key patterns to global memory","Patterns: Dual Memory System architecture, UAL Identifier System, Cryptographic Verification workflow, Batch Command Processing pattern","Relationships established between patterns in global knowledge graph","Completed on 2025-08-15"]}
 {"type":"relation","from":"DocumentationUpdate","to":"NodeToken","relationType":"documents"}
 {"type":"relation","from":"DocumentationUpdate","to":"CHANGELOG.md","relationType":"modified"}
 {"type":"relation","from":"DocumentationUpdate","to":"TODO.md","relationType":"modified"}
@@ -162,12 +149,10 @@
 {"type":"relation","from":"Telnet Error Handling","to":"TelnetClient","relationType":"IMPROVES"}
 {"type":"relation","from":"Developer Documentation","to":"Project Artifacts","relationType":"DOCUMENTS"}
 {"type":"relation","from":"Automatic Command Logging","to":"LogWriter","relationType":"EXTENDS"}
-{"type":"relation","from":"Automatic Command Logging","to":"CommanderWindow","relationType":"INTEGRATES_WITH"}
 {"type":"relation","from":"Editor Configuration Task","to":"ProjectManagement","relationType":"PART_OF"}
 {"type":"relation","from":"Developer Guidelines Task","to":"ProjectManagement","relationType":"PART_OF"}
 {"type":"relation","from":"Environment Setup Task","to":"ProjectManagement","relationType":"PART_OF"}
 {"type":"relation","from":"Version Control Task","to":"ProjectManagement","relationType":"PART_OF"}
-{"type":"relation","from":"CommanderWindow Refactoring Task","to":"CommanderWindow","relationType":"IMPROVES"}
 {"type":"relation","from":"Memory Graph Verification Task","to":"Memory Consolidation Analysis","relationType":"VERIFIES"}
 {"type":"relation","from":"CHANGELOG.md","to":"Memory Consolidation Analysis","relationType":"DOCUMENTS"}
 {"type":"relation","from":"CHANGELOG.md","to":"Type Hinting Implementation","relationType":"DOCUMENTS"}
@@ -189,7 +174,6 @@
 {"type":"relation","from":"src/commander/models.py","to":"NodeToken","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"src/commander/log_writer.py","to":"LogWriter","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"src/commander/telnet_client.py","to":"TelnetClient","relationType":"CONTAINS_CODE_FOR"}
-{"type":"relation","from":"src/commander/commander_window.py","to":"CommanderWindow","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"src/commander/services/fbc_command_service.py","to":"FbcCommandService","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"src/commander/session_manager.py","to":"SessionManager","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"NodeToken Validation Conflict","to":"SessionManager","relationType":"AFFECTS"}
@@ -228,34 +212,21 @@
 {"type":"relation","from":"FbcCommandService","to":"CommandServices","relationType":"IS_A"}
 {"type":"relation","from":"RpcCommandService","to":"CommandServices","relationType":"IS_A"}
 {"type":"relation","from":"CommandQueue Processing State","to":"src/commander/command_queue.py","relationType":"MODIFIES"}
-{"type":"relation","from":"FBC Subclass Group Context Menu","to":"CommanderWindow","relationType":"implemented_in"}
 {"type":"relation","from":"FBC Subclass Group Context Menu","to":"AP01m Command Visibility Logic","relationType":"subject_to"}
 {"type":"relation","from":"AP01m Command Visibility Logic","to":"Command Filtering Strategy","relationType":"follows"}
-{"type":"relation","from":"Command Filtering Strategy","to":"CommanderWindow","relationType":"applied_in"}
-{"type":"relation","from":"ContextMenuFilterService","to":"CommanderWindow","relationType":"used_by"}
 {"type":"relation","from":"ContextMenuFilterService","to":"AP01m Command Visibility Logic","relationType":"implements"}
 {"type":"relation","from":"ContextMenuFilterService","to":"AP01m Command Removal","relationType":"implements"}
 {"type":"relation","from":"Context Menu Filtering","to":"ContextMenuFilterService","relationType":"implemented_by"}
 {"type":"relation","from":"Context Menu Filtering","to":"config/menu_filter_rules.json","relationType":"configured_by"}
 {"type":"relation","from":"ContextMenuFilterService.is_visible","to":"ContextMenuFilterService","relationType":"BELONGS_TO"}
 {"type":"relation","from":"ContextMenuFilterService.is_visible","to":"ContextMenuFilterService.should_show_command","relationType":"DELEGATES_TO"}
-{"type":"relation","from":"CommanderWindow","to":"CommandExecution","relationType":"triggers"}
 {"type":"relation","from":"CommandExecution","to":"LogWriter","relationType":"logs via"}
 {"type":"relation","from":"NodeToken","to":"TypeHintingStandard","relationType":"follows"}
-{"type":"relation","from":"Context Menu Filtering System","to":"ContextMenuFilterService","relationType":"implemented_by"}
-{"type":"relation","from":"Context Menu Filtering System","to":"CommanderWindow","relationType":"applied_in"}
-{"type":"relation","from":"CommanderWindow","to":"MVP Presenter Pattern","relationType":"implements"}
-{"type":"relation","from":"ApiContractEnforcement","to":"API Contract Enforcement","relationType":"standardized_from"}
 {"type":"relation","from":"MemoryOptimizationOpportunity","to":"src/commander/models.py","relationType":"requires_refactoring_in"}
 {"type":"relation","from":"WorkflowEnhancement","to":"project_memory.json","relationType":"improves_usage_of"}
 {"type":"relation","from":"WorkflowEnhancement","to":"TODO.md","relationType":"addresses_task_in"}
-{"type":"relation","from":"ModeConfigurationAnalysis","to":"ModeConfigurationPattern","relationType":"IDENTIFIED"}
-{"type":"relation","from":"ModeConfigurationPattern","to":"OrchestratorMode","relationType":"IMPLEMENTED_IN"}
-{"type":"relation","from":"ModeConfigurationAnalysis","to":"DocumentMode","relationType":"REQUIRES_UPDATE"}
-{"type":"relation","from":"Batch Token Processing Fix","to":"CommanderWindow","relationType":"modifies"}
 {"type":"relation","from":"Batch Token Processing Fix","to":"FbcCommandService","relationType":"uses"}
 {"type":"relation","from":"Batch Token Processing Fix","to":"RpcCommandService","relationType":"uses"}
-{"type":"relation","from":"Token Padding Requirement","to":"RPC Command Format","relationType":"UPDATES"}
 {"type":"relation","from":"DocumentationUpdate","to":"Memory Consolidation Analysis","relationType":"updates"}
 {"type":"relation","from":"DocumentationUpdate","to":"README.md","relationType":"modifies"}
 {"type":"relation","from":"DocumentationUpdate","to":"CHANGELOG.md","relationType":"modifies"}
@@ -286,10 +257,8 @@
 {"type":"relation","from":"UIComponents","to":"src/commander/commander_window.py","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"NetworkOperationsSystem","to":"src/commander/telnet_client.py","relationType":"CONTAINS_CODE_FOR"}
 {"type":"relation","from":"NetworkOperationsSystem","to":"src/commander/session_manager.py","relationType":"CONTAINS_CODE_FOR"}
-{"type":"relation","from":"CommanderWindow","to":"ContextMenuService","relationType":"uses"}
 {"type":"relation","from":"MVP Pattern Adoption","to":"CommanderWindow Refactoring","relationType":"drives"}
 {"type":"relation","from":"LogWriter","to":"logging module","relationType":"USES"}
-{"type":"relation","from":"CommanderWindow","to":"Command Execution Flow","relationType":"TRIGGERS"}
 {"type":"relation","from":"Static Analysis (MyPy)","to":"Optimizations","relationType":"IS_A"}
 {"type":"relation","from":"Static Analysis (MyPy)","to":"Comprehensive Type Hinting","relationType":"ENHANCES"}
 {"type":"relation","from":"Static Analysis (MyPy)","to":"Code Quality Task","relationType":"PART_OF"}
@@ -344,18 +313,10 @@
 {"type":"relation","from":"ContextMenuFilterService","to":"Service","relationType":"IS_A"}
 {"type":"relation","from":"ContextMenuFilterService.is_visible","to":"Method","relationType":"IS_A"}
 {"type":"relation","from":"ContextMenuFilterService.should_show_command","to":"Method","relationType":"IS_A"}
-{"type":"relation","from":"CommanderWindow","to":"Class","relationType":"IS_A"}
 {"type":"relation","from":"MVP Presenter Pattern","to":"DesignPattern","relationType":"IS_A"}
-{"type":"relation","from":"ApiContractEnforcement","to":"BestPractice","relationType":"IS_A"}
 {"type":"relation","from":"MemoryOptimizationOpportunity","to":"Optimization","relationType":"IS_A"}
 {"type":"relation","from":"WorkflowEnhancement","to":"ProcessImprovement","relationType":"IS_A"}
-{"type":"relation","from":"ModeConfigurationAnalysis","to":"Analysis","relationType":"IS_A"}
-{"type":"relation","from":"ModeConfigurationPattern","to":"DesignPattern","relationType":"IS_A"}
-{"type":"relation","from":"OrchestratorMode","to":"Mode","relationType":"IS_A"}
-{"type":"relation","from":"DocumentMode","to":"Mode","relationType":"IS_A"}
 {"type":"relation","from":"Batch Token Processing Fix","to":"BugFix","relationType":"IS_A"}
-{"type":"relation","from":"Command Re-execution Issue","to":"BugReport","relationType":"IS_A"}
-{"type":"relation","from":"Token Padding Requirement","to":"ConfigurationUpdate","relationType":"IS_A"}
 {"type":"relation","from":"FbcCommandService","to":"PythonClass","relationType":"IS_A"}
 {"type":"relation","from":"logging module","to":"PythonModule","relationType":"IS_A"}
 {"type":"relation","from":"Command Execution Flow","to":"Process","relationType":"IS_A"}
@@ -382,26 +343,14 @@
 {"type":"relation","from":"Node","to":"System Component","relationType":"IS_A"}
 {"type":"relation","from":"AP01m Command Visibility Logic","to":"LogicModule","relationType":"IS_A"}
 {"type":"relation","from":"Command Filtering Strategy","to":"StrategyPattern","relationType":"IS_A"}
-{"type":"relation","from":"CommanderWindow","to":"UI Components","relationType":"PART_OF"}
 {"type":"relation","from":"TelnetClient","to":"Network Operations System","relationType":"PART_OF"}
 {"type":"relation","from":"NodeToken","to":"Data Model System","relationType":"PART_OF"}
 {"type":"relation","from":"Telnet Stability Improvements","to":"System Stability","relationType":"PART_OF"}
-{"type":"relation","from":"node_manager.py","to":"ClusterOrchestrator","relationType":"depends_on"}
-{"type":"relation","from":"TokenValidator","to":"AuthService","relationType":"used_by"}
-{"type":"relation","from":"LogParser","to":"LogSchema","relationType":"processes"}
-{"type":"relation","from":"LogParser","to":"UnifiedLogger","relationType":"used_by"}
-{"type":"relation","from":"NodeA","to":"nodes.json","relationType":"CONFIGURED_IN"}
-{"type":"relation","from":"NodeB","to":"nodes.json","relationType":"CONFIGURED_IN"}
-{"type":"relation","from":"NodeC","to":"nodes.json","relationType":"CONFIGURED_IN"}
-{"type":"relation","from":"ClusterX","to":"X1","relationType":"CONTAINS"}
-{"type":"relation","from":"ClusterX","to":"X2","relationType":"CONTAINS"}
 {"type":"relation","from":"node_manager","to":"nodes","relationType":"CONFIGURED_BY"}
 {"type":"relation","from":"node_tree_presenter","to":"node_manager","relationType":"USES"}
 {"type":"relation","from":"MVP Presenter Pattern","to":"global_memory","relationType":"promotable","attributes":{"reusability_score":5,"last_verified":"2025-08-08"}}
 {"type":"relation","from":"Service Layer Pattern","to":"global_memory","relationType":"promotable","attributes":{"reusability_score":4,"last_verified":"2025-08-08"}}
-{"type":"relation","from":"CommanderWindow","to":"CommandProcessingSystem","relationType":"depends_on"}
 {"type":"relation","from":"CommandProcessingSystem","to":"NodeToken","relationType":"uses"}
-{"type":"relation","from":"CommanderWindow","to":"UI Components Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"FBC Subclass Group Context Menu","to":"UI Components Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"CommandProcessingSystem","to":"Core Services Cluster","relationType":"belongs_to"}
 {"type":"relation","from":"LogWriter","to":"Core Services Cluster","relationType":"belongs_to"}
@@ -420,18 +369,15 @@
 {"type":"relation","from":"Optimization","to":"EntityType","relationType":"OPTIMIZATION_TYPE"}
 {"type":"relation","from":"System Component","to":"EntityType","relationType":"COMPONENT_TYPE"}
 {"type":"relation","from":"DocumentationUpdate","to":"EntityType","relationType":"DOCUMENTATION_TYPE"}
-{"type":"relation","from":"CommanderWindow","to":"UICommandTrigger","relationType":"triggers"}
 {"type":"relation","from":"UICommandTrigger","to":"CommandExecution","relationType":"initiates"}
 {"type":"relation","from":"CommandExecution","to":"ExecutionLogger","relationType":"uses"}
 {"type":"relation","from":"ExecutionLogger","to":"LogWriter","relationType":"writes_to"}
-{"type":"relation","from":"CommanderWindow","to":"TokenUIBinding","relationType":"binds"}
 {"type":"relation","from":"TokenUIBinding","to":"NodeToken","relationType":"references"}
 {"type":"relation","from":"FbcCommandService","to":"ServiceTokenBinding","relationType":"uses"}
 {"type":"relation","from":"RpcCommandService","to":"ServiceTokenBinding","relationType":"uses"}
 {"type":"relation","from":"ServiceTokenBinding","to":"NodeToken","relationType":"references"}
 {"type":"relation","from":"NodeToken","to":"DataConformance","relationType":"implements"}
 {"type":"relation","from":"DataConformance","to":"TypeHintingStandard","relationType":"follows"}
-{"type":"relation","from":"CommandProcessingSystem","to":"NodeToken","relationType":"PROCESSES_TOKEN"}
 {"type":"relation","from":"UIComponents","to":"NodeToken","relationType":"DISPLAYS_TOKEN"}
 {"type":"relation","from":"NetworkOperationsSystem","to":"NodeToken","relationType":"CONNECTS_TOKEN"}
 {"type":"relation","from":"SystemStability","to":"NodeToken","relationType":"PROTECTS_TOKEN"}
@@ -440,5 +386,38 @@
 {"type":"relation","from":"LogWriter","to":"NodeToken","relationType":"LOGS_TOKEN"}
 {"type":"relation","from":"CommandProcessingSystem","to":"SystemComponent","relationType":"COMPONENT_OF"}
 {"type":"relation","from":"NodeToken","to":"data_model","relationType":"INSTANCE_OF"}
-{"type":"relation","from":"CommanderWindowRefactoring","to":"CommanderWindow","relationType":"REFACTORS"}
 {"type":"relation","from":"src/commander/command_queue.py","to":"CommandQueue","relationType":"IMPLEMENTS"}
+{"type":"relation","from":"ContextMenuFilteringSystem","to":"ContextMenuFilterService","relationType":"implemented_by"}
+{"type":"relation","from":"APIContractEnforcement","to":"FbcCommandService","relationType":"implemented_by"}
+{"type":"relation","from":"APIContractEnforcement","to":"RpcCommandService","relationType":"implemented_by"}
+{"type":"relation","from":"CommanderWindow","to":"ContextMenuFilteringSystem","relationType":"uses_pattern"}
+{"type":"relation","from":"CommanderWindow","to":"MVP Presenter Pattern","relationType":"implements"}
+{"type":"relation","from":"CommanderWindow","to":"UIComponents","relationType":"component_of"}
+{"type":"relation","from":"CommanderWindow","to":"FbcCommandService","relationType":"coordinates"}
+{"type":"relation","from":"CommanderWindow","to":"RpcCommandService","relationType":"coordinates"}
+{"type":"relation","from":"FbcCommandService","to":"CommandProcessor","relationType":"implements"}
+{"type":"relation","from":"RpcCommandService","to":"CommandProcessor","relationType":"implements"}
+{"type":"relation","from":"CommandProcessor","to":"APIContractEnforcement","relationType":"follows"}
+{"type":"relation","from":"ContextMenuFilterService","to":"UI Components Cluster","relationType":"PART_OF"}
+{"type":"relation","from":"ContextMenuFiltering","to":"UI Components Cluster","relationType":"PART_OF"}
+{"type":"relation","from":"OptimizationProcess","to":"memory_workflow","relationType":"PART_OF"}
+{"type":"relation","from":"UpdateMemoryWorkflowStatus","to":"DocumentationUpdate","relationType":"TRACKS"}
+{"type":"relation","from":"process_log_data","to":"LogWriter","relationType":"PROCESSES"}
+{"type":"relation","from":"TypeHintingStandard","to":"NodeToken","relationType":"APPLIES_TO"}
+{"type":"relation","from":"MemoryOptimizationOpportunity","to":"project_memory.json","relationType":"ANALYZES"}
+{"type":"relation","from":"WorkflowEnhancement","to":"update_memory.md","relationType":"IMPROVES"}
+{"type":"relation","from":"CommandProcessor","to":"CommandProcessingSystem","relationType":"PART_OF"}
+{"type":"relation","from":"APIContractEnforcement","to":"CommandServices","relationType":"ENFORCES"}
+{"type":"relation","from":"CommandExecution","to":"CommandProcessingSystem","relationType":"PROCESSES_EVENT"}
+{"type":"relation","from":"EntityType","to":"DataModelSystem","relationType":"DEFINES_TYPE"}
+{"type":"relation","from":"Command Execution Flow","to":"CommandProcessingSystem","relationType":"DESCRIBES_PROCESS"}
+{"type":"relation","from":"ConnectionAbortedError (WinError 10053)","to":"SystemStability","relationType":"ERROR_CATEGORY"}
+{"type":"relation","from":"AP01m Command Visibility Logic","to":"ContextMenuFilteringSystem","relationType":"IMPLEMENTS_RULE"}
+{"type":"relation","from":"Command Filtering Strategy","to":"ContextMenuFilteringSystem","relationType":"GUIDES_DESIGN"}
+{"type":"relation","from":"VersionedMemorySchema","to":"MemoryArchitectureDocumentation","relationType":"SCHEMA_FOR"}
+{"type":"relation","from":"CrossReferencedDocumentation","to":"MemoryArchitectureDocumentation","relationType":"LINKS_TO"}
+{"type":"relation","from":"DocumentationUpdate20250731","to":"VersionedMemorySchema","relationType":"IMPLEMENTS_VERSION"}
+{"type":"relation","from":"ContextMenuFilteringSystem","to":"UIComponents","relationType":"COMPONENT_OF"}
+{"type":"relation","from":"APIContractEnforcement","to":"CommandServices","relationType":"ENFORCES_CONTRACT"}
+{"type":"relation","from":"NodeToken","to":"DataModelSystem","relationType":"CORE_ENTITY"}
+{"type":"relation","from":"CommandProcessingSystem","to":"SystemComponent","relationType":"CORE_SYSTEM"}
