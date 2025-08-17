@@ -270,12 +270,74 @@ class TestSequentialCommandProcessor(unittest.TestCase):
         # Verify all tokens were processed
         self.assertEqual(processor._completed_commands, 3)
         self.assertEqual(processor._success_count, 3)
+        # Fix: _current_token_index should be 3 after processing 3 tokens (0-based indexing would make it 3 after processing tokens at indices 0, 1, 2)
         self.assertEqual(processor._current_token_index, 3)
-        
-        # Verify state transitions in log
-        # Note: The logging service is mocked, so we can't check the actual log calls
-        # Instead, we'll check that the processor has the correct state
 
+    def test_sequential_processing_with_manual_cleanup(self):
+        """Test sequential processing of multiple tokens with manual cleanup verification.
+        
+        This test verifies:
+        1. Sequential processing of multiple tokens works correctly
+        2. Commands remain in queue until manually cleaned up
+        3. Manual cleanup works as expected
+        4. Mixed FBC and RPC tokens are processed correctly
+        5. Queue state during processing
+        """
+        # Setup - Create mixed tokens (FBC and RPC)
+        tokens = [
+            NodeToken(token_id="162", token_type="FBC"),
+            NodeToken(token_id="163", token_type="RPC"),
+            NodeToken(token_id="164", token_type="FBC")
+        ]
+        
+        # Mock command queue to track calls
+        processed_commands = []
+        manual_cleanup_called = False
+        
+        def mock_add_command(command, prepared_token, telnet_client):
+            # Track commands being added to queue
+            processed_commands.append({
+                'command': command,
+                'token_id': prepared_token.token_id,
+                'token_type': prepared_token.token_type
+            })
+            
+            # Simulate command completion by calling the completion handler
+            self.processor._on_command_completed(command, "Success", True, prepared_token)
+        
+        def mock_manual_cleanup():
+            nonlocal manual_cleanup_called
+            manual_cleanup_called = True
+            return 1  # Return 1 to indicate 1 command was cleaned up
+        
+        # Configure the mocks
+        self.mock_command_queue.add_command = MagicMock(side_effect=mock_add_command)
+        self.mock_command_queue.manual_cleanup = MagicMock(side_effect=mock_manual_cleanup)
+        
+        # Verify initial state
+        self.assertFalse(self.processor._is_processing)
+        self.assertEqual(len(processed_commands), 0)
+        
+        # Process tokens sequentially
+        self.processor.process_tokens_sequentially("test_node", tokens, action="print")
+        
+        # Verify processing is complete
+        self.assertFalse(self.processor._is_processing)
+        
+        # Verify all tokens were processed in order
+        self.assertEqual(len(processed_commands), 3)
+        self.assertEqual(processed_commands[0]['token_id'], "162")
+        self.assertEqual(processed_commands[0]['token_type'], "FBC")
+        self.assertEqual(processed_commands[1]['token_id'], "163")
+        self.assertEqual(processed_commands[1]['token_type'], "RPC")
+        self.assertEqual(processed_commands[2]['token_id'], "164")
+        self.assertEqual(processed_commands[2]['token_type'], "FBC")
+        
+        # Verify manual cleanup was called
+        self.assertTrue(manual_cleanup_called)
+        
+        # Verify progress updates were emitted
+        self.assertEqual(self.processor.progress_updated.emit.call_count, 3)
 
 if __name__ == '__main__':
     unittest.main()

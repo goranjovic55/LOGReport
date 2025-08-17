@@ -39,7 +39,7 @@ class CommandWorker(QRunnable):
         try:
             # Enhanced session verification with socket-level checks
             max_retries = 3
-            retry_delay = 1.0  # Increased delay for more reliable reconnection
+            retry_delay = 0.5
             last_error = None
             
             for attempt in range(max_retries):
@@ -173,6 +173,7 @@ class CommandQueue(QObject):
         self.threading_service = ThreadingService()
         self._is_processing = False
         self._processing_lock = self.threading_service.create_lock()
+        self._auto_cleanup = True  # Default behavior
         
     def add_command(self, command: str, token: NodeToken, telnet_client=None):
         """Add a command to the queue with associated token"""
@@ -190,7 +191,7 @@ class CommandQueue(QObject):
         # Start processing if queue has commands
         if len(self.queue) > 0:
             self.start_processing()
-        
+            
     def start_processing(self):
         """Start processing all commands in the queue"""
         with self._processing_lock:
@@ -308,11 +309,13 @@ class CommandQueue(QObject):
             logging.error(f"CommandQueue._handle_worker_finished: Could not find command in queue: {command}")
         
         # Clean up completed commands from queue
-        original_queue_size = len(self.queue)
-        self.queue = [cmd for cmd in self.queue if cmd.status != 'completed']
-        cleaned_count = original_queue_size - len(self.queue)
-        if cleaned_count > 0:
-            logging.debug(f"CommandQueue._handle_worker_finished: Cleaned {cleaned_count} completed commands from queue")
+        # Only clean up if auto_cleanup is enabled
+        if self._auto_cleanup:
+            original_queue_size = len(self.queue)
+            self.queue = [cmd for cmd in self.queue if cmd.status != 'completed']
+            cleaned_count = original_queue_size - len(self.queue)
+            if cleaned_count > 0:
+                logging.debug(f"CommandQueue._handle_worker_finished: Cleaned {cleaned_count} completed commands from queue")
         
         # Emit progress update
         remaining = len(self.queue) - self.completed_count
@@ -342,7 +345,20 @@ class CommandQueue(QObject):
             if pending_commands and not self._is_processing:
                 logging.debug(f"CommandQueue._handle_worker_finished: Found {len(pending_commands)} pending commands, triggering processing")
                 self.start_processing()
-        
+                
     def validate_token(self, token: NodeToken) -> bool:
         """Validate token has required fields"""
         return bool(token and token.token_id and token.token_type)
+        
+    def set_auto_cleanup(self, enabled: bool):
+        """Enable/disable automatic cleanup of completed commands"""
+        self._auto_cleanup = enabled
+        
+    def manual_cleanup(self):
+        """Manually clean up completed commands from the queue"""
+        original_queue_size = len(self.queue)
+        self.queue = [cmd for cmd in self.queue if cmd.status != 'completed']
+        cleaned_count = original_queue_size - len(self.queue)
+        if cleaned_count > 0:
+            logging.debug(f"CommandQueue.manual_cleanup: Manually cleaned {cleaned_count} completed commands from queue")
+        return cleaned_count

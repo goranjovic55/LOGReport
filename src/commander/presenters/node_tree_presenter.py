@@ -1,6 +1,7 @@
 """
 Node Tree Presenter - Handles presentation logic for the node tree within the commander window
 """
+
 from abc import ABC, abstractmethod
 import logging
 import os
@@ -20,7 +21,9 @@ from ..icons import get_node_online_icon, get_node_offline_icon, get_token_icon
 
 
 class NodeTreePresenter(QObject):
-    """Presenter for the Node Tree, handling presentation logic related to node tree operations"""
+    """
+    Presenter for the Node Tree, handling presentation logic related to node tree operations
+    """
     
     # Signals for UI updates
     status_message_signal = pyqtSignal(str, int)  # message, duration
@@ -32,7 +35,7 @@ class NodeTreePresenter(QObject):
                  context_menu_service):
         """
         Initialize the NodeTreePresenter.
-        
+
         Args:
             view: The view component (UI) this presenter is associated with
             node_manager: Manager for node operations
@@ -61,7 +64,7 @@ class NodeTreePresenter(QObject):
     def _report_error(self, message: str, exception: Optional[Exception] = None, duration: int = 5000):
         """
         Report an error to the UI.
-        
+
         Args:
             message: Error message to display
             exception: Optional exception that occurred
@@ -74,6 +77,7 @@ class NodeTreePresenter(QObject):
     def populate_node_tree(self):
         """Lazy-loading tree population - only loads top-level nodes initially"""
         self.view.clear()
+        
         # Connect the item expanded signal if not already connected
         # This should be handled by the view, but we'll ensure it here
         self.node_tree_updated_signal.emit()
@@ -226,7 +230,7 @@ class NodeTreePresenter(QObject):
                 
                 if not token_id and section_type != "LOG":
                     continue  # Skip invalid tokens except for LOG
-                    
+                
                 file_item = self._create_file_item(
                     filename, file_path, node,
                     token_id, section_type
@@ -309,7 +313,7 @@ class NodeTreePresenter(QObject):
     def show_context_menu(self, position):
         """
         Show context menu for the selected item in the node tree.
-        
+
         Args:
             position: Position where the context menu should be shown
         """
@@ -334,7 +338,7 @@ class NodeTreePresenter(QObject):
     def process_all_fbc_subgroup_commands(self, item):
         """
         Process all FBC commands for a subgroup.
-        
+
         Args:
             item: The tree item representing the subgroup
         """
@@ -352,34 +356,38 @@ class NodeTreePresenter(QObject):
             self._report_error(f"Section {section_item.text(0)} has no parent node")
             return
         node_name = node_item.text(0).split(' ', 1)[0].strip()
-        
-        node = self.node_manager.get_node(node_name)
-        if not node:
-            self.status_message_signal.emit(f"Node {node_name} not found", 3000)
-            return
-            
-        # Find all FBC tokens in the node
-        fbc_tokens = [t for t in node.tokens.values() if t.token_type == "FBC"]
-        if not fbc_tokens:
+
+        # Get tokens from item if available
+        tokens = getattr(item, 'tokens', None)
+        if not tokens:
+            # Fallback to getting all FBC tokens from node
+            node = self.node_manager.get_node(node_name)
+            if not node:
+                self.status_message_signal.emit(f"Node {node_name} not found", 3000)
+                return
+                
+            # Find all FBC tokens in the node
+            tokens = [t for t in node.tokens.values() if t.token_type == "FBC"]                
+        if not tokens:
             self.status_message_signal.emit(f"No FBC tokens found in node {node_name}", 3000)
             return
             
-        self.status_message_signal.emit(f"Processing {len(fbc_tokens)} FBC tokens in node {node_name}...", 0)
+        logging.info(f"Processing {len(tokens)} FBC tokens in node {node_name}...")
+        self.status_message_signal.emit(f"Processing {len(tokens)} FBC tokens in node {node_name}...", 0)
         
         # Process each FBC token
-        for token in fbc_tokens:
+        for token in tokens:
             # Pass active telnet client for reuse if available
             telnet_client = getattr(self, 'active_telnet_client', None)
-            self.fbc_service.queue_fieldbus_command(node_name, token.token_id, telnet_client)
-            
+            self.fbc_service.queue_fieldbus_command(node_name, token.token_id, telnet_client)            
         # Start processing the queue
         self.command_queue.start_processing()
-        self.status_message_signal.emit(f"Queued {len(fbc_tokens)} commands for node {node_name}", 3000)
+        self.status_message_signal.emit(f"Queued {len(tokens)} commands for node {node_name}", 3000)
             
     def process_all_rpc_subgroup_commands(self, item):
         """
         Process all RPC commands for a subgroup.
-        
+
         Args:
             item: The tree item representing the subgroup
         """
@@ -397,33 +405,38 @@ class NodeTreePresenter(QObject):
             self._report_error(f"Section {section_item.text(0)} has no parent node")
             return
         node_name = node_item.text(0).split(' ', 1)[0].strip()
-        
-        node = self.node_manager.get_node(node_name)
-        if not node:
-            self.status_message_signal.emit(f"Node {node_name} not found", 3000)
-            return
-            
-        # Find all RPC tokens in the node
-        rpc_tokens = [t for t in node.tokens.values() if t.token_type == "RPC"]
-        if not rpc_tokens:
+
+        # Get tokens from item if available
+        tokens = getattr(item, 'tokens', None)
+        if not tokens:
+            # Fallback to getting all RPC tokens from node
+            node = self.node_manager.get_node(node_name)
+            if not node:
+                self.status_message_signal.emit(f"Node {node_name} not found", 3000)
+                return
+                
+            # Find all RPC tokens in the node
+            tokens = [t for t in node.tokens.values() if t.token_type == "RPC"]                
+        if not tokens:
             self.status_message_signal.emit(f"No RPC tokens found in node {node_name}", 3000)
             return
             
-        self.status_message_signal.emit(f"Processing {len(rpc_tokens)} RPC tokens in node {node_name}...", 0)
+        logging.info(f"Processing {len(tokens)} RPC tokens in node {node_name}...")
+        self.status_message_signal.emit(f"Processing {len(tokens)} RPC tokens in node {node_name}...", 0)
         
         # Pass active telnet client for reuse if available
         telnet_client = getattr(self, 'active_telnet_client', None)
         
         # Queue commands for all RPC tokens using service method
-        for token in rpc_tokens:
+        for token in tokens:
             self.rpc_service.queue_rpc_command(node_name, token.token_id, "print", telnet_client)
             
-        self.status_message_signal.emit(f"Queued {len(rpc_tokens)} commands for node {node_name}", 3000)
+        self.status_message_signal.emit(f"Queued {len(tokens)} commands for node {node_name}", 3000)
         
     def process_fieldbus_command(self, token_id, node_name):
         """
         Process a single fieldbus command.
-        
+
         Args:
             token_id: ID of the token to process
             node_name: Name of the node containing the token
@@ -453,7 +466,7 @@ class NodeTreePresenter(QObject):
     def process_rpc_command(self, node_name, token_id, action_type):
         """
         Process RPC commands with token validation and auto-execute.
-        
+
         Args:
             node_name: Name of the node containing the token
             token_id: ID of the token to process

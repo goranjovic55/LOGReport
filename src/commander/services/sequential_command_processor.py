@@ -45,6 +45,9 @@ class SequentialCommandProcessor(QObject):
         self.logging_service = logging_service
         self.logger = logging.getLogger(__name__)
 
+        # Disable automatic cleanup and use manual cleanup instead
+        self.command_queue.set_auto_cleanup(False)
+
         # Connect command queue signals
         self.command_queue.command_completed.connect(self._on_command_completed)
         self.command_queue.progress_updated.connect(self._on_progress_updated)
@@ -55,6 +58,7 @@ class SequentialCommandProcessor(QObject):
         self._success_count = 0
         self._current_token_index = 0
         self._tokens = []  # Use list instead
+        self._processing_tokens = []  # Track tokens currently being processed
         self._node_name = ""  # Store node name as string
         self._telnet_client = None
         self._batch_id = None  # Store batch ID
@@ -171,6 +175,7 @@ class SequentialCommandProcessor(QObject):
         # Start processing current token
         self._token_processing_start_time = time.time()
         token = self._tokens[self._current_token_index]
+        self._processing_tokens.append(token)  # Add token to processing list when starting
         self.logger.info(f"SequentialCommandProcessor: Processing token {token.token_id} (index {self._current_token_index})")
         
         try:                
@@ -180,7 +185,7 @@ class SequentialCommandProcessor(QObject):
             normalized_token = self._normalize_token(token.token_id, token.token_type)
 
             # Extract and validate node IP
-            node_ip = token.node_ip if hasattr(token, 'node_ip') else None
+            node_ip = getattr(token, 'node_ip', None) if hasattr(token, 'node_ip') else None
             if not node_ip or not self._is_valid_ip(node_ip):
                 node_ip = "0.0.0.0"  # Default for invalid IPs
                 self.logger.warning(f"Invalid node IP for token {token.token_id}, using default")                
@@ -284,14 +289,17 @@ class SequentialCommandProcessor(QObject):
                 self.logger.warning(f"SequentialCommandProcessor: Unknown token type {token.token_type} for token {token.token_id}")
                 # Move to next token
                 self._current_token_index += 1
-                # Use QTimer to process next token asynchronously
-                QTimer.singleShot(0, self._process_next_token)
+                # Process next token directly to ensure proper sequential execution
+                self._process_next_token()
+                return
+                
         except Exception as e:
             self.logger.error(f"Error preparing command for token {token.token_id}: {str(e)}")
             # Move to next token even if there was an error
             self._current_token_index += 1
-            # Use QTimer to process next token asynchronously
-            QTimer.singleShot(0, self._process_next_token)
+            # Process next token directly to ensure proper sequential execution
+            self._process_next_token()
+            return
 
     def process_rpc_commands(self, node_name: str, tokens: List[NodeToken],
                            action: str = "print", telnet_client=None) -> None:
@@ -449,7 +457,7 @@ class SequentialCommandProcessor(QObject):
             normalized_token = self._normalize_token(token.token_id, protocol)
 
             # Extract and validate node IP
-            node_ip = token.node_ip if hasattr(token, 'node_ip') else None
+            node_ip = getattr(token, 'node_ip', None) if hasattr(token, 'node_ip') else None
             if not node_ip or not self._is_valid_ip(node_ip):
                 node_ip = "0.0.0.0"  # Default for invalid IPs
                 self.logger.warning(f"Invalid node IP for token {token.token_id}, using default")
@@ -602,6 +610,9 @@ class SequentialCommandProcessor(QObject):
         # Update progress
         self.progress_updated.emit(self._completed_commands, self._total_commands)
 
+        # Remove token from processing list when done
+        self._processing_tokens = [t for t in self._processing_tokens if t.token_id != token.token_id]
+        
         # Move to next token
         self._current_token_index += 1
         
@@ -627,6 +638,12 @@ class SequentialCommandProcessor(QObject):
         """Finish processing and emit completion signals."""
         self.logger.info(f"SequentialCommandProcessor: Finishing processing - {self._success_count}/{self._total_commands} commands successful")
         self._is_processing = False
+
+        # Perform manual cleanup of completed commands
+        cleaned_count = self.command_queue.manual_cleanup()
+        # Handle case where cleaned_count might be a MagicMock in tests
+        if isinstance(cleaned_count, int) and cleaned_count > 0:
+            self.logger.debug(f"SequentialCommandProcessor: Cleaned {cleaned_count} completed commands from queue")
 
         # Report aggregated errors if any
         if self._error_messages:
@@ -669,7 +686,13 @@ class SequentialCommandProcessor(QObject):
 
         self._is_processing = False
         self.command_queue.clear_queue()
+        # Perform manual cleanup of any remaining completed commands
+        self.command_queue.manual_cleanup()
         self._finish_processing()
+
+    def cleanup_completed_commands(self) -> None:
+        """Manually cleanup completed commands from queue"""
+        self.command_queue.manual_cleanup()
 
     def process_sequential_batch(self, tokens: List[NodeToken],
                                 protocol: str,
