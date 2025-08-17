@@ -58,7 +58,8 @@
         "get-usage-dependency-links",
         "get-code",
         "get_usage_dependency_links",
-        "find_direct_connections"
+        "find_direct_connections",
+        "nodes-semantic-search"
       ],
       "disabled": false
     }

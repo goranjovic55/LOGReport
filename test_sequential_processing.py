@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for sequential token processing implementation
+Test script for sequential token processing implementation.
 """
 import sys
 import os
@@ -16,17 +16,34 @@ from commander.services.sequential_command_processor import SequentialCommandPro
 class MockCommandQueue:
     def __init__(self):
         self.commands = []
+        # Add mock signals
+        self.command_completed = MockSignal()
+        self.progress_updated = MockSignal()
+        self.processor = None  # Reference to the processor for callbacks
         
     def add_command(self, command, token, telnet_client=None):
         print(f"MockCommandQueue.add_command: {command} for token {token.token_id}")
         self.commands.append((command, token, telnet_client))
+        # Simulate immediate completion
+        if self.processor:
+            self.processor._on_command_completed(command, "Success", True, token)
         
     def start_processing(self):
         print("MockCommandQueue.start_processing called")
+        
+    def clear_queue(self):
+        self.commands = []
+
+class MockSignal:
+    def connect(self, handler):
+        pass
+        
+    def emit(self, *args) -> None:
+        pass
 
 class MockFbcService:
     class MockNodeManager:
-        def get_node(self, node_name):
+        def get_node(self, node_name) -> None:
             return None
             
     def __init__(self):
@@ -34,7 +51,7 @@ class MockFbcService:
 
 class MockRpcService:
     class MockNodeManager:
-        def get_node(self, node_name):
+        def get_node(self, node_name) -> None:
             return None
             
     def __init__(self):
@@ -48,8 +65,8 @@ class MockLoggingService:
         print(f"MockLoggingService.start_batch_logging: batch_id={batch_id}, node_name={node_name}, token_count={token_count}")
         
     def end_batch_logging(self, batch_id, node_name, success_count, total_count):
-        print(f"MockLoggingService.end_batch_logging: batch_id={batch_id}, node_name={node_name}, success_count={success_count}, total_count={total_count}")
-        
+        print(f"MockLoggingService.end_batch_logging: batch_id={batch_id}, node_name={node_name}, success_count={success_count}, total_count={total_count}")        
+    
     def open_log_for_token(self, token_id, node_name, node_ip, protocol, batch_id):
         print(f"MockLoggingService.open_log_for_token: token_id={token_id}, node_name={node_name}, protocol={protocol}")
         return f"/mock/log/{node_name}_{token_id}_{protocol}.log"
@@ -60,8 +77,9 @@ class MockLoggingService:
     def log(self, message):
         print(f"MockLoggingService.log: {message}")
 
-def test_sequential_processing():
-    """Test sequential processing with mixed FBC and RPC tokens"""
+
+def test_sequential_processing(): 
+    """Test sequential processing with mixed FBC and RPC tokens using simulated completion"""
     print("Testing sequential token processing...")
     
     # Create mock services
@@ -80,8 +98,11 @@ def test_sequential_processing():
         logging_service=logging_service
     )
     
+    # Set processor reference in command queue
+    command_queue.processor = processor
+    
     # Create test tokens
-    tokens = [
+    tokens = [ 
         NodeToken(token_id="162", token_type="FBC", node_ip="192.168.0.11"),
         NodeToken(token_id="163", token_type="RPC", node_ip="192.168.0.11"),
         NodeToken(token_id="164", token_type="FBC", node_ip="192.168.0.11"),

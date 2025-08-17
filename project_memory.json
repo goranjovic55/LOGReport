@@ -133,6 +133,9 @@
 {"type":"entity","name":"RpcCommandService","entityType":"Service","observations":["Processes RPC commands","Implements HybridTokenResolution pattern for token fallback"]}
 {"type":"entity","name":"NodeManager","entityType":"Component","observations":["Manages device nodes","Implements DynamicIPResolution by scanning filenames","Implements _scan_for_dynamic_ips() method for IP extraction","Scans directory and file names for IP patterns (e.g., 192-168-0-11)"]}
 {"type":"entity","name":"DynamicIPResolution","entityType":"Pattern","observations":["Extracts IP addresses from log filenames","Implemented in NodeManager._scan_for_dynamic_ips()"]}
+{"type":"entity","name":"TokenProcessingWorkflow","entityType":"workflow","observations":["Processes tokens sequentially with isolated logging contexts","Uses completion-based chaining to ensure proper sequencing","Maintains error isolation - failures don't halt entire batch","Implements timeout handling based on token count"]}
+{"type":"entity","name":"CircuitBreaker","entityType":"pattern","observations":["Safety mechanism that stops processing after 3 consecutive failures","Automatically resets after timeout period (default 60s)","Integrated with command completion callback"]}
+{"type":"entity","name":"token_processing.md","entityType":"documentation","observations":["Describes sequential token processing implementation","Documents key features: completion-based chaining, circuit breaker, timeout handling","Provides usage examples for FBC/RPC token processing","Includes backward compatibility and performance considerations"]}
 {"type":"relation","from":"Developer Documentation","to":"Project Artifacts","relationType":"DOCUMENTS"}
 {"type":"relation","from":"Automatic Command Logging","to":"LogWriter","relationType":"EXTENDS"}
 {"type":"relation","from":"Editor Configuration Task","to":"ProjectManagement","relationType":"PART_OF"}
@@ -437,3 +440,8 @@
 {"type":"relation","from":"DataConformance","to":"NodeToken","relationType":"ABSTRACTS"}
 {"type":"relation","from":"RelationshipMapping","to":"MemorySchemaV2","relationType":"DOCUMENTS"}
 {"type":"relation","from":"Error Delegation Pattern","to":"SystemStability","relationType":"COMPONENT_OF"}
+{"type":"relation","from":"SequentialCommandProcessor","to":"TokenProcessingWorkflow","relationType":"implements"}
+{"type":"relation","from":"SequentialCommandProcessor","to":"CircuitBreaker","relationType":"uses"}
+{"type":"relation","from":"TokenProcessingWorkflow","to":"token_processing.md","relationType":"documented_in"}
+{"type":"relation","from":"SequentialCommandProcessor","to":"FbcCommandService","relationType":"interacts_with"}
+{"type":"relation","from":"SequentialCommandProcessor","to":"RpcCommandService","relationType":"interacts_with"}
