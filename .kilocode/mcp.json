@@ -45,6 +45,15 @@
         "nodes-semantic-search"
       ],
       "disabled": false
+    },
+    "deepwiki": {
+      "url": "https://mcp.deepwiki.com/sse",
+      "disabled": false,
+      "alwaysAllow": [
+        "ask_question",
+        "read_wiki_structure",
+        "read_wiki_contents"
+      ]
     }
   }
 }

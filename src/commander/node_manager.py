@@ -245,10 +245,29 @@ class NodeManager:
                 
                 # Handle LOG files by filename pattern
                 if filename.lower().endswith('.log'):
-                    token_type_dir = "LOG"
-                    # Extract node name from filename (before first underscore)
-                    node_name = filename.split('_')[0]
-                    print(f"[DEBUG] LOG file detected: node_name={node_name}")
+                    # Extract token type from filename for .log files
+                    parts = base_name.split('_')
+                    if len(parts) >= 2 and parts[-1].upper() in token_types:
+                        # Pattern: XXX_FBC.log, XXX_RPC.log, etc.
+                        token_type_dir = parts[-1].upper()
+                        # For node-specific files in node directories, use directory name as node_name
+                        dir_basename = os.path.basename(dirpath)
+                        if dir_basename in [n.name for n in self.nodes.values()]:
+                            node_name = dir_basename
+                        else:
+                            # Fallback to first part of filename as node name
+                            node_name = parts[0] if parts else "UNKNOWN"
+                    else:
+                        # Default to LOG type for files that don't match the pattern
+                        token_type_dir = "LOG"
+                        # For node-specific files in node directories, use directory name as node_name
+                        dir_basename = os.path.basename(dirpath)
+                        if dir_basename in [n.name for n in self.nodes.values()]:
+                            node_name = dir_basename
+                        else:
+                            # Fallback to first part of filename as node name
+                            node_name = parts[0] if parts else "UNKNOWN"
+                    print(f"[DEBUG] LOG file detected: node_name={node_name}, token_type={token_type_dir}")
                 # Handle other file types by directory structure
                 else:
                     # Token type is the parent directory name
@@ -282,7 +301,7 @@ class NodeManager:
                 
                 # Extract token ID from filename (last alphanumeric part)
                 parts = base_name.split('_')
-                token_id_candidate = parts[-1] if parts else None
+                token_id_candidate = parts[-2] if len(parts) >= 2 and parts[-1].upper() in token_types else (parts[-1] if parts else None)
                 
                 # Normalize token ID candidate:
                 # - Pad numeric IDs to 3 digits

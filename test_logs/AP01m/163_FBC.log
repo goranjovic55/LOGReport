@@ -1,0 +1,19 @@
+=== COMMANDER LOG ===
+Node: AP01m
+Token: 163
+Type: RPC
+Created: 2025-06-16 17:04:14
+====================
+
+13:31:37 >> [TELNET] Connected to 192.168.137.155:1234
+> p s
+VME Configuration from Own Kernel
+
+token VME   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  
+   1   20  CPU CPU CPU         CPU             CPU CPU         CPU     NCU
+13:34:24 >> [TELNET] Connected to 192.168.137.155:1234
+> p s
+VME Configuration from Own Kernel
+
+token VME   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  
+   1   20  CPU CPU CPU         CPU             CPU CPU         CPU     NCU
