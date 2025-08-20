@@ -98,6 +98,102 @@ Processes subgroup tokens with circuit breaker:
   - Protocol
   - Batch ID
 
+## FBC Token Detection
+
+### Overview
+
+The NodeManager.scan_log_files method is responsible for detecting and mapping log files to FBC tokens. Recent improvements have been made to correctly identify all FBC tokens in node-specific directories.
+
+### Key Improvements
+
+#### 1. Token Classification Logic
+- For .log files, the method now checks the filename content to determine the token type
+- Files with pattern `XXX_FBC.log`, `XXX_RPC.log`, etc. are correctly classified based on the suffix
+- This prevents misclassification of FBC files as LOG type
+
+#### 2. Node Name Extraction
+- For node-specific files in node directories, the directory name is used as the node name
+- This ensures correct mapping of files to nodes regardless of filename prefixes
+- Fallback to filename prefix is used only when directory name doesn't match any known node
+
+#### 3. Token ID Extraction
+- Improved extraction of token IDs from filenames with multiple underscores
+- For files with pattern `XXX_FBC.log`, the token ID is correctly extracted as `XXX`
+- Proper normalization of numeric token IDs to 3-digit format for FBC tokens
+
+### Implementation Details
+
+The scan_log_files method processes files in the following way:
+
+1. For .log files:
+   - Extract token type from filename pattern (e.g., `162_FBC.log` → FBC)
+   - Use directory name as node name when available
+   - Extract token ID from the first part of the filename
+
+2. For .fbc, .rpc, .lis files:
+   - Use existing directory structure logic
+   - Token type is determined by parent directory
+   - Node name is extracted from directory name
+
+3. Token matching:
+   - First attempts exact token ID match
+   - Falls back to substring matching
+   - Uses alphanumeric similarity for closest match
+
+### Configuration Requirements
+
+#### Node Configuration (nodes_test.json)
+
+For proper FBC token detection, the node configuration file must include all expected tokens with their correct types. For example, the AP01m node configuration should include:
+
+```json
+[
+  {
+    "name": "AP01m",
+    "ip_address": "192.168.0.11",
+    "tokens": [
+      {
+        "token_id": "162",
+        "token_type": "FBC",
+        "port": 23,
+        "protocol": "telnet"
+      },
+      {
+        "token_id": "163",
+        "token_type": "FBC",
+        "port": 23,
+        "protocol": "telnet"
+      },
+      {
+        "token_id": "164",
+        "token_type": "FBC",
+        "port": 23,
+        "protocol": "telnet"
+      }
+    ]
+  }
+]
+```
+
+Important notes:
+- All FBC tokens (162, 163, 164) must be explicitly listed with `token_type` set to "FBC"
+- The IP address must match the actual node IP address
+- Port and protocol should be set according to the node's configuration
+- Missing or incorrectly typed tokens may not be detected properly during scanning
+
+### Example
+
+For the directory structure:
+```
+test_logs/
+└── AP01m/
+    ├── 162_FBC.log
+    ├── 163_FBC.log
+    └── 164_FBC.log
+```
+
+All three FBC tokens (162, 163, 164) are correctly detected and mapped to the AP01m node.
+
 ## Usage Examples
 
 ### Processing FBC Tokens with Error Handling

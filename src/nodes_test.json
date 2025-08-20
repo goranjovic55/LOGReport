@@ -4,8 +4,20 @@
     "ip_address": "192.168.0.11",
     "tokens": [
       {
+        "token_id": "162",
+        "token_type": "FBC",
+        "port": 23,
+        "protocol": "telnet"
+      },
+      {
         "token_id": "163",
-        "token_type": "RPC",
+        "token_type": "FBC",
+        "port": 23,
+        "protocol": "telnet"
+      },
+      {
+        "token_id": "164",
+        "token_type": "FBC",
         "port": 23,
         "protocol": "telnet"
       }

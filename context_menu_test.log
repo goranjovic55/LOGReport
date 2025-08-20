@@ -1,0 +1,24 @@
+[2025-08-20 15:15:16,608] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:15:16,938] DEBUG: Scanning log files...
+[2025-08-20 15:17:20,973] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:17:20,993] DEBUG: Scanning log files...
+[2025-08-20 15:20:35,043] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:20:35,064] DEBUG: Scanning log files...
+[2025-08-20 15:24:20,515] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:24:20,804] DEBUG: Scanning log files...
+[2025-08-20 15:29:17,142] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:31:36,803] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:40:20,673] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:53:02,426] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 15:56:35,489] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 16:01:57,092] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 16:05:33,658] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 16:10:44,402] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 16:53:19,684] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 17:28:43,692] INFO: === Starting context menu simulation for AP01m FBC tokens ===
+[2025-08-20 18:02:08,384] DEBUG: QApplication created
+[2025-08-20 18:02:08,385] DEBUG: First processEvents() called
+[2025-08-20 18:02:08,899] DEBUG: 500ms sleep completed
+[2025-08-20 18:02:08,899] DEBUG: Second processEvents() called
+[2025-08-20 18:02:08,899] DEBUG: Test scheduled with 0ms delay
+[2025-08-20 18:02:08,900] DEBUG: Starting event loop
