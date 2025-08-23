@@ -8,6 +8,7 @@ import logging
 import re
 from typing import Dict, List, Optional
 from .models import Node, NodeToken
+from .utils.token_utils import normalize_token, is_fbc_token, is_rpc_token
 
 class NodeManager:
     def __init__(self):
@@ -43,39 +44,110 @@ class NodeManager:
         path = file_path or self.config_path
         
         if not path:
-            print("Configuration path is empty")
+            logging.error("Configuration path is empty")
             return False
             
         try:
             abs_path = os.path.abspath(path)
             normalized_path = os.path.normpath(abs_path)
-            print(f"Loading configuration from: {normalized_path}")
+            logging.info(f"Loading configuration from: {normalized_path}")
+            
             if not os.path.exists(normalized_path):
-                print(f"Configuration file does not exist: {normalized_path}")
+                logging.error(f"Configuration file does not exist: {normalized_path}")
+                return False
+                
+            # Check file size (prevent loading extremely large files)
+            file_size = os.path.getsize(normalized_path)
+            if file_size > 10 * 1024 * 1024:  # 10MB limit
+                logging.error(f"Configuration file too large: {file_size} bytes")
                 return False
                 
             with open(normalized_path, 'r', encoding='utf-8') as f:
                 config_data = json.load(f)
-                self._parse_config(config_data)
-            print("Configuration loaded successfully")
+                
+            # Validate configuration structure before parsing
+            if not self._validate_config_structure(config_data):
+                logging.error("Configuration structure validation failed")
+                return False
+                
+            self._parse_config(config_data)
+            logging.info("Configuration loaded successfully")
             return True
+            
         except FileNotFoundError:
-            print(f"File not found: {path}")
+            logging.error(f"File not found: {path}")
             return False
         except json.JSONDecodeError as e:
-            print(f"JSON parsing error in {path}: {str(e)}")
+            logging.error(f"JSON parsing error in {path}: {str(e)}")
+            return False
+        except PermissionError:
+            logging.error(f"Permission denied accessing configuration file: {path}")
             return False
         except KeyError as e:
-            print(f"Missing required key in configuration: {str(e)}")
+            logging.error(f"Missing required key in configuration: {str(e)}")
             return False
         except Exception as e:
-            print(f"Unexpected error loading configuration: {str(e)}")
+            logging.error(f"Unexpected error loading configuration: {str(e)}")
             return False
+    
+    def _validate_config_structure(self, config_data) -> bool:
+        """Validates the basic structure of configuration data"""
+        if config_data is None:
+            return False
+            
+        if isinstance(config_data, list):
+            # List format - check if it's empty or contains valid nodes
+            if not config_data:
+                return True  # Empty list is valid
+                
+            # Check first node to determine format
+            first_node = config_data[0]
+            if not isinstance(first_node, dict):
+                return False
+                
+            # Check for required fields in first node
+            if "name" not in first_node or "ip_address" not in first_node:
+                return False
+                
+            # Check tokens format if present
+            if "tokens" in first_node:
+                tokens = first_node["tokens"]
+                if not isinstance(tokens, list):
+                    return False
+                    
+                # Check first token structure
+                if tokens and not isinstance(tokens[0], dict):
+                    # This might be old format with string tokens
+                    pass
+                elif tokens:
+                    # Check required fields for token objects
+                    required_token_fields = {"token_type", "port"}
+                    first_token = tokens[0]
+                    if not all(field in first_token for field in required_token_fields):
+                        return False
+                        
+        elif isinstance(config_data, dict):
+            # Dict format - should have 'nodes' key
+            if "nodes" not in config_data:
+                return False
+            if not isinstance(config_data["nodes"], list):
+                return False
+                
+        else:
+            # Unsupported format
+            return False
+            
+        return True
             
     def _parse_config(self, config_data: dict):
         """Parses raw configuration into Node objects, supports multiple formats"""
         self.nodes.clear()  # Clear existing nodes
         
+        # Validate configuration data structure
+        if not config_data:
+            logging.warning("Empty configuration data provided")
+            return
+            
         # Check if this is the old format (array of nodes without nested tokens)
         # Check if this is the old format (array of nodes with string tokens arrays)
         if isinstance(config_data, list) and config_data:
@@ -88,63 +160,111 @@ class NodeManager:
             )
             
             if is_old_format:
-                print("Detected old format - converting to new format")
+                logging.info("Detected old format - converting to new format")
                 config_data = self._convert_old_format(config_data)
+        
+        # Ensure config_data is a list after format conversion
+        if not isinstance(config_data, list):
+            logging.error(f"Invalid configuration format after conversion: {type(config_data)}")
+            return
+            
+        processed_nodes = 0
+        skipped_nodes = 0
         
         for node_data in config_data:
             try:
-                # Skip entries that don't have required fields
-                if "name" not in node_data or "ip_address" not in node_data:
-                    print(f"Skipping invalid node entry: {node_data}")
+                # Validate node data structure
+                if not isinstance(node_data, dict):
+                    logging.warning(f"Skipping invalid node entry (not a dict): {node_data}")
+                    skipped_nodes += 1
                     continue
                     
+                if "name" not in node_data or "ip_address" not in node_data:
+                    logging.warning(f"Skipping invalid node entry (missing required fields): {node_data}")
+                    skipped_nodes += 1
+                    continue
+                    
+                # Validate node name and IP address
+                node_name = str(node_data["name"]).strip()
+                ip_address = str(node_data["ip_address"]).strip()
+                
+                if not node_name or not ip_address:
+                    logging.warning(f"Skipping node with empty name or IP address: {node_data}")
+                    skipped_nodes += 1
+                    continue
+                
                 node = Node(
-                    name=node_data["name"],
-                    ip_address=node_data["ip_address"]
+                    name=node_name,
+                    ip_address=ip_address
                 )
                 
+                # Process tokens with enhanced validation
                 tokens = node_data.get("tokens", [])
-                for token_data in node_data.get('tokens', []):
-                    token_id = token_data.get('token_id')
-                    if token_id is None:
-                        print(f"Warning: Skipping token with missing 'token_id' in node '{node_name}'.")
-                        continue
-                    
-                    # Ensure token_id is a string and strip whitespace
-                    token_id = str(token_id).strip()
-                    if not token_id:  # Check if empty after stripping
-                        print(f"Warning: Skipping token with empty 'token_id' in node '{node_name}'.")
-                        continue
-                        
-                    # Normalize FBC token IDs: pad numeric IDs with zeros, convert alphanumeric to uppercase
-                    if token_data["token_type"].upper() == "FBC":
-                        if token_id.isdigit():
-                            token_id = token_id.zfill(3)
-                        else:
-                            token_id = token_id.upper()
-
+                if not isinstance(tokens, list):
+                    logging.warning(f"Skipping invalid tokens format for node '{node_name}': {tokens}")
+                    tokens = []
+                
+                processed_tokens = 0
+                skipped_tokens = 0
+                
+                for token_data in tokens:
                     try:
-                        # Validate required fields exist
-                        if "token_type" not in token_data or "port" not in token_data:
-                            print(f"Skipping invalid token entry: {token_data}")
+                        # Validate token data structure
+                        if not isinstance(token_data, dict):
+                            logging.warning(f"Skipping invalid token entry (not a dict) in node '{node_name}': {token_data}")
+                            skipped_tokens += 1
                             continue
                             
-                        # Normalize token type to uppercase for consistent classification
-                        token_type = token_data["token_type"].upper()
+                        # Validate required fields exist
+                        if "token_type" not in token_data or "port" not in token_data:
+                            logging.warning(f"Skipping invalid token entry (missing required fields) in node '{node_name}': {token_data}")
+                            skipped_tokens += 1
+                            continue
+                            
+                        # Validate token type and port
+                        token_type = str(token_data["token_type"]).strip().upper()
+                        try:
+                            port = int(token_data["port"])
+                            if not (1 <= port <= 65535):
+                                logging.warning(f"Skipping token with invalid port {port} in node '{node_name}'")
+                                skipped_tokens += 1
+                                continue
+                        except (ValueError, TypeError):
+                            logging.warning(f"Skipping token with invalid port format in node '{node_name}': {token_data['port']}")
+                            skipped_tokens += 1
+                            continue
                         
-                        # Ensure token_id is string and exists
+                        # Get and process token_id
+                        token_id = token_data.get('token_id')
+                        if token_id is None:
+                            logging.warning(f"Skipping token with missing 'token_id' in node '{node_name}'")
+                            skipped_tokens += 1
+                            continue
+                            
                         token_id = str(token_id).strip()
                         if not token_id:
-                            print(f"Skipping token with empty 'token_id' in node '{node.name}'")
+                            logging.warning(f"Skipping token with empty 'token_id' in node '{node_name}'")
+                            skipped_tokens += 1
                             continue
-     
-                        
+                            
+                        # Use consistent token normalization from token_utils
+                        normalized_token_id = normalize_token(token_id)
+                        logging.debug(f"Normalized token: {token_id} -> {normalized_token_id}")
+                        token_id = normalized_token_id
+
+                        # Validate IP address if provided
+                        token_ip = token_data.get("ip_address", node.ip_address)
+                        if token_ip:
+                            token_ip = str(token_ip).strip()
+                            if not token_ip:
+                                token_ip = node.ip_address
+
                         token = NodeToken(
                             name=node.name,
                             token_id=token_id,
                             token_type=token_type,
-                            ip_address=token_data.get("ip_address", node.ip_address),
-                            port=token_data["port"],
+                            ip_address=token_ip,
+                            port=port,
                             protocol=token_data.get("protocol", "telnet")
                         )
                         # Generate log path with formatted IP
@@ -156,12 +276,19 @@ class NodeManager:
                         )
                         
                         node.add_token(token)
+                        processed_tokens += 1
                     except Exception as e:
-                        print(f"Error processing token: {str(e)}")
+                        logging.error(f"Error processing token in node '{node_name}': {str(e)}")
+                        skipped_tokens += 1
                 
+                logging.info(f"Processed node '{node_name}': {processed_tokens} tokens, {skipped_tokens} skipped")
                 self.nodes[node.name] = node
+                processed_nodes += 1
             except Exception as e:
-                print(f"Error processing node: {str(e)}")
+                logging.error(f"Error processing node: {str(e)}")
+                skipped_nodes += 1
+        
+        logging.info(f"Configuration parsing complete: {processed_nodes} nodes processed, {skipped_nodes} nodes skipped")
                 
     def _convert_old_format(self, old_config: list) -> list:
         """Converts old configuration format to new format"""
@@ -180,8 +307,10 @@ class NodeManager:
                 # Get token type
                 token_type = token_types[i] if i < len(token_types) else 'UNKNOWN'
                 
+                # Use consistent token normalization
+                normalized_token_id = normalize_token(str(token_id))
                 tokens.append({
-                    "token_id": str(token_id),
+                    "token_id": normalized_token_id,
                     "token_type": token_type,
                     "port": 23  # Default port
                 })
@@ -495,9 +624,11 @@ class NodeManager:
         )
         
         for token_data in node_data["tokens"]:
+            # Use consistent token normalization
+            normalized_token_id = normalize_token(token_data["token_id"])
             token = NodeToken(
-                name=f"{node.name} {token_data['token_id']}",
-                token_id=token_data["token_id"],
+                name=f"{node.name} {normalized_token_id}",
+                token_id=normalized_token_id,
                 token_type=token_data["token_type"],
                 ip_address=token_data.get("ip_address", node.ip_address),
                 port=token_data["port"],
@@ -527,7 +658,7 @@ class NodeManager:
             
             for token in node.tokens.values():
                 token_data = {
-                    "token_id": token.token_id,
+                    "token_id": token.token_id,  # Already normalized when created
                     "token_type": token.token_type,
                     "ip_address": token.ip_address,
                     "port": token.port,

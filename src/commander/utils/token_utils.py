@@ -6,7 +6,6 @@ import logging
 from functools import lru_cache
 from typing import Optional, Pattern, Union
 from ..constants import TOKEN_PATTERN
-from ..node_manager import NodeManager
 
 
 class TokenValidator:
@@ -20,6 +19,7 @@ class TokenValidator:
     def normalize_token(self, token: str) -> str:
         """
         Normalize a token string with caching for performance.
+        Special handling for FBC tokens to maintain compatibility with existing behavior.
         
         Args:
             token: Raw token string to normalize
@@ -33,10 +33,17 @@ class TokenValidator:
         # Remove any whitespace
         token = token.strip()
         
-        # Convert to lowercase for consistency
-        token = token.lower()
+        # Check if this is an FBC token and apply special normalization
+        if self.is_fbc_token(token):
+            # For FBC tokens: pad numeric IDs with zeros, convert alphanumeric to uppercase
+            if token.isdigit():
+                token = token.zfill(3)
+            else:
+                token = token.upper()
+            return token
         
-        # Remove any non-alphanumeric characters except allowed ones
+        # For non-FBC tokens: convert to lowercase and remove non-alphanumeric
+        token = token.lower()
         token = re.sub(r'[^a-z0-9]', '', token)
         
         # For numeric tokens, pad with leading zeros to make it 3 digits
@@ -92,23 +99,32 @@ class TokenValidator:
         # RPC tokens are alphanumeric
         return bool(re.match(r'^[a-z0-9]+$', token)) and not self.is_fbc_token(token)
 
-    def validate_token_node(self, token, node_manager: NodeManager) -> bool:
+    def validate_token_node(self, token, node_name: str = None) -> bool:
         """
-        Validate that a token's node exists in the node manager.
+        Validate that a token's node information is valid.
         
         Args:
             token: NodeToken to validate
-            node_manager: NodeManager instance to check against
+            node_name: Optional node name to validate against
             
         Returns:
-            bool: True if node exists, False otherwise
+            bool: True if node information is valid, False otherwise
         """
-        # CG-NODE: LOG-INIT-001
-        if not node_manager.get_node(token.ip_address):
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Invalid node for token {token.token_id}")
+        # Validate token has required attributes
+        if not hasattr(token, 'ip_address') or not hasattr(token, 'token_id'):
+            logging.error(f"Token missing required attributes: {token}")
             return False
+            
+        # Validate IP address format
+        if not token.ip_address or not isinstance(token.ip_address, str):
+            logging.error(f"Invalid IP address for token {token.token_id}: {token.ip_address}")
+            return False
+            
+        # Validate node name if provided
+        if node_name and hasattr(token, 'name') and token.name != node_name:
+            logging.error(f"Token node name mismatch: expected {node_name}, got {token.name}")
+            return False
+            
         return True
 
 
@@ -226,18 +242,18 @@ def is_rpc_token(token: str) -> bool:
     return token_validator.is_rpc_token(token)
 
 
-def validate_token_node(token, node_manager: NodeManager) -> bool:
+def validate_token_node(token, node_name: str = None) -> bool:
     """
-    Validate that a token's node exists in the node manager.
+    Validate that a token's node information is valid.
     
     Args:
         token: NodeToken to validate
-        node_manager: NodeManager instance to check against
+        node_name: Optional node name to validate against
         
     Returns:
-        bool: True if node exists, False otherwise
+        bool: True if node information is valid, False otherwise
     """
-    return token_validator.validate_token_node(token, node_manager)
+    return token_validator.validate_token_node(token, node_name)
 
 
 def is_token_processing_allowed() -> bool:

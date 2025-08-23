@@ -24,6 +24,7 @@ except ImportError as e:
 from .context_menu_filter import ContextMenuFilterService
 from ..models import NodeToken
 from ..node_manager import NodeManager
+from ..utils.token_utils import normalize_token, is_fbc_token, is_rpc_token
 
 
 class ContextMenuService:
@@ -110,6 +111,26 @@ class ContextMenuService:
                         )
                 menu.addAction(print_action)
                 added_actions = True
+
+                # Add individual token actions for FBC subgroups
+                if section_type == "FBC":
+                    logging.debug(f"Adding individual FBC token actions for {len(tokens)} tokens")
+                    for token in tokens:
+                        if self.context_menu_filter.should_show_command(
+                            node_name=node_name,
+                            section_type=section_type,
+                            command_type="all",
+                            command_category="token"
+                        ):
+                            token_str = str(token.token_id)
+                            logging.debug(f"Adding individual FBC token action for token {token_str}")
+                            action = QAction(f"Print FieldBus Structure (Token {token_str})", menu)
+                            action.triggered.connect(
+                                lambda _, n=node_name, t=token.token_id: self._handle_fbc_token_action(n, t)
+                            )
+                            menu.addAction(action)
+                            added_actions = True
+                    logging.debug(f"Added {len([a for a in menu.actions() if 'Token' in a.text()])} individual FBC token actions")
 
         # Handle token items (individual token files)
         elif item_data and isinstance(item_data, dict) and 'token' in item_data:
@@ -243,9 +264,13 @@ class ContextMenuService:
             node_name: Name of the node
             token_id: ID of the token
         """
+        # Normalize token ID using consistent utility function
+        normalized_token_id = normalize_token(token_id)
+        logging.debug(f"Normalized FBC token: {token_id} -> {normalized_token_id}")
+        
         if self.presenter:
             # Use presenter method instead of window method
-            self.presenter.process_fieldbus_command(token_id, node_name)
+            self.presenter.process_fieldbus_command(normalized_token_id, node_name)
 
     def _handle_rpc_token_action(self, node_name: str, token_id: str, action_type: str) -> None:
         """
@@ -256,10 +281,14 @@ class ContextMenuService:
             token_id: ID of the token
             action_type: Type of action (print, clear)
         """
+        # Normalize token ID using consistent utility function
+        normalized_token_id = normalize_token(token_id)
+        logging.debug(f"Normalized RPC token: {token_id} -> {normalized_token_id}")
+        
         if self.presenter:
             # Use presenter method instead of window method
-            token_part = token_id.split('_')[-1] if '_' in token_id else token_id
-            self.presenter.process_rpc_command(node_name, token_id, action_type)
+            token_part = normalized_token_id.split('_')[-1] if '_' in normalized_token_id else normalized_token_id
+            self.presenter.process_rpc_command(node_name, normalized_token_id, action_type)
 
     def get_node_tokens(self, node_name: str, token_type: str) -> List[NodeToken]:
         """
@@ -274,7 +303,9 @@ class ContextMenuService:
         if not node:
             return []
 
-        return [t for t in node.tokens.values() if t.token_type == token_type]
+        # Use consistent token type normalization
+        normalized_token_type = token_type.upper()
+        return [t for t in node.tokens.values() if t.token_type == normalized_token_type]
 
     def validate_node_structure(self, item_data: Dict[str, Any]) -> Optional[str]:
         """
