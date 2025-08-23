@@ -1,0 +1,133 @@
+# OpenRouter Free LLM Model Configuration for MCP Ecosystem
+# Rate limit distribution strategy using different models per mode
+
+openrouter_models:
+  # Primary model assignments per MCP mode
+  primary_models:
+    mcp-orchestrator:
+      model: "deepseek/deepseek-r1:free"
+      rationale: "R1 reasoning chain for task decomposition and delegation"
+      output_format: "JSON checkpointed responses for orchestration tracking"
+      
+    mcp-analyze: 
+      model: "qwen/qwen3-coder:free"
+      rationale: "Long context window for repo-scale analysis, strong tool integration"
+      specialization: "Code/docs/web analysis with read-only operations"
+      
+    mcp-code:
+      model: "deepseek/deepseek-chat-v3-0324:free"
+      rationale: "Reliable code generation and diff creation"
+      specialization: "Implementation and code modifications"
+      
+    mcp-debug:
+      model: "microsoft/mai-ds-r1:free" 
+      rationale: "R1-style stepwise hypothesis→probe debugging loops"
+      specialization: "Systematic issue investigation and resolution"
+      
+    mcp-test:
+      model: "z-ai/glm-4.5-air:free"
+      rationale: "Deterministic JSON checklists, minimal reasoning variance"
+      specialization: "Quality control gate with consistent validation"
+      reasoning_mode: "OFF" # if supported for deterministic outputs
+      
+    mcp-architect:
+      model: "qwen/qwen3-235b-a22b:free"
+      rationale: "Fluent long-form documentation and strategic planning"
+      specialization: "ADRs, blueprints, and system design"
+
+  # Fallback chains for rate limit resilience
+  fallback_chains:
+    mcp-orchestrator:
+      - "qwen/qwen3-235b-a22b:free"
+      - "deepseek/deepseek-chat-v3-0324:free"
+      
+    mcp-analyze:
+      - "deepseek/deepseek-chat-v3-0324:free" 
+      - "qwen/qwen3-235b-a22b:free"
+      
+    mcp-code:
+      - "qwen/qwen3-coder:free"
+      - "qwen/qwen3-235b-a22b:free"
+      
+    mcp-debug:
+      - "deepseek/deepseek-r1:free"
+      - "tngtech/deepseek-r1t2-chimera:free"
+      
+    mcp-test:
+      - "qwen/qwen3-235b-a22b:free"
+      - "deepseek/deepseek-chat-v3-0324:free"
+      - "tngtech/deepseek-r1t2-chimera:free"
+      
+    mcp-architect:
+      - "deepseek/deepseek-chat-v3-0324:free"
+      - "qwen/qwen3-coder:free"
+
+  # Rate limiting strategy  
+  rate_limit_management:
+    strategy: "round_robin_with_fallback"
+    cooldown_period: 60 # seconds before retrying primary model
+    max_retries: 3
+    backup_behavior: "fallback_chain"
+    
+  # Model-specific optimizations
+  model_optimizations:
+    "deepseek/deepseek-r1:free":
+      temperature: 0.1
+      max_tokens: 4096
+      format_enforcement: "JSON for orchestration responses"
+      
+    "qwen/qwen3-coder:free":
+      temperature: 0.2
+      max_tokens: 8192
+      context_strategy: "prioritize_code_context"
+      
+    "deepseek/deepseek-chat-v3-0324:free":
+      temperature: 0.1
+      max_tokens: 4096
+      diff_optimization: true
+      
+    "microsoft/mai-ds-r1:free":
+      temperature: 0.1
+      reasoning_chain: "explicit_steps"
+      hypothesis_tracking: true
+      
+    "z-ai/glm-4.5-air:free":
+      temperature: 0.0
+      max_tokens: 2048
+      deterministic_mode: true
+      
+    "qwen/qwen3-235b-a22b:free":
+      temperature: 0.3
+      max_tokens: 8192
+      documentation_optimization: true
+
+# Integration with existing MCP ecosystem
+mcp_integration:
+  session_process_alignment:
+    SESSION_START: "Load via mcp-orchestrator → deepseek-r1"
+    PLANNING_PHASE: "Delegate to mcp-architect → qwen3-235b"  
+    EXECUTION_PHASE: "Route to mcp-code → deepseek-chat-v3"
+    RESEARCH_PHASE: "Use mcp-analyze → qwen3-coder"
+    SESSION_END: "Orchestrate storage via mcp-orchestrator"
+    
+  workflow_process_mapping:
+    PLAN: "mcp-architect → qwen3-235b"
+    REMEMBER: "mcp-orchestrator → deepseek-r1 (memory servers)"
+    COORDINATE: "mcp-orchestrator → deepseek-r1 (delegation)"
+    EXECUTE: "mcp-code → deepseek-chat-v3"
+    TEST: "mcp-test → glm-4.5-air" 
+    LEARN: "mcp-orchestrator → deepseek-r1 (memory optimization)"
+
+# Usage monitoring and optimization
+usage_tracking:
+  metrics_to_track:
+    - "requests_per_model_per_hour"
+    - "fallback_usage_frequency" 
+    - "rate_limit_hit_count"
+    - "response_quality_by_model"
+    - "cost_efficiency_analysis"
+    
+  optimization_triggers:
+    - "Adjust model assignment if fallbacks exceed 20%"
+    - "Rotate primary models weekly for even usage distribution"
+    - "Monitor response quality and adjust temperature settings"
